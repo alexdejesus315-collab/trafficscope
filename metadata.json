@@ -1,0 +1,6 @@
+{
+  "name": "TrafficScope",
+  "description": "Plataforma SaaS de Inteligência Competitiva Web e Análise de Tráfego de Domínios com IA",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
