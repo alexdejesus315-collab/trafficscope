@@ -1,10 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AiAnalysisReport, DomainMetrics } from '../types/domain';
-import { Sparkles, TrendingUp, Lightbulb, Target, Bot, Send, RefreshCw } from 'lucide-react';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { Card } from '@/components/ui/card';
+import { RefreshCw, ArrowUp, X, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
 interface AiInsightsModalProps {
@@ -17,6 +14,103 @@ interface AiInsightsModalProps {
   isAiLoading: boolean;
 }
 
+type ChatMsg =
+  | { sender: 'user'; kind: 'text'; text: string }
+  | { sender: 'ai'; kind: 'text'; text: string }
+  | { sender: 'ai'; kind: 'report'; domain: string; metrics: DomainMetrics; report: AiAnalysisReport };
+
+const MAX_LINE_CHARS = 90;
+const MAX_REPLY_CHARS = 220;
+
+// Remove markdown (**negrito**, *itálico*, `código`, #títulos, listas, tabelas) —
+// o chat mostra texto simples, não deve renderizar símbolos crus.
+function cleanText(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/__(.*?)__/g, '$1')
+    .replace(/_(.*?)_/g, '$1')
+    .replace(/`{1,3}([^`]*)`{1,3}/g, '$1')
+    .replace(/^#{1,6}\s*/gm, '')
+    .replace(/^[-*]\s+/gm, '')
+    // Linhas separadoras de tabela markdown, ex: |---|---|--- ou ---|---
+    .replace(/^\s*\|?[\s:-]+\|[\s:|-]+$/gm, ' ')
+    // Pipes de tabela → vírgula, para o conteúdo ficar legível em texto corrido
+    .replace(/\s*\|\s*/g, ', ')
+    .replace(/\n{2,}/g, ' ')
+    .replace(/\n/g, ' ')
+    .replace(/,\s*,/g, ',')
+    .replace(/^\s*,\s*|\s*,\s*$/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+// Corta por nº de caracteres (não por frases) — cortar por "." parte
+// domínios como "facebook.com" a meio.
+function truncate(text: string, max = MAX_LINE_CHARS): string {
+  const clean = cleanText(text);
+  if (clean.length <= max) return clean;
+  return clean.slice(0, max).replace(/\s+\S*$/, '') + '…';
+}
+
+const DOT = {
+  action: 'bg-foreground',
+  opportunity: 'bg-emerald-500',
+  risk: 'bg-rose-500'
+} as const;
+
+// Avatar do bot no chat — identidade do TrafficScope, igual ao ícone do Navbar.
+function BotAvatar() {
+  return (
+    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border bg-background">
+      <Activity className="h-3.5 w-3.5 text-foreground" />
+    </div>
+  );
+}
+
+// Avatar da marca analisada — só aparece na primeira mensagem (o relatório),
+// para destacar de quem é a análise dentro da conversa.
+function SiteAvatar({ domain }: { domain: string }) {
+  return (
+    <img
+      src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+      alt={domain}
+      className="h-6 w-6 shrink-0 rounded-full border border-border bg-background object-contain"
+    />
+  );
+}
+
+function ReportBubble({ domain, metrics, report }: { domain: string; metrics: DomainMetrics; report: AiAnalysisReport }) {
+  return (
+    <div className="max-w-full space-y-2 text-sm text-foreground">
+      <p className="leading-6">
+        <span className="font-semibold">{domain}</span>: {metrics.monthlyVisits.toLocaleString()} visitas/mês,{' '}
+        {metrics.growthRate.toFixed(1)}% crescimento. {truncate(report.summary, 140)}
+      </p>
+
+      {report.strategicActions?.[0] && (
+        <div className="flex items-start gap-2 leading-6">
+          <span className={cn('mt-2 h-1.5 w-1.5 shrink-0 rounded-full', DOT.action)} />
+          <span>{truncate(report.strategicActions[0])}</span>
+        </div>
+      )}
+      {report.opportunities?.[0] && (
+        <div className="flex items-start gap-2 leading-6">
+          <span className={cn('mt-2 h-1.5 w-1.5 shrink-0 rounded-full', DOT.opportunity)} />
+          <span>{truncate(report.opportunities[0])}</span>
+        </div>
+      )}
+      {report.threatsAndRisks?.[0] && (
+        <div className="flex items-start gap-2 leading-6">
+          <span className={cn('mt-2 h-1.5 w-1.5 shrink-0 rounded-full', DOT.risk)} />
+          <span>{truncate(report.threatsAndRisks[0])}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export const AiInsightsModal: React.FC<AiInsightsModalProps> = ({
   domain,
   metrics,
@@ -26,21 +120,37 @@ export const AiInsightsModal: React.FC<AiInsightsModalProps> = ({
   onReanalyze,
   isAiLoading
 }) => {
-  const [chatMessages, setChatMessages] = useState<Array<{ sender: 'user' | 'ai'; text: string }>>([
-    {
-      sender: 'ai',
-      text: `Olá! Sou o Copilot de Inteligência Competitiva da TrafficScope. Posso ajudar você a analisar gargalos de conversão, comparar com concorrentes e sugerir ações de SEO para ${domain}. Qual a sua pergunta?`
-    }
-  ]);
+  const [chatMessages, setChatMessages] = useState<ChatMsg[]>([]);
   const [inputQuestion, setInputQuestion] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const lastReportKey = useRef<string>('');
 
-  const handleSendChat = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputQuestion.trim() || isSending) return;
+  useEffect(() => {
+    if (!aiReport) return;
+    const key = `${domain}:${aiReport.summary}`;
+    if (key === lastReportKey.current) return;
+    lastReportKey.current = key;
+    setChatMessages([{ sender: 'ai', kind: 'report', domain, metrics, report: aiReport }]);
+  }, [aiReport, domain, metrics]);
 
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+  }, [chatMessages, isSending]);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 160)}px`;
+    }
+  }, [inputQuestion]);
+
+  const sendMessage = async () => {
     const userText = inputQuestion.trim();
-    setChatMessages((prev) => [...prev, { sender: 'user', text: userText }]);
+    if (!userText || isSending) return;
+
+    setChatMessages((prev) => [...prev, { sender: 'user', kind: 'text', text: userText }]);
     setInputQuestion('');
     setIsSending(true);
 
@@ -56,234 +166,120 @@ export const AiInsightsModal: React.FC<AiInsightsModalProps> = ({
       });
 
       const data = await res.json();
-      setChatMessages((prev) => [
-        ...prev,
-        { sender: 'ai', text: data.reply || 'Não foi possível obter resposta no momento.' }
-      ]);
+
+      if (!res.ok) {
+        const errorText = data?.error || 'Não foi possível processar o pedido agora.';
+        setChatMessages((prev) => [...prev, { sender: 'ai', kind: 'text', text: errorText }]);
+        return;
+      }
+
+      const reply = truncate(data.reply || 'Sem resposta no momento.', MAX_REPLY_CHARS);
+      setChatMessages((prev) => [...prev, { sender: 'ai', kind: 'text', text: reply }]);
     } catch (err) {
       setChatMessages((prev) => [
         ...prev,
-        { sender: 'ai', text: 'Ocorreu um erro ao conectar ao serviço de IA.' }
+        { sender: 'ai', kind: 'text', text: 'Erro ao conectar ao serviço de IA.' }
       ]);
     } finally {
       setIsSending(false);
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-4xl max-h-[92vh] overflow-y-auto">
-        <DialogTitle className="sr-only">Insights de IA para {domain}</DialogTitle>
-        <div className="space-y-6">
-          <div className="rounded-2xl border border-border bg-background p-6 shadow-2xs">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-700 dark:text-amber-400">
-                  <Sparkles className="h-4 w-4" />
-                  Relatório Executivo IA
+    <div
+      className={cn(
+        'fixed inset-y-0 right-0 z-50 flex w-full flex-col border-l border-border bg-background shadow-2xl transition-transform duration-300 ease-out sm:w-1/2',
+        isOpen ? 'translate-x-0' : 'translate-x-full pointer-events-none'
+      )}
+    >
+      {/* Header — identidade fixa do TrafficScope, não depende do domínio analisado */}
+      <div className="flex items-center justify-between px-4 py-3 shrink-0">
+        <div className="flex items-center gap-2 min-w-0">
+          <Activity className="h-4 w-4 text-foreground shrink-0" />
+          <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-foreground truncate">TrafficScope</h2>
+        </div>
+        <div className="flex items-center gap-1">
+          <Button
+            onClick={onReanalyze}
+            disabled={isAiLoading}
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            title="Atualizar análise"
+          >
+            <RefreshCw className={cn('h-4 w-4', isAiLoading && 'animate-spin')} />
+          </Button>
+          <Button onClick={onClose} variant="ghost" size="icon" className="h-8 w-8" title="Fechar">
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4">
+        <div className="mx-auto max-w-2xl space-y-4 py-4">
+          {chatMessages.map((msg, index) => {
+            if (msg.kind === 'report') {
+              return (
+                <div key={index} className="flex items-start gap-2">
+                  <SiteAvatar domain={msg.domain} />
+                  <ReportBubble domain={msg.domain} metrics={msg.metrics} report={msg.report} />
                 </div>
-                <div className="space-y-1">
-                  <h2 className="text-2xl font-bold text-foreground">{domain}</h2>
-                  <p className="text-sm text-muted-foreground max-w-2xl">
-                    Insights automatizados e recomendações estratégicas para melhorar tráfego, conversão e competitividade do seu website.
-                  </p>
+              );
+            }
+            return (
+              <div key={index} className={cn('flex items-start gap-2', msg.sender === 'user' && 'justify-end')}>
+                {msg.sender === 'ai' && <BotAvatar />}
+                <div
+                  className={cn(
+                    'text-sm text-foreground leading-6',
+                    msg.sender === 'user' ? 'max-w-[80%] rounded-3xl bg-muted px-4 py-2.5' : 'max-w-full'
+                  )}
+                >
+                  {msg.text}
                 </div>
               </div>
-              <Button
-                onClick={onReanalyze}
-                disabled={isAiLoading}
-                variant="outline"
-                size="sm"
-                className="gap-2"
-              >
-                <RefreshCw className={cn('h-3.5 w-3.5', isAiLoading && 'animate-spin')} />
-                Atualizar Análise
-              </Button>
-            </div>
-
-            <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-5">
-              <div className="rounded-xl border border-border bg-muted/70 p-4 text-center">
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Visitas</p>
-                <p className="mt-2 text-xl font-bold text-foreground">{metrics.monthlyVisits.toLocaleString()}</p>
-              </div>
-              <div className="rounded-xl border border-border bg-muted/70 p-4 text-center">
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Crescimento</p>
-                <p className="mt-2 text-xl font-bold text-foreground">{metrics.growthRate.toFixed(1)}%</p>
-              </div>
-              <div className="rounded-xl border border-border bg-muted/70 p-4 text-center">
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Duração</p>
-                <p className="mt-2 text-xl font-bold text-foreground">{metrics.avgVisitDuration}</p>
-              </div>
-              <div className="rounded-xl border border-border bg-muted/70 p-4 text-center">
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Páginas / sessão</p>
-                <p className="mt-2 text-xl font-bold text-foreground">{metrics.pagesPerVisit}</p>
-              </div>
-              <div className="rounded-xl border border-border bg-muted/70 p-4 text-center">
-                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Bounce Rate</p>
-                <p className="mt-2 text-xl font-bold text-foreground">{metrics.bounceRate}%</p>
-              </div>
-            </div>
-          </div>
-
-          {aiReport && (
-            <div className="grid gap-4 xl:grid-cols-[1.4fr_0.9fr]">
-              <div className="space-y-4">
-                <Card className="p-6 bg-muted/50 border border-border">
-                  <div className="flex items-start gap-3">
-                    <div className="rounded-xl bg-amber-500/10 p-3 text-amber-700 dark:text-amber-400">
-                      <Sparkles className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                        Resumo Executivo
-                      </p>
-                      <h3 className="mt-2 text-lg font-semibold text-foreground">Principais conclusões para {domain}</h3>
-                    </div>
-                  </div>
-                  <p className="mt-4 text-sm leading-7 text-muted-foreground">
-                    {aiReport.summary}
-                  </p>
-                </Card>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Card className="p-5 border border-border">
-                    <h4 className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-400">Alavancas de Crescimento</h4>
-                    <ul className="mt-4 space-y-3 text-sm text-foreground">
-                      {aiReport.growthDrivers?.map((driver, idx) => (
-                        <li key={idx} className="flex items-start gap-3">
-                          <span className="mt-1 text-emerald-600 dark:text-emerald-400">•</span>
-                          <span>{driver}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </Card>
-                  <Card className="p-5 border border-border">
-                    <h4 className="text-xs font-bold uppercase tracking-[0.18em] text-amber-600 dark:text-amber-400">Oportunidades de Mercado</h4>
-                    <ul className="mt-4 space-y-3 text-sm text-foreground">
-                      {aiReport.opportunities?.map((opp, idx) => (
-                        <li key={idx} className="flex items-start gap-3">
-                          <span className="mt-1 text-amber-600 dark:text-amber-400">•</span>
-                          <span>{opp}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </Card>
-                </div>
-
-                <Card className="p-5 border border-border">
-                  <h4 className="text-xs font-bold uppercase tracking-[0.18em] text-foreground">Riscos & Ameaças</h4>
-                  <ul className="mt-4 space-y-3 text-sm text-foreground">
-                    {aiReport.threatsAndRisks?.map((risk, idx) => (
-                      <li key={idx} className="flex items-start gap-3">
-                        <span className="mt-1 text-rose-500 dark:text-rose-400">•</span>
-                        <span>{risk}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </Card>
-              </div>
-
-              <div className="space-y-4">
-                <Card className="p-5 border border-border">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground">Ações Recomendadas</p>
-                      <p className="mt-1 text-sm text-muted-foreground">Tarefas para melhorar performance nos próximos 30 dias.</p>
-                    </div>
-                    <Target className="h-5 w-5 text-foreground" />
-                  </div>
-                  <ul className="mt-4 space-y-3 text-sm text-foreground">
-                    {aiReport.strategicActions?.map((action, idx) => (
-                      <li key={idx} className="flex items-start gap-3">
-                        <span className="mt-1 text-foreground font-bold">•</span>
-                        <span>{action}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </Card>
-
-                <Card className="p-5 border border-border">
-                  <h4 className="text-xs font-bold uppercase tracking-[0.18em] text-foreground">Previsão de Crescimento</h4>
-                  <div className="mt-4 grid gap-3 text-sm">
-                    <div className="rounded-xl border border-border bg-background p-4">
-                      <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">Cenário Otimista</p>
-                      <p className="mt-3 text-xl font-semibold text-emerald-600 dark:text-emerald-400">
-                        {aiReport.forecast3Months?.optimistic ? `+${(aiReport.forecast3Months.optimistic / 1000000).toFixed(1)}M` : 'N/A'}
-                      </p>
-                      <p className="mt-2 text-xs text-muted-foreground">impacto esperado se as melhorias forem aplicadas</p>
-                    </div>
-                    <div className="rounded-xl border border-border bg-background p-4">
-                      <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">Cenário Base</p>
-                      <p className="mt-3 text-xl font-semibold text-foreground">
-                        {aiReport.forecast3Months?.baseline ? `${(aiReport.forecast3Months.baseline / 1000000).toFixed(1)}M` : 'N/A'}
-                      </p>
-                      <p className="mt-2 text-xs text-muted-foreground">projeção conservadora</p>
-                    </div>
-                    <div className="rounded-xl border border-border bg-background p-4">
-                      <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">Cenário Pessimista</p>
-                      <p className="mt-3 text-xl font-semibold text-rose-600 dark:text-rose-400">
-                        {aiReport.forecast3Months?.pessimistic ? `-${(aiReport.forecast3Months.pessimistic / 1000000).toFixed(1)}M` : 'N/A'}
-                      </p>
-                      <p className="mt-2 text-xs text-muted-foreground">queda esperada sem ação rápida</p>
-                    </div>
-                  </div>
-                </Card>
-              </div>
+            );
+          })}
+          {isSending && (
+            <div className="flex items-start gap-2">
+              <BotAvatar />
+              <div className="text-sm text-muted-foreground">A escrever…</div>
             </div>
           )}
-
-          <Card className="p-6 border border-border">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">Copilot de IA</p>
-                <h3 className="mt-2 text-lg font-semibold text-foreground">Pergunte sobre seus dados e estratégias</h3>
-              </div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
-                <Bot className="h-4 w-4" />
-                Conversação Inteligente
-              </div>
-            </div>
-
-            <div className="mt-6 flex flex-col gap-4">
-              <div className="max-h-[34rem] overflow-y-auto rounded-xl border border-border bg-muted/80 p-4">
-                <div className="space-y-4">
-                  {chatMessages.map((msg, index) => (
-                    <div key={index} className={cn('flex', msg.sender === 'user' ? 'justify-end' : 'justify-start')}>
-                      <div className={cn(
-                        'max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-6 shadow-2xs',
-                        msg.sender === 'user'
-                          ? 'bg-foreground text-background rounded-br-[6px]'
-                          : 'bg-background text-foreground rounded-bl-[6px] border border-border'
-                      )}>
-                        {msg.text}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <form onSubmit={handleSendChat} className="flex flex-col gap-3 sm:flex-row">
-                <Input
-                  type="text"
-                  value={inputQuestion}
-                  onChange={(e) => setInputQuestion(e.target.value)}
-                  placeholder="Pergunte algo sobre o desempenho ou concorrência deste site..."
-                  className="flex-1"
-                />
-                <Button
-                  type="submit"
-                  disabled={isSending || !inputQuestion.trim()}
-                  size="sm"
-                  className="w-full gap-2 sm:w-auto"
-                >
-                  <Send className="h-3.5 w-3.5" />
-                  Enviar
-                </Button>
-              </form>
-            </div>
-          </Card>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+
+      {/* Input */}
+      <div className="px-4 pb-4 pt-2 shrink-0">
+        <div className="mx-auto flex max-w-2xl items-end gap-2 rounded-3xl border border-border bg-background px-4 py-2.5 focus-within:ring-1 focus-within:ring-ring">
+          <textarea
+  ref={textareaRef}
+  rows={1}
+  value={inputQuestion}
+  onChange={(e) => setInputQuestion(e.target.value)}
+  onKeyDown={handleKeyDown}
+  placeholder="Pergunte sobre este domínio…"
+  spellCheck={false}
+  className="flex-1 resize-none bg-transparent text-sm leading-6 outline-none placeholder:text-muted-foreground max-h-40"
+/>
+          <Button
+            onClick={sendMessage}
+            disabled={isSending || !inputQuestion.trim()}
+            size="icon"
+            className="h-8 w-8 rounded-full shrink-0"
+          >
+            <ArrowUp className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 };

@@ -2,7 +2,7 @@ import "dotenv/config";
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenAI, Type } from "@google/genai";
+import Groq from "groq-sdk";
 import { getOrGenerateDomainData } from "./src/data/mockDomains";
 import rateLimit from "express-rate-limit";
 import { Paddle, EventName } from '@paddle/paddle-node-sdk';
@@ -277,14 +277,9 @@ app.post(
 
   app.use(express.json());
 
-  // Initialize Gemini AI Client Server-Side
-  const ai = new GoogleGenAI({
-    apiKey: process.env.GEMINI_API_KEY || "",
-    httpOptions: {
-      headers: {
-        'User-Agent': 'aistudio-build',
-      }
-    }
+  // Initialize Groq AI Client Server-Side
+  const groq = new Groq({
+    apiKey: process.env.GROQ_API_KEY || "",
   });
 
   // Health check endpoint
@@ -399,7 +394,7 @@ app.post(
     }
   });
 
-  // AI Analysis Endpoint using Gemini 3.6 Flash
+  // AI Analysis Endpoint using Groq (openai/gpt-oss-120b)
   app.post("/api/ai/analyze", async (req, res) => {
     try {
       const { domain, metrics } = req.body;
@@ -452,7 +447,7 @@ app.post(
         }
       }
 
-      if (!process.env.GEMINI_API_KEY) {
+      if (!process.env.GROQ_API_KEY) {
         return res.json({
           success: true,
           aiReport: {
@@ -494,55 +489,51 @@ Analise os seguintes dados do website "${domain}":
 - Fontes de Tráfego: ${JSON.stringify(metrics.trafficSources)}
 - Top Países: ${JSON.stringify(metrics.countryTraffic)}
 
-Forneça uma análise estratégica completa e estruturada em Português.
+Forneça uma análise estratégica completa em Português, respondendo APENAS com um objeto JSON válido no seguinte formato exato, sem texto antes ou depois:
+{
+  "summary": "resumo executivo de 2 a 3 frases com principais conclusões de tráfego e comportamento",
+  "growthDrivers": ["impulsionador 1", "impulsionador 2", "impulsionador 3"],
+  "threatsAndRisks": ["risco 1", "risco 2"],
+  "opportunities": ["oportunidade 1", "oportunidade 2", "oportunidade 3"],
+  "strategicActions": ["ação 1", "ação 2"],
+  "forecast3Months": {
+    "optimistic": numero,
+    "baseline": numero,
+    "pessimistic": numero,
+    "comment": "comentário sobre a previsão"
+  }
+}
 `;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3.6-flash",
-        contents: prompt,
-        config: {
-          systemInstruction: "Você é o assistente executivo de Inteligência Competitiva da plataforma TrafficScope. Responda em Português com tom profissional, preciso e acionável.",
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              summary: { type: Type.STRING, description: "Resumo executivo de 2 a 3 frases com principais conclusões de tráfego e comportamento." },
-              growthDrivers: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Lista de 3 impulsionadores de crescimento do site." },
-              threatsAndRisks: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Lista de 2 riscos ou ameaças competitivas identificadas." },
-              opportunities: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Lista de 2 a 3 oportunidades de expansão de tráfego não exploradas." },
-              strategicActions: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Recomendações táticas acionáveis para a equipe." },
-              forecast3Months: {
-                type: Type.OBJECT,
-                properties: {
-                  optimistic: { type: Type.NUMBER },
-                  baseline: { type: Type.NUMBER },
-                  pessimistic: { type: Type.NUMBER },
-                  comment: { type: Type.STRING }
-                },
-                required: ["optimistic", "baseline", "pessimistic", "comment"]
-              }
-            },
-            required: ["summary", "growthDrivers", "threatsAndRisks", "opportunities", "strategicActions", "forecast3Months"]
-          }
-        }
+      const response = await groq.chat.completions.create({
+        model: "openai/gpt-oss-120b",
+        response_format: { type: "json_object" },
+        reasoning_effort: "low",
+        messages: [
+          {
+            role: "system",
+            content: "Você é o assistente executivo de Inteligência Competitiva da plataforma TrafficScope. Responda em Português com tom profissional, preciso e acionável. Responda SEMPRE apenas com JSON válido, sem texto adicional, sem markdown dentro dos valores de texto (nada de tabelas, pipes, asteriscos ou cabeçalhos dentro das strings)."
+          },
+          { role: "user", content: prompt }
+        ]
       });
 
-      const responseText = response.text || "{}";
+      const responseText = response.choices[0]?.message?.content || "{}";
       const parsedAiReport = JSON.parse(responseText);
 
       return res.json({ success: true, aiReport: parsedAiReport });
     } catch (err: any) {
-      console.error("Erro na API Gemini:", err);
+      console.error("Erro na API Groq:", err);
       return res.status(500).json({ error: "Falha ao gerar insights da IA" });
     }
   });
 
-  // AI Chat Copilot Endpoint
+  // AI Chat Copilot Endpoint using Groq (openai/gpt-oss-120b)
   app.post("/api/ai/chat", async (req, res) => {
     try {
       const { domain, metrics, messages } = req.body;
 
-      if (!process.env.GEMINI_API_KEY) {
+      if (!process.env.GROQ_API_KEY) {
         return res.json({
           reply: `Análise para ${domain}: O site possui ${metrics?.monthlyVisits?.toLocaleString('pt-BR') || 'alto'} tráfego mensal e boa distribuição geográfica. Atualmente, a maior alavanca de crescimento é reforçar os canais com menor penetração.`
         });
@@ -561,17 +552,22 @@ Métricas Chave:
 Pergunta do usuário: "${lastUserMessage}"
 `;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3.6-flash",
-        contents: chatPrompt,
-        config: {
-          systemInstruction: "Você é o Copilot de Inteligência Competitiva da TrafficScope. Seja conciso, analítico e traga métricas realistas."
-        }
+      const response = await groq.chat.completions.create({
+        model: "openai/gpt-oss-120b",
+        temperature: 0.6,
+        reasoning_effort: "low",
+        messages: [
+          {
+            role: "system",
+            content: "Você é o Copilot de Inteligência Competitiva da TrafficScope. Responda SEMPRE em texto corrido, curto e direto (máximo 2-3 frases, até 220 caracteres). NUNCA use tabelas markdown, símbolos de pipe (|), cabeçalhos (#), listas numeradas ou com marcadores, nem asteriscos para negrito. Escreva como se estivesse a falar num chat, de forma natural e objetiva, sem formatação estrutural nenhuma."
+          },
+          { role: "user", content: chatPrompt }
+        ]
       });
 
-      return res.json({ reply: response.text || "Não foi possível gerar uma resposta no momento." });
+      return res.json({ reply: response.choices[0]?.message?.content || "Não foi possível gerar uma resposta no momento." });
     } catch (err: any) {
-      console.error("Erro no chat IA:", err);
+      console.error("Erro no chat IA (Groq):", err);
       return res.status(500).json({ error: "Erro ao processar conversa de IA." });
     }
   });

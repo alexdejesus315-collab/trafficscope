@@ -21,11 +21,61 @@ import { PricingModal } from '../components/PricingModal';
 // Icons
 import { Download, FileText, Sparkles, ExternalLink } from 'lucide-react';
 
+// Skeleton — mostrado enquanto os dados reais do domínio ainda não chegaram,
+// para nunca renderizar dados mock/antigos "pendurados" durante o loading.
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      <div className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="h-12 w-12 rounded-xl bg-gray-200 shrink-0" />
+          <div className="space-y-2">
+            <div className="h-5 w-40 rounded bg-gray-200" />
+            <div className="h-3 w-28 rounded bg-gray-200" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-28 rounded-lg bg-gray-200" />
+          <div className="h-8 w-28 rounded-lg bg-gray-200" />
+          <div className="h-8 w-28 rounded-lg bg-gray-200" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-2xs space-y-3">
+            <div className="h-3 w-20 rounded bg-gray-200" />
+            <div className="h-7 w-24 rounded bg-gray-200" />
+            <div className="h-3 w-16 rounded bg-gray-200" />
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-2xs space-y-4">
+        <div className="h-4 w-48 rounded bg-gray-200" />
+        <div className="h-64 w-full rounded-xl bg-gray-100" />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-2xs space-y-4">
+          <div className="h-4 w-40 rounded bg-gray-200" />
+          <div className="h-40 w-full rounded-xl bg-gray-100" />
+        </div>
+        <div className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-2xs space-y-4">
+          <div className="h-4 w-48 rounded bg-gray-200" />
+          <div className="h-40 w-full rounded-xl bg-gray-100" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const { user, signOut } = useAuth();
   const [selectedDomains, setSelectedDomains] = useState<string[]>([]);
   const { plan: currentPlan } = useSubscription(user?.id);
   const [metricsMap, setMetricsMap] = useState<Record<string, DomainMetrics>>({});
+  const [loadingDomains, setLoadingDomains] = useState<Set<string>>(new Set());
 
   const [isCompareMode, setIsCompareMode] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -38,11 +88,11 @@ export default function Dashboard() {
   useEffect(() => {
     async function loadData() {
       const updatedMap: Record<string, DomainMetrics> = { ...metricsMap };
-
       const { data: { session } } = await supabase.auth.getSession();
 
       for (const d of selectedDomains) {
         if (!updatedMap[d]) {
+          setLoadingDomains(prev => new Set(prev).add(d));
           try {
             const res = await fetch('/api/analyze-domain', {
               method: 'POST',
@@ -60,6 +110,12 @@ export default function Dashboard() {
             }
           } catch (e) {
             updatedMap[d] = getOrGenerateDomainData(d);
+          } finally {
+            setLoadingDomains(prev => {
+              const next = new Set(prev);
+              next.delete(d);
+              return next;
+            });
           }
         }
       }
@@ -70,8 +126,11 @@ export default function Dashboard() {
   }, [selectedDomains]);
 
   const primaryDomain = selectedDomains[0] || 'amazon.com';
-  const primaryMetrics = metricsMap[primaryDomain] || getOrGenerateDomainData(primaryDomain);
-  const activeMetricsList = selectedDomains.map(d => metricsMap[d] || getOrGenerateDomainData(d));
+  const isPrimaryLoading = loadingDomains.has(primaryDomain);
+  const primaryMetrics = metricsMap[primaryDomain];
+  const activeMetricsList = selectedDomains
+    .map(d => metricsMap[d])
+    .filter((m): m is DomainMetrics => Boolean(m));
 
   // Add Domain handler
   const handleAddDomain = (domain: string) => {
@@ -109,6 +168,7 @@ export default function Dashboard() {
       setIsPricingOpen(true);
       return;
     }
+    if (!primaryMetrics) return;
 
     const { data: { session } } = await supabase.auth.getSession();
     const res = await fetch('/api/check-export-limit', {
@@ -132,12 +192,13 @@ export default function Dashboard() {
     }
   };
 
-  // Trigger Gemini AI Report
+  // Trigger AI Report (Groq)
   const handleTriggerAiAnalysis = async () => {
     if (currentPlan === 'free') {
       setIsPricingOpen(true);
       return;
     }
+    if (!primaryMetrics) return;
 
     setIsAiLoading(true);
     try {
@@ -189,13 +250,15 @@ export default function Dashboard() {
         onAddDomain={handleAddDomain}
         onRemoveDomain={handleRemoveDomain}
         onClearAllDomains={handleClearAllDomains}
-        onExportPdf={() => exportToPdf(primaryMetrics)}
+        onExportPdf={() => primaryMetrics && exportToPdf(primaryMetrics)}
         onExportExcel={() => exportToExcel(activeMetricsList)}
       />
 
       {selectedDomains.length > 0 && (
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
-          {isCompareMode && selectedDomains.length > 1 ? (
+          {isPrimaryLoading || !primaryMetrics ? (
+            <DashboardSkeleton />
+          ) : isCompareMode && selectedDomains.length > 1 ? (
             <CompareDomainsView
               metricsList={activeMetricsList}
               onRemoveFromCompare={handleRemoveDomain}
@@ -291,15 +354,17 @@ export default function Dashboard() {
         </main>
       )}
 
-      <AiInsightsModal
-        domain={primaryDomain}
-        metrics={primaryMetrics}
-        aiReport={primaryMetrics.aiReport}
-        isOpen={isAiModalOpen}
-        onClose={() => setIsAiModalOpen(false)}
-        onReanalyze={handleTriggerAiAnalysis}
-        isAiLoading={isAiLoading}
-      />
+      {primaryMetrics && (
+        <AiInsightsModal
+          domain={primaryDomain}
+          metrics={primaryMetrics}
+          aiReport={primaryMetrics.aiReport}
+          isOpen={isAiModalOpen}
+          onClose={() => setIsAiModalOpen(false)}
+          onReanalyze={handleTriggerAiAnalysis}
+          isAiLoading={isAiLoading}
+        />
+      )}
 
       <PricingModal
         isOpen={isPricingOpen}
