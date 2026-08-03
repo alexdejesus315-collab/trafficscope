@@ -39,21 +39,17 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* ALTERADO: Modo Comparar liberado para todos os planos (Free = dados de teste, sem custo) */}
           <Button
-            onClick={currentPlan === 'free' ? onOpenPricing : onToggleCompareMode}
+            onClick={onToggleCompareMode}
             id="compare-mode-toggle-btn"
-            variant={isCompareMode && currentPlan !== 'free' ? 'default' : 'outline'}
+            variant={isCompareMode ? 'default' : 'outline'}
             size="sm"
-            disabled={currentPlan === 'free'}
             className="gap-1.5"
-            title={currentPlan === 'free' ? 'Disponível a partir do plano Pro' : undefined}
           >
             <GitCompare className="h-4 w-4" />
             <span className="hidden md:inline">Modo Comparar</span>
-            {currentPlan === 'free' && (
-              <Crown className="h-3 w-3 text-amber-500" />
-            )}
-            {currentPlan !== 'free' && activeDomainCount > 1 && (
+            {activeDomainCount > 1 && (
               <span className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
                 isCompareMode ? 'bg-background text-foreground' : 'bg-muted text-foreground'
               }`}>

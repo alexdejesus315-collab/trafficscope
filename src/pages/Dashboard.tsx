@@ -19,7 +19,7 @@ import { CompareDomainsView } from '../components/CompareDomainsView';
 import { PricingModal } from '../components/PricingModal';
 
 // Icons
-import { Download, FileText, Sparkles, ExternalLink } from 'lucide-react';
+import { Download, FileText, Sparkles, ExternalLink, FlaskConical } from 'lucide-react';
 
 // Skeleton — mostrado enquanto os dados reais do domínio ainda não chegaram,
 // para nunca renderizar dados mock/antigos "pendurados" durante o loading.
@@ -132,15 +132,17 @@ export default function Dashboard() {
     .map(d => metricsMap[d])
     .filter((m): m is DomainMetrics => Boolean(m));
 
-  // Add Domain handler
+  // ALTERADO: indicador de dados de teste — usa o campo dataSource vindo do servidor,
+  // com fallback para o plano atual (Free = sempre dados sintéticos).
+  const isSyntheticData =
+    (primaryMetrics as any)?.dataSource === 'synthetic' || currentPlan === 'free';
+
+  // ALTERADO: Free deixa de ficar limitado a um único domínio — os dados são
+  // sintéticos (sem custo real), por isso passa a ter o mesmo limite generoso
+  // do Enterprise. Só o Pro mantém o teto de 5 (é o plano com dados reais/pagos).
   const handleAddDomain = (domain: string) => {
     const cleanDomain = domain.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/.*$/, '').trim();
     if (!cleanDomain) return;
-
-    if (currentPlan === 'free') {
-      setSelectedDomains([cleanDomain]);
-      return;
-    }
 
     const maxDomains = currentPlan === 'pro' ? 5 : 999;
 
@@ -163,11 +165,8 @@ export default function Dashboard() {
     setSelectedDomains([]);
   };
 
+  // ALTERADO: Exportação liberada para todos os planos (Free = dados de teste)
   const handleExport = async (type: 'pdf' | 'excel') => {
-    if (currentPlan === 'free') {
-      setIsPricingOpen(true);
-      return;
-    }
     if (!primaryMetrics) return;
 
     const { data: { session } } = await supabase.auth.getSession();
@@ -192,12 +191,8 @@ export default function Dashboard() {
     }
   };
 
-  // Trigger AI Report (Groq)
+  // ALTERADO: Trigger AI Report (Groq) — liberado para todos os planos
   const handleTriggerAiAnalysis = async () => {
-    if (currentPlan === 'free') {
-      setIsPricingOpen(true);
-      return;
-    }
     if (!primaryMetrics) return;
 
     setIsAiLoading(true);
@@ -224,6 +219,8 @@ export default function Dashboard() {
             aiReport: data.aiReport
           }
         }));
+      } else if (data.error) {
+        alert(data.error);
       }
     } catch (err) {
       console.error('Erro ao gerar relatório com IA:', err);
@@ -284,6 +281,13 @@ export default function Dashboard() {
                       >
                         <ExternalLink className="h-4 w-4" />
                       </a>
+                      {/* ALTERADO: badge de dados de teste (plano Free) */}
+                      {isSyntheticData && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold px-2 py-0.5">
+                          <FlaskConical className="h-3 w-3" />
+                          Dados de teste
+                        </span>
+                      )}
                     </div>
                     <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-0.5">
                       <span className="font-semibold text-[#279ef9]">{primaryMetrics.category}</span>
@@ -331,24 +335,11 @@ export default function Dashboard() {
               <OverviewMetrics metrics={primaryMetrics} />
               <TrafficChart metricsList={activeMetricsList} />
 
-              {currentPlan !== 'free' ? (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <TrafficSources metrics={primaryMetrics} />
-                  <GeoMapSection metrics={primaryMetrics} />
-                </div>
-              ) : (
-                <div className="bg-white rounded-2xl p-8 border border-dashed border-gray-300 text-center">
-                  <p className="text-sm text-gray-600 mb-3">
-                    Fontes de tráfego e origem geográfica estão disponíveis a partir do plano Pro.
-                  </p>
-                  <button
-                    onClick={() => setIsPricingOpen(true)}
-                    className="px-4 py-2 rounded-xl bg-[#279ef9] hover:bg-[#279ef9]/90 text-white text-xs font-bold transition-all"
-                  >
-                    Ver Planos
-                  </button>
-                </div>
-              )}
+              {/* ALTERADO: Fontes de tráfego e mapa geográfico agora disponíveis em todos os planos */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <TrafficSources metrics={primaryMetrics} />
+                <GeoMapSection metrics={primaryMetrics} />
+              </div>
             </>
           )}
         </main>

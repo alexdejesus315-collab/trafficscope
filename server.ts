@@ -22,8 +22,26 @@ async function getUserFromRequest(req: express.Request) {
   return data.user;
 }
 
+// ===== ALTERADO: helper único para resolver o plano do utilizador =====
+// Free (ou anónimo) => sempre dados sintéticos, sem limites de uso.
+// Pro/Enterprise => dados reais via Apify, com os limites diários que já existiam.
+type PlanType = 'free' | 'pro' | 'enterprise';
 
-// ===== Integração Apify (SimilarWeb Fast Scraper) =====
+async function resolveUserPlan(user: { id: string } | null): Promise<PlanType> {
+  if (!user) return 'free';
+
+  const { data: sub } = await supabaseAdmin
+    .from('subscriptions')
+    .select('plan, status')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  const isActive = sub?.status === 'active';
+  return isActive ? (sub!.plan as PlanType) : 'free';
+}
+
+
+// ===== Integração Apify (SimilarWeb Fast Scraper) — usada apenas para Pro/Enterprise =====
 
 const APIFY_ACTOR_ID = "pro100chok~similarweb-scraper";
 const FIXED_REFERENCE_DOMAINS = [
@@ -36,8 +54,11 @@ const apifyCache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 horas
 
 // ===== Rate Limiting: protege o crédito Apify contra abuso =====
+// Nota: isto continua a aplicar-se a todos os pedidos a /api/analyze-domain,
+// incluindo Free, como proteção genérica anti-abuso do servidor (não é um
+// limite "de plano" — esses foram removidos para o Free). Se quiseres que o
+// Free fique totalmente isento também disto, diz que eu ajusto.
 
-// Limite por IP: evita que um único visitante esgote o crédito sozinho
 const perIpLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hora
   max: 10,
@@ -46,7 +67,6 @@ const perIpLimiter = rateLimit({
   message: { error: "Demasiados pedidos. Tente novamente dentro de uma hora." }
 });
 
-// Limite global: teto de segurança para toda a app, independente da origem
 let globalRequestCount = 0;
 let globalWindowStart = Date.now();
 const GLOBAL_WINDOW_MS = 60 * 60 * 1000; // 1 hora
@@ -287,21 +307,16 @@ app.post(
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
+  // ===== ALTERADO: Free passa a ter exportação liberada e ilimitada =====
   app.post("/api/check-export-limit", async (req, res) => {
     const user = await getUserFromRequest(req);
     if (!user) return res.status(401).json({ error: "Sessão inválida" });
 
-    const { data: sub } = await supabaseAdmin
-      .from('subscriptions')
-      .select('plan, status')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    const isActive = sub?.status === 'active';
-    const plan = isActive ? sub.plan : 'free';
+    const plan = await resolveUserPlan(user);
 
     if (plan === 'free') {
-      return res.status(403).json({ error: 'Exportação disponível a partir do plano Pro.' });
+      // Dados de teste => sem custo real, sem limite de exportações
+      return res.json({ success: true });
     }
 
     if (plan === 'pro') {
@@ -330,49 +345,21 @@ app.post(
     return res.json({ success: true });
   });
 
-  // Analyze Domain Metrics Endpoint
+  // ===== ALTERADO: Analyze Domain Metrics Endpoint =====
+  // Free (ou sem sessão) => sempre dados sintéticos (getOrGenerateDomainData), nunca Apify, sem limite diário.
+  // Pro/Enterprise => dados reais via Apify (com cache), fallback sintético se a Apify falhar.
   app.post("/api/analyze-domain", perIpLimiter, globalLimiter, async (req, res) => {
     try {
       const { domain, domains } = req.body;
       const user = await getUserFromRequest(req);
+      const plan = await resolveUserPlan(user);
 
-      if (user && domain) {
-        const { data: sub } = await supabaseAdmin
-          .from('subscriptions')
-          .select('plan, status')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        const isPro = sub?.status === 'active' && (sub.plan === 'pro' || sub.plan === 'enterprise');
-
-        if (!isPro) {
-          const today = new Date().toISOString().slice(0, 10);
-          const { data: usage } = await supabaseAdmin
-            .from('domain_usage')
-            .select('count')
-            .eq('user_id', user.id)
-            .eq('usage_date', today)
-            .maybeSingle();
-
-          const currentCount = usage?.count ?? 0;
-
-          if (currentCount >= 2) {
-            return res.status(429).json({
-              error: 'Limite diário de 2 domínios atingido no plano Gratuito. Faça upgrade para o Pro.',
-            });
-          }
-
-          await supabaseAdmin
-            .from('domain_usage')
-            .upsert(
-              { user_id: user.id, usage_date: today, count: currentCount + 1 },
-              { onConflict: 'user_id,usage_date' }
-            );
-        }
-      }
-
+      // Modo comparação (vários domínios) — sempre dados de teste por agora
       if (domains && Array.isArray(domains) && domains.length > 0) {
-        const results = domains.map(d => getOrGenerateDomainData(d));
+        const results = domains.map((d: string) => ({
+          ...getOrGenerateDomainData(d),
+          dataSource: 'synthetic'
+        }));
         return res.json({ success: true, domains: results });
       }
 
@@ -380,12 +367,17 @@ app.post(
         return res.status(400).json({ error: "Parâmetro domain ou domains é obrigatório" });
       }
 
+      if (plan === 'free') {
+        const data = { ...getOrGenerateDomainData(domain), dataSource: 'synthetic' };
+        return res.json({ success: true, data });
+      }
+
       try {
         const data = await getDomainDataWithCache(domain);
-        return res.json({ success: true, data });
+        return res.json({ success: true, data: { ...data, dataSource: 'real' } });
       } catch (apifyErr) {
-        console.error("Falha na Apify, a usar dados mock:", apifyErr);
-        const data = getOrGenerateDomainData(domain);
+        console.error("Falha na Apify, a usar dados de teste como fallback:", apifyErr);
+        const data = { ...getOrGenerateDomainData(domain), dataSource: 'synthetic' };
         return res.json({ success: true, data });
       }
     } catch (err: any) {
@@ -394,7 +386,7 @@ app.post(
     }
   });
 
-  // AI Analysis Endpoint using Groq (openai/gpt-oss-120b)
+  // ===== ALTERADO: AI Analysis Endpoint (Groq) — Free deixa de ser bloqueado =====
   app.post("/api/ai/analyze", async (req, res) => {
     try {
       const { domain, metrics } = req.body;
@@ -404,54 +396,40 @@ app.post(
       }
 
       const user = await getUserFromRequest(req);
+      const plan = await resolveUserPlan(user);
+      const isSynthetic = metrics?.dataSource === 'synthetic' || plan === 'free';
 
-      if (user) {
-        const { data: sub } = await supabaseAdmin
-          .from('subscriptions')
-          .select('plan, status')
+      // Só o plano Pro tem limite diário de análises de IA (Enterprise e Free ficam sem limite)
+      if (plan === 'pro' && user) {
+        const today = new Date().toISOString().slice(0, 10);
+        const { data: usage } = await supabaseAdmin
+          .from('ai_usage')
+          .select('count')
           .eq('user_id', user.id)
+          .eq('usage_date', today)
           .maybeSingle();
 
-        const isActive = sub?.status === 'active';
-        const plan = isActive ? sub.plan : 'free';
+        const currentCount = usage?.count ?? 0;
 
-        if (plan === 'free') {
-          return res.status(403).json({
-            error: 'Insights de IA disponíveis a partir do plano Pro.',
+        if (currentCount >= 10) {
+          return res.status(429).json({
+            error: 'Limite diário de 10 análises de IA atingido no plano Pro.',
           });
         }
 
-        if (plan === 'pro') {
-          const today = new Date().toISOString().slice(0, 10);
-          const { data: usage } = await supabaseAdmin
-            .from('ai_usage')
-            .select('count')
-            .eq('user_id', user.id)
-            .eq('usage_date', today)
-            .maybeSingle();
-
-          const currentCount = usage?.count ?? 0;
-
-          if (currentCount >= 10) {
-            return res.status(429).json({
-              error: 'Limite diário de 10 análises de IA atingido no plano Pro.',
-            });
-          }
-
-          await supabaseAdmin
-            .from('ai_usage')
-            .upsert(
-              { user_id: user.id, usage_date: today, count: currentCount + 1 },
-              { onConflict: 'user_id,usage_date' }
-            );
-        }
+        await supabaseAdmin
+          .from('ai_usage')
+          .upsert(
+            { user_id: user.id, usage_date: today, count: currentCount + 1 },
+            { onConflict: 'user_id,usage_date' }
+          );
       }
 
       if (!process.env.GROQ_API_KEY) {
         return res.json({
           success: true,
           aiReport: {
-            summary: `O tráfego de ${domain} registrou ${metrics.monthlyVisits.toLocaleString('pt-BR')} visitas mensais com taxa de variação de ${metrics.growthRate}%. A maior participação provém de ${metrics.trafficSources?.[0]?.name || 'Pesquisa Orgânica'} (${metrics.trafficSources?.[0]?.percentage || 48}%) com retenção média de ${metrics.avgVisitDuration}.`,
+            summary: `${isSynthetic ? '[Dados de demonstração] ' : ''}O tráfego de ${domain} registrou ${metrics.monthlyVisits.toLocaleString('pt-BR')} visitas mensais com taxa de variação de ${metrics.growthRate}%. A maior participação provém de ${metrics.trafficSources?.[0]?.name || 'Pesquisa Orgânica'} (${metrics.trafficSources?.[0]?.percentage || 48}%) com retenção média de ${metrics.avgVisitDuration}.`,
             growthDrivers: [
               `Forte participação de tráfego vindo de ${metrics.trafficSources?.[0]?.name || 'Busca Orgânica'}.`,
               `Baixa taxa de rejeição (${metrics.bounceRate}%) indicando boa retenção de visitantes.`,
@@ -479,6 +457,10 @@ app.post(
         });
       }
 
+      const dataNotice = isSynthetic
+        ? `\n\nAVISO IMPORTANTE: Os dados acima são sintéticos/ilustrativos, gerados para fins de demonstração (plano gratuito) e não refletem tráfego real de mercado. Nunca afirmes que são dados reais — podes referir que se trata de uma análise sobre dados de demonstração.`
+        : '';
+
       const prompt = `
 Você é um especialista sênior em inteligência competitiva e marketing digital.
 Analise os seguintes dados do website "${domain}":
@@ -488,6 +470,7 @@ Analise os seguintes dados do website "${domain}":
 - Taxa de Rejeição: ${metrics.bounceRate}%
 - Fontes de Tráfego: ${JSON.stringify(metrics.trafficSources)}
 - Top Países: ${JSON.stringify(metrics.countryTraffic)}
+${dataNotice}
 
 Forneça uma análise estratégica completa em Português, respondendo APENAS com um objeto JSON válido no seguinte formato exato, sem texto antes ou depois:
 {
@@ -512,7 +495,7 @@ Forneça uma análise estratégica completa em Português, respondendo APENAS co
         messages: [
           {
             role: "system",
-            content: "Você é o assistente executivo de Inteligência Competitiva da plataforma TrafficScope. Responda em Português com tom profissional, preciso e acionável. Responda SEMPRE apenas com JSON válido, sem texto adicional, sem markdown dentro dos valores de texto (nada de tabelas, pipes, asteriscos ou cabeçalhos dentro das strings)."
+            content: `Você é o assistente executivo de Inteligência Competitiva da plataforma TrafficScope. Responda em Português com tom profissional, preciso e acionável. Responda SEMPRE apenas com JSON válido, sem texto adicional, sem markdown dentro dos valores de texto (nada de tabelas, pipes, asteriscos ou cabeçalhos dentro das strings).${isSynthetic ? ' Os dados fornecidos são sintéticos/de demonstração — nunca os apresentes como dados reais de mercado.' : ''}`
           },
           { role: "user", content: prompt }
         ]
@@ -532,6 +515,7 @@ Forneça uma análise estratégica completa em Português, respondendo APENAS co
   app.post("/api/ai/chat", async (req, res) => {
     try {
       const { domain, metrics, messages } = req.body;
+      const isSynthetic = metrics?.dataSource === 'synthetic';
 
       if (!process.env.GROQ_API_KEY) {
         return res.json({
@@ -548,6 +532,7 @@ Métricas Chave:
 - Taxa de Crescimento: ${metrics?.growthRate}%
 - Principais canais: ${metrics?.trafficSources?.map((s: any) => `${s.name} (${s.percentage}%)`).join(', ')}
 - Principais países: ${metrics?.countryTraffic?.map((c: any) => `${c.name} (${c.percentage}%)`).join(', ')}
+${isSynthetic ? '\nNota: estes dados são sintéticos/de demonstração, não são tráfego real de mercado.' : ''}
 
 Pergunta do usuário: "${lastUserMessage}"
 `;
@@ -559,7 +544,7 @@ Pergunta do usuário: "${lastUserMessage}"
         messages: [
           {
             role: "system",
-            content: "Você é o Copilot de Inteligência Competitiva da TrafficScope. Responda SEMPRE em texto corrido, curto e direto (máximo 2-3 frases, até 220 caracteres). NUNCA use tabelas markdown, símbolos de pipe (|), cabeçalhos (#), listas numeradas ou com marcadores, nem asteriscos para negrito. Escreva como se estivesse a falar num chat, de forma natural e objetiva, sem formatação estrutural nenhuma."
+            content: `Você é o Copilot de Inteligência Competitiva da TrafficScope. Responda SEMPRE em texto corrido, curto e direto (máximo 2-3 frases, até 220 caracteres). NUNCA use tabelas markdown, símbolos de pipe (|), cabeçalhos (#), listas numeradas ou com marcadores, nem asteriscos para negrito. Escreva como se estivesse a falar num chat, de forma natural e objetiva, sem formatação estrutural nenhuma.${isSynthetic ? ' Os dados fornecidos são sintéticos/de demonstração — nunca os apresentes como dados reais de mercado.' : ''}`
           },
           { role: "user", content: chatPrompt }
         ]

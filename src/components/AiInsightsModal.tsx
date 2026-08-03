@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { AiAnalysisReport, DomainMetrics } from '../types/domain';
-import { RefreshCw, ArrowUp, X, Activity } from 'lucide-react';
+import { RefreshCw, ArrowUp, X, Activity, FlaskConical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -81,9 +81,32 @@ function SiteAvatar({ domain }: { domain: string }) {
   );
 }
 
+// ALTERADO: badge reutilizável "Dados de teste" — aparece sempre que
+// metrics.dataSource === 'synthetic' (plano Free ou fallback da Apify).
+function SyntheticBadge({ className }: { className?: string }) {
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-700',
+        className
+      )}
+    >
+      <FlaskConical className="h-3 w-3" />
+      Dados de teste
+    </span>
+  );
+}
+
 function ReportBubble({ domain, metrics, report }: { domain: string; metrics: DomainMetrics; report: AiAnalysisReport }) {
+  const isSynthetic = (metrics as any)?.dataSource === 'synthetic';
+
   return (
     <div className="max-w-full space-y-2 text-sm text-foreground">
+      {isSynthetic && (
+        <p className="text-xs text-amber-600">
+          Esta análise é baseada em dados de teste (plano gratuito), não em tráfego real.
+        </p>
+      )}
       <p className="leading-6">
         <span className="font-semibold">{domain}</span>: {metrics.monthlyVisits.toLocaleString()} visitas/mês,{' '}
         {metrics.growthRate.toFixed(1)}% crescimento. {truncate(report.summary, 140)}
@@ -126,6 +149,8 @@ export const AiInsightsModal: React.FC<AiInsightsModalProps> = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastReportKey = useRef<string>('');
+
+  const isSynthetic = (metrics as any)?.dataSource === 'synthetic';
 
   useEffect(() => {
     if (!aiReport) return;
@@ -204,6 +229,8 @@ export const AiInsightsModal: React.FC<AiInsightsModalProps> = ({
         <div className="flex items-center gap-2 min-w-0">
           <Activity className="h-4 w-4 text-foreground shrink-0" />
           <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-foreground truncate">TrafficScope</h2>
+          {/* ALTERADO: badge de dados de teste no cabeçalho do painel */}
+          {isSynthetic && <SyntheticBadge className="ml-1" />}
         </div>
         <div className="flex items-center gap-1">
           <Button
