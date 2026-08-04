@@ -194,7 +194,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 key={to}
                 to={to}
                 state={{ backgroundLocation: location }}
-                onClick={onCloseCompanyMenu}
                 className="flex flex-col items-start gap-0.5 rounded-lg px-3 py-2.5 hover:bg-muted/60 transition-colors"
               >
                 <span className="flex items-center gap-2 font-semibold text-foreground">
