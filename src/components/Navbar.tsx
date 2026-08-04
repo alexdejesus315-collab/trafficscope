@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { User } from '@supabase/supabase-js';
 import { Activity, GitCompare, Crown, LogOut, ChevronDown, Info, HelpCircle, Shield, FileText, Mail, Instagram, Linkedin, Twitter, Facebook } from 'lucide-react';
 import { PlanType } from '../types/domain';
@@ -73,6 +73,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onCloseCompanyMenu,
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
+  const location = useLocation();
 
   useEffect(() => {
     if (!isCompanyMenuOpen) return;
@@ -192,6 +193,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Link
                 key={to}
                 to={to}
+                state={{ backgroundLocation: location }}
                 onClick={onCloseCompanyMenu}
                 className="flex flex-col items-start gap-0.5 rounded-lg px-3 py-2.5 hover:bg-muted/60 transition-colors"
               >

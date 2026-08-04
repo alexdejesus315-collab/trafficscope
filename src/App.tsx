@@ -1,14 +1,10 @@
 import React, { lazy, Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Activity } from 'lucide-react';
 import { useAuth } from './hooks/useAuth';
 
-// Login e Dashboard ficam carregados cedo (são as páginas mais visitadas)
-// mas ainda separadas do bundle principal
 const Login = lazy(() => import('./pages/Login'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
-
-// Páginas institucionais: raramente visitadas, claramente devem ser lazy
 const Sobre = lazy(() => import('./pages/Sobre'));
 const Faq = lazy(() => import('./pages/Faq'));
 const PoliticaPrivacidade = lazy(() => import('./pages/PoliticaPrivacidade'));
@@ -30,6 +26,12 @@ function PageFallback() {
 
 export default function App() {
   const { user, isLoading } = useAuth();
+  const location = useLocation();
+
+  // Se veio de um link "overlay" (ver Navbar), a rota real de fundo
+  // fica guardada aqui — as rotas de baixo continuam a renderizar essa.
+  const state = location.state as { backgroundLocation?: Location } | null;
+  const backgroundLocation = state?.backgroundLocation;
 
   if (isLoading) {
     return <PageFallback />;
@@ -37,15 +39,30 @@ export default function App() {
 
   return (
     <Suspense fallback={<PageFallback />}>
-      <Routes>
+      {/* Camada de baixo: renderiza sempre a localização "real" de fundo
+          quando existe, para o Dashboard nunca desmontar por causa de um overlay. */}
+      <Routes location={backgroundLocation || location}>
         <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
+        <Route path="/" element={user ? <Dashboard /> : <Navigate to="/login" replace />} />
+        {/* Fallback: acesso direto ao URL (refresh de página) sem overlay ativo */}
         <Route path="/sobre" element={<Sobre />} />
         <Route path="/faq" element={<Faq />} />
         <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
         <Route path="/termos-de-uso" element={<TermosDeUso />} />
-        <Route path="/" element={user ? <Dashboard /> : <Navigate to="/login" replace />} />
         <Route path="/suporte" element={<Suporte />} />
       </Routes>
+
+      {/* Camada de cima: só existe quando se navegou a partir de um link
+          com state.backgroundLocation — renderiza por cima, sem desmontar o de baixo. */}
+      {backgroundLocation && (
+        <Routes>
+          <Route path="/sobre" element={<Sobre />} />
+          <Route path="/faq" element={<Faq />} />
+          <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
+          <Route path="/termos-de-uso" element={<TermosDeUso />} />
+          <Route path="/suporte" element={<Suporte />} />
+        </Routes>
+      )}
     </Suspense>
   );
 }
