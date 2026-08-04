@@ -98,7 +98,7 @@ function SyntheticBadge({ className }: { className?: string }) {
 }
 
 function ReportBubble({ domain, metrics, report }: { domain: string; metrics: DomainMetrics; report: AiAnalysisReport }) {
-  const isSynthetic = (metrics as any)?.dataSource === 'synthetic';
+  const isSynthetic = metrics?.dataSource === 'synthetic';
 
   return (
     <div className="max-w-full space-y-2 text-sm text-foreground">
@@ -150,7 +150,7 @@ export const AiInsightsModal: React.FC<AiInsightsModalProps> = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastReportKey = useRef<string>('');
 
-  const isSynthetic = (metrics as any)?.dataSource === 'synthetic';
+  const isSynthetic = metrics?.dataSource === 'synthetic';
 
   useEffect(() => {
     if (!aiReport) return;

@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import { Search, Plus, X, Layers } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface DomainInputHeaderProps {
   selectedDomains: string[];
+  primaryDomain?: string;
+  onSelectPrimaryDomain?: (domain: string) => void;
   onAddDomain: (domain: string) => void;
   onRemoveDomain: (domain: string) => void;
   onClearAllDomains: () => void;
@@ -14,6 +17,8 @@ interface DomainInputHeaderProps {
 
 export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
   selectedDomains,
+  primaryDomain,
+  onSelectPrimaryDomain,
   onAddDomain,
   onRemoveDomain,
   onClearAllDomains,
@@ -118,23 +123,41 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
             Domínios ativos:
           </span>
 
-          {selectedDomains.map((d) => (
-            <span
-              key={d}
-              className="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-1 rounded-lg bg-[#FFFFFF]/8 text-[#279ef9] border border-[#279ef9]/25 font-mono text-xs font-semibold shadow-2xs dark:bg-[#279ef9]/40 dark:text-[#A1C6DE] dark:border-[#279ef9]/60"
-            >
-              <span>{d}</span>
-              <Button
-                onClick={() => onRemoveDomain(d)}
-                variant="ghost"
-                size="icon-xs"
-                className="text-[#FC2034]/50 hover:text-rose-600 hover:bg-transparent"
-                title="Remover domínio"
+          {/* ALTERADO: chip clicável — clicar troca qual domínio fica em destaque no painel principal */}
+          {selectedDomains.map((d) => {
+            const isActive = d === primaryDomain;
+            return (
+              <button
+                key={d}
+                type="button"
+                onClick={() => onSelectPrimaryDomain?.(d)}
+                title={isActive ? 'Domínio em destaque' : 'Ver este domínio em destaque'}
+                className={cn(
+                  'inline-flex items-center gap-1.5 pl-2.5 pr-1 py-1 rounded-lg border font-mono text-xs font-semibold shadow-2xs transition-colors cursor-pointer',
+                  isActive
+                    ? 'bg-[#279ef9] text-white border-[#279ef9]'
+                    : 'bg-[#FFFFFF]/8 text-[#279ef9] border-[#279ef9]/25 hover:bg-[#279ef9]/15 dark:bg-[#279ef9]/40 dark:text-[#A1C6DE] dark:border-[#279ef9]/60'
+                )}
               >
-                <X className="h-3 w-3" />
-              </Button>
-            </span>
-          ))}
+                <span>{d}</span>
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemoveDomain(d);
+                  }}
+                  variant="ghost"
+                  size="icon-xs"
+                  className={cn(
+                    'hover:bg-transparent',
+                    isActive ? 'text-white/70 hover:text-white' : 'text-[#FC2034]/50 hover:text-rose-600'
+                  )}
+                  title="Remover domínio"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </button>
+            );
+          })}
 
           <button
             onClick={onClearAllDomains}

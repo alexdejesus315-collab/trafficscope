@@ -4,6 +4,11 @@ import { Activity } from 'lucide-react';
 import { useAuth } from './hooks/useAuth';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Sobre from './pages/Sobre';
+import Faq from './pages/Faq';
+import PoliticaPrivacidade from './pages/PoliticaPrivacidade';
+import TermosDeUso from './pages/TermosDeUso';
+import Suporte from './pages/Suporte';
 
 export default function App() {
   const { user, isLoading } = useAuth();
@@ -24,7 +29,12 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
+      <Route path="/sobre" element={<Sobre />} />
+      <Route path="/faq" element={<Faq />} />
+      <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
+      <Route path="/termos-de-uso" element={<TermosDeUso />} />
       <Route path="/" element={user ? <Dashboard /> : <Navigate to="/login" replace />} />
+      <Route path="/suporte" element={<Suporte />} />
     </Routes>
   );
-}
+  }

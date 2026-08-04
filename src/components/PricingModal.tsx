@@ -104,22 +104,18 @@ export const PricingModal: React.FC<PricingModalProps> = ({
               <ul className="space-y-2 text-xs pt-2 border-t">
                 <li className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                  <span>Pesquisa de domínios limitada</span>
+                  <span>Dados de demonstração (sintéticos)</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                  <span>Análise de 1 domínio por vez</span>
+                  <span>Pesquisas e domínios ilimitados</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                  <span>Até 2 domínios analisados por dia</span>
+                  <span>Exportação PDF e Excel ilimitada</span>
                 </li>
-                <li className="flex items-center gap-2 text-muted-foreground">
-                  <X className="h-4 w-4 shrink-0" />
-                  <span>Exportação PDF e Excel</span>
-                </li>
-                <li className="flex items-center gap-2 text-muted-foreground">
-                  <X className="h-4 w-4 shrink-0" />
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-emerald-600 shrink-0" />
                   <span>Análise ilimitada com IA</span>
                 </li>
               </ul>
@@ -152,7 +148,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
               <ul className="space-y-2 text-xs pt-2 border-t">
                 <li className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                  <span>Pesquisas ilimitadas de domínios</span>
+                  <span>Até 20 domínios analisados por dia</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-emerald-600 shrink-0" />
@@ -160,19 +156,19 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                  <span>Histórico completo (até 5 anos)</span>
+                  <span>Dados reais de mercado (SimilarWeb)</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                  <span>Alertas inteligentes em tempo real</span>
+                  <span>Histórico real (3 meses)</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                  <span>Exportação PDF e Excel</span>
+                  <span>Exportação PDF e Excel até 20/dia</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-amber-500 shrink-0" />
-                  <span className="font-semibold text-foreground">IA Gemini Ilimitada</span>
+                  <span className="font-semibold text-foreground">IA Ilimitada</span>
                 </li>
               </ul>
             </div>
@@ -203,23 +199,19 @@ export const PricingModal: React.FC<PricingModalProps> = ({
               <ul className="space-y-2 text-xs pt-2 border-t">
                 <li className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                  <span>Utilizadores ilimitados da equipe</span>
+                  <span>Até 40 domínios analisados por dia</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                  <span>White Label nos relatórios PDF</span>
+                  <span>Comparação até 10 websites</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                  <span>API pública com chave dedicada</span>
+                  <span>Exportação PDF e Excel ilimitada</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                  <span>Monitoramento contínuo 24/7</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                  <span>Suporte prioritário via WhatsApp</span>
+                  <Sparkles className="h-4 w-4 text-amber-500 shrink-0" />
+                  <span className="font-semibold text-foreground">IA Ilimitada</span>
                 </li>
               </ul>
             </div>

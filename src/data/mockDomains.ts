@@ -186,6 +186,76 @@ function detectCcTld(domain: string): { code: string; name: string; flag: string
   return CC_TLD_COUNTRY[tld] || null;
 }
 
+// ===== ALTERADO: distribuição geográfica mais realista =====
+// Antes, domínios sem ccTLD tinham sempre Portugal/Angola fixos no top 5,
+// mesmo para gigantes globais (youtube.com, facebook.com...). Agora:
+// - Domínios mega/grandes sorteiam só entre mercados grandes (população/
+//   utilizadores de internet elevados) — países pequenos nem entram no pool.
+// - Domínios pequenos/desconhecidos sorteiam de um pool misto, com mercados
+//   pequenos a pesar muito pouco (raramente aparecem, nunca dominam).
+type CountryWeight = { code: string; name: string; flag: string; weight: number };
+
+const BIG_MARKETS: CountryWeight[] = [
+  { code: 'US', name: 'Estados Unidos', flag: '🇺🇸', weight: 20 },
+  { code: 'IN', name: 'Índia', flag: '🇮🇳', weight: 16 },
+  { code: 'BR', name: 'Brasil', flag: '🇧🇷', weight: 10 },
+  { code: 'ID', name: 'Indonésia', flag: '🇮🇩', weight: 9 },
+  { code: 'MX', name: 'México', flag: '🇲🇽', weight: 7 },
+  { code: 'JP', name: 'Japão', flag: '🇯🇵', weight: 6 },
+  { code: 'DE', name: 'Alemanha', flag: '🇩🇪', weight: 6 },
+  { code: 'GB', name: 'Reino Unido', flag: '🇬🇧', weight: 5 },
+  { code: 'FR', name: 'França', flag: '🇫🇷', weight: 5 },
+  { code: 'NG', name: 'Nigéria', flag: '🇳🇬', weight: 5 },
+  { code: 'PH', name: 'Filipinas', flag: '🇵🇭', weight: 4 },
+  { code: 'VN', name: 'Vietname', flag: '🇻🇳', weight: 4 },
+  { code: 'EG', name: 'Egito', flag: '🇪🇬', weight: 4 },
+  { code: 'PK', name: 'Paquistão', flag: '🇵🇰', weight: 4 },
+];
+
+// Mercados pequenos: peso baixo de propósito — só entram no top 5 de vez em
+// quando, nunca dominam, exceto quando o ccTLD já os coloca à frente.
+const SMALL_MARKETS: CountryWeight[] = [
+  { code: 'ES', name: 'Espanha', flag: '🇪🇸', weight: 2.5 },
+  { code: 'PT', name: 'Portugal', flag: '🇵🇹', weight: 0.6 },
+  { code: 'AO', name: 'Angola', flag: '🇦🇴', weight: 0.3 },
+  { code: 'MZ', name: 'Moçambique', flag: '🇲🇿', weight: 0.2 },
+];
+
+function weightedSampleUnique(pool: CountryWeight[], count: number, rng: () => number): CountryWeight[] {
+  const items = [...pool];
+  const result: CountryWeight[] = [];
+
+  for (let i = 0; i < count && items.length > 0; i++) {
+    const totalWeight = items.reduce((sum, it) => sum + it.weight, 0);
+    let r = rng() * totalWeight;
+    let idx = 0;
+    for (; idx < items.length; idx++) {
+      r -= items[idx].weight;
+      if (r <= 0) break;
+    }
+    idx = Math.min(idx, items.length - 1);
+    result.push(items[idx]);
+    items.splice(idx, 1);
+  }
+
+  return result;
+}
+
+function buildGlobalCountryTraffic(estimatedVisits: number, isMegaOrLarge: boolean, positiveHash: number, rng: () => number) {
+  const pool = isMegaOrLarge ? BIG_MARKETS : [...BIG_MARKETS, ...SMALL_MARKETS];
+  const picked = weightedSampleUnique(pool, 5, rng);
+  const shares = [34, 20, 13, 8, 5]; // percentuais decrescentes, plausíveis para um top 5
+
+  return picked.map((country, i) => ({
+    code: country.code,
+    name: country.name,
+    flag: country.flag,
+    percentage: shares[i],
+    visits: Math.round(estimatedVisits * (shares[i] / 100)),
+    trend: Number((((positiveHash >> (i + 1)) % 20) - 6).toFixed(1)),
+  }));
+}
+
 // Dynamic Domain Generator for any unlisted website typed by user
 export function getOrGenerateDomainData(rawDomain: string): DomainMetrics {
   const domain = rawDomain.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/.*$/, '').trim();
@@ -210,21 +280,16 @@ export function getOrGenerateDomainData(rawDomain: string): DomainMetrics {
   const formattedName = domain.split('.')[0].toUpperCase() + (domain.split('.')[1] ? '.' + domain.split('.')[1] : '');
 
   const detectedCountry = detectCcTld(domain);
+  const isMegaOrLarge = tierMultiplier >= 12; // Tier 1 (mega) ou Tier 2 (grande)
+
   const countryTraffic = detectedCountry
     ? [
         { ...detectedCountry, percentage: 58.0, visits: Math.round(estimatedVisits * 0.58), trend: Number(((positiveHash % 20) - 5).toFixed(1)) },
-        { code: 'US', name: 'Estados Unidos', flag: '🇺🇸', percentage: 15.0, visits: Math.round(estimatedVisits * 0.15), trend: 1.2 },
-        { code: 'PT', name: 'Portugal', flag: '🇵🇹', percentage: 10.0, visits: Math.round(estimatedVisits * 0.10), trend: 0.8 },
-        { code: 'BR', name: 'Brasil', flag: '🇧🇷', percentage: 9.0, visits: Math.round(estimatedVisits * 0.09), trend: 3.1 },
-        { code: 'FR', name: 'França', flag: '🇫🇷', percentage: 8.0, visits: Math.round(estimatedVisits * 0.08), trend: 0.4 },
-      ].filter((c, idx, arr) => arr.findIndex(x => x.code === c.code) === idx)
-    : [
-        { code: 'US', name: 'Estados Unidos', flag: '🇺🇸', percentage: 42.0, visits: Math.round(estimatedVisits * 0.42), trend: 2.1 },
-        { code: 'BR', name: 'Brasil', flag: '🇧🇷', percentage: 18.5, visits: Math.round(estimatedVisits * 0.185), trend: 5.4 },
-        { code: 'PT', name: 'Portugal', flag: '🇵🇹', percentage: 12.0, visits: Math.round(estimatedVisits * 0.12), trend: 1.8 },
-        { code: 'AO', name: 'Angola', flag: '🇦🇴', percentage: 8.5, visits: Math.round(estimatedVisits * 0.085), trend: 11.2 },
-        { code: 'ES', name: 'Espanha', flag: '🇪🇸', percentage: 5.0, visits: Math.round(estimatedVisits * 0.05), trend: 0.5 },
-      ];
+        ...buildGlobalCountryTraffic(estimatedVisits, isMegaOrLarge, positiveHash, rng)
+          .filter(c => c.code !== detectedCountry.code)
+          .slice(0, 4),
+      ]
+    : buildGlobalCountryTraffic(estimatedVisits, isMegaOrLarge, positiveHash, rng);
 
   return {
     domain,

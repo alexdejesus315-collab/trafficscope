@@ -8,7 +8,7 @@ import { supabase } from '../lib/supabaseClient';
 import { Button } from '@/components/ui/button';
 
 // Components
-import { Navbar } from '../components/Navbar';
+import { Navbar, COMPANY_PANEL_WIDTH } from '../components/Navbar';
 import { DomainInputHeader } from '../components/DomainInputHeader';
 import { OverviewMetrics } from '../components/OverviewMetrics';
 import { TrafficChart } from '../components/TrafficChart';
@@ -79,6 +79,13 @@ export default function Dashboard() {
 
   const [isCompareMode, setIsCompareMode] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
+  // ALTERADO: domínio em destaque escolhido manualmente (clicando num chip),
+  // em vez de ser sempre o primeiro da lista.
+  const [primaryDomainOverride, setPrimaryDomainOverride] = useState<string | null>(null);
+
+  // ALTERADO: estado do painel "Empresa" subido para aqui, para poder empurrar
+  // o conteúdo (DomainInputHeader + main) quando o painel abre.
+  const [isCompanyMenuOpen, setIsCompanyMenuOpen] = useState(false);
 
   // Modals
   const [isPricingOpen, setIsPricingOpen] = useState(false);
@@ -125,7 +132,10 @@ export default function Dashboard() {
     loadData();
   }, [selectedDomains]);
 
-  const primaryDomain = selectedDomains[0] || 'amazon.com';
+  const primaryDomain =
+    (primaryDomainOverride && selectedDomains.includes(primaryDomainOverride))
+      ? primaryDomainOverride
+      : selectedDomains[0] || 'amazon.com';
   const isPrimaryLoading = loadingDomains.has(primaryDomain);
   const primaryMetrics = metricsMap[primaryDomain];
   const activeMetricsList = selectedDomains
@@ -135,7 +145,7 @@ export default function Dashboard() {
   // ALTERADO: indicador de dados de teste — usa o campo dataSource vindo do servidor,
   // com fallback para o plano atual (Free = sempre dados sintéticos).
   const isSyntheticData =
-    (primaryMetrics as any)?.dataSource === 'synthetic' || currentPlan === 'free';
+    primaryMetrics?.dataSource === 'synthetic' || currentPlan === 'free';
 
   // ALTERADO: Free deixa de ficar limitado a um único domínio — os dados são
   // sintéticos (sem custo real), por isso passa a ter o mesmo limite generoso
@@ -144,7 +154,7 @@ export default function Dashboard() {
     const cleanDomain = domain.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/.*$/, '').trim();
     if (!cleanDomain) return;
 
-    const maxDomains = currentPlan === 'pro' ? 5 : 999;
+    const maxDomains = currentPlan === 'pro' ? 5 : currentPlan === 'enterprise' ? 10 : 999;
 
     if (!selectedDomains.includes(cleanDomain)) {
       if (selectedDomains.length >= maxDomains) {
@@ -158,11 +168,14 @@ export default function Dashboard() {
   // Remove Domain handler
   const handleRemoveDomain = (domain: string) => {
     setSelectedDomains(prev => prev.filter(d => d !== domain));
+    // ALTERADO: se o domínio removido era o que estava em destaque, limpa o override
+    setPrimaryDomainOverride(prev => (prev === domain ? null : prev));
   };
 
   // Clear All Domains handler
   const handleClearAllDomains = () => {
     setSelectedDomains([]);
+    setPrimaryDomainOverride(null);
   };
 
   // ALTERADO: Exportação liberada para todos os planos (Free = dados de teste)
@@ -240,110 +253,122 @@ export default function Dashboard() {
         activeDomainCount={selectedDomains.length}
         user={user}
         onSignOut={() => void signOut()}
+        isCompanyMenuOpen={isCompanyMenuOpen}
+        onToggleCompanyMenu={() => setIsCompanyMenuOpen(prev => !prev)}
+        onCloseCompanyMenu={() => setIsCompanyMenuOpen(false)}
       />
 
-      <DomainInputHeader
-        selectedDomains={selectedDomains}
-        onAddDomain={handleAddDomain}
-        onRemoveDomain={handleRemoveDomain}
-        onClearAllDomains={handleClearAllDomains}
-        onExportPdf={() => primaryMetrics && exportToPdf(primaryMetrics)}
-        onExportExcel={() => exportToExcel(activeMetricsList)}
-      />
+      {/* ALTERADO: o conteúdo abaixo do header é empurrado para a direita
+          (margin-left) enquanto o painel "Empresa" estiver aberto. */}
+      <div
+        className="transition-[margin] duration-300 ease-in-out"
+        style={{ marginLeft: isCompanyMenuOpen ? COMPANY_PANEL_WIDTH : 0 }}
+      >
+        <DomainInputHeader
+          selectedDomains={selectedDomains}
+          primaryDomain={primaryDomain}
+          onSelectPrimaryDomain={setPrimaryDomainOverride}
+          onAddDomain={handleAddDomain}
+          onRemoveDomain={handleRemoveDomain}
+          onClearAllDomains={handleClearAllDomains}
+          onExportPdf={() => primaryMetrics && exportToPdf(primaryMetrics)}
+          onExportExcel={() => exportToExcel(activeMetricsList)}
+        />
 
-      {selectedDomains.length > 0 && (
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
-          {isPrimaryLoading || !primaryMetrics ? (
-            <DashboardSkeleton />
-          ) : isCompareMode && selectedDomains.length > 1 ? (
-            <CompareDomainsView
-              metricsList={activeMetricsList}
-              onRemoveFromCompare={handleRemoveDomain}
-              onExitCompareMode={() => setIsCompareMode(false)}
-            />
-          ) : (
-            <>
-              <div className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <img
-                    src={primaryMetrics.logo}
-                    alt={primaryMetrics.name}
-                    className="h-12 w-12 rounded-xl bg-gray-50 p-1 border border-gray-200 shrink-0"
-                  />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-xl font-bold text-gray-900 font-mono">{primaryMetrics.domain}</h2>
-                      <a
-                        href={`https://${primaryMetrics.domain}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gray-400 hover:text-[#279ef9] transition-colors"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                      {/* ALTERADO: badge de dados de teste (plano Free) */}
-                      {isSyntheticData && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold px-2 py-0.5">
-                          <FlaskConical className="h-3 w-3" />
-                          Dados de teste
-                        </span>
-                      )}
+        {selectedDomains.length > 0 && (
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+            {isPrimaryLoading || !primaryMetrics ? (
+              <DashboardSkeleton />
+            ) : isCompareMode && selectedDomains.length > 1 ? (
+              <CompareDomainsView
+                metricsList={activeMetricsList}
+                onRemoveFromCompare={handleRemoveDomain}
+                onExitCompareMode={() => setIsCompareMode(false)}
+              />
+            ) : (
+              <>
+                <div className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={primaryMetrics.logo}
+                      alt={primaryMetrics.name}
+                      className="h-12 w-12 rounded-xl bg-gray-50 p-1 border border-gray-200 shrink-0"
+                    />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-xl font-bold text-gray-900 font-mono">{primaryMetrics.domain}</h2>
+                        <a
+                          href={`https://${primaryMetrics.domain}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-gray-400 hover:text-[#279ef9] transition-colors"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                        {/* ALTERADO: badge de dados de teste (plano Free) */}
+                        {isSyntheticData && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold px-2 py-0.5">
+                            <FlaskConical className="h-3 w-3" />
+                            Dados de teste
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-0.5">
+                        <span className="font-semibold text-[#279ef9]">{primaryMetrics.category}</span>
+                        <span>•</span>
+                        <span>{primaryMetrics.lastUpdated}</span>
+                      </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-0.5">
-                      <span className="font-semibold text-[#279ef9]">{primaryMetrics.category}</span>
-                      <span>•</span>
-                      <span>{primaryMetrics.lastUpdated}</span>
-                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={() => handleExport('pdf')}
+                      id="export-pdf-btn"
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                    >
+                      <FileText className="h-4 w-4 text-rose-500" />
+                      Exportar PDF
+                    </Button>
+
+                    <Button
+                      onClick={() => handleExport('excel')}
+                      id="export-excel-btn"
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                    >
+                      <Download className="h-4 w-4 text-emerald-600" />
+                      Exportar Excel
+                    </Button>
+
+                    <Button
+                      onClick={handleTriggerAiAnalysis}
+                      id="ai-report-banner-btn"
+                      size="sm"
+                      className="gap-1.5"
+                    >
+                      <Sparkles className="h-4 w-4 text-amber-300" />
+                      Insights da IA
+                    </Button>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Button
-                    onClick={() => handleExport('pdf')}
-                    id="export-pdf-btn"
-                    variant="outline"
-                    size="sm"
-                    className="gap-1.5"
-                  >
-                    <FileText className="h-4 w-4 text-rose-500" />
-                    Exportar PDF
-                  </Button>
+                <OverviewMetrics metrics={primaryMetrics} />
+                <TrafficChart metricsList={activeMetricsList} />
 
-                  <Button
-                    onClick={() => handleExport('excel')}
-                    id="export-excel-btn"
-                    variant="outline"
-                    size="sm"
-                    className="gap-1.5"
-                  >
-                    <Download className="h-4 w-4 text-emerald-600" />
-                    Exportar Excel
-                  </Button>
-
-                  <Button
-                    onClick={handleTriggerAiAnalysis}
-                    id="ai-report-banner-btn"
-                    size="sm"
-                    className="gap-1.5"
-                  >
-                    <Sparkles className="h-4 w-4 text-amber-300" />
-                    Insights da IA
-                  </Button>
+                {/* ALTERADO: Fontes de tráfego e mapa geográfico agora disponíveis em todos os planos */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <TrafficSources metrics={primaryMetrics} />
+                  <GeoMapSection metrics={primaryMetrics} />
                 </div>
-              </div>
-
-              <OverviewMetrics metrics={primaryMetrics} />
-              <TrafficChart metricsList={activeMetricsList} />
-
-              {/* ALTERADO: Fontes de tráfego e mapa geográfico agora disponíveis em todos os planos */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <TrafficSources metrics={primaryMetrics} />
-                <GeoMapSection metrics={primaryMetrics} />
-              </div>
-            </>
-          )}
-        </main>
-      )}
+              </>
+            )}
+          </main>
+        )}
+      </div>
 
       {primaryMetrics && (
         <AiInsightsModal

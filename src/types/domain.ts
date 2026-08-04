@@ -54,6 +54,7 @@ export interface DomainMetrics {
   countryTraffic: CountryTraffic[];
   aiReport?: AiAnalysisReport;
   lastUpdated: string;
+  dataSource?: 'real' | 'synthetic';
 }
 
 export interface ComparisonData {
