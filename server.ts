@@ -586,6 +586,11 @@ Pergunta do usuário: "${lastUserMessage}"
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
+
+    console.log('CWD:', process.cwd());
+    console.log('distPath:', distPath);
+    console.log('favicon existe?', require('fs').existsSync(path.join(distPath, 'favicon.svg')));
+
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
