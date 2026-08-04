@@ -1,8 +1,7 @@
-import { jsPDF } from 'jspdf';
-import * as XLSX from 'xlsx';
 import { DomainMetrics } from '../types/domain';
 
-export function exportToExcel(domains: DomainMetrics[], fileName: string = 'TrafficScope_Report.xlsx') {
+export async function exportToExcel(domains: DomainMetrics[], fileName: string = 'TrafficScope_Report.xlsx') {
+  const XLSX = await import('xlsx');
   const wb = XLSX.utils.book_new();
 
   // Summary Sheet
@@ -56,7 +55,8 @@ export function exportToExcel(domains: DomainMetrics[], fileName: string = 'Traf
   XLSX.writeFile(wb, fileName);
 }
 
-export function exportToPdf(domain: DomainMetrics) {
+export async function exportToPdf(domain: DomainMetrics) {
+  const { jsPDF } = await import('jspdf');
   const doc = new jsPDF();
 
   // Header Banner

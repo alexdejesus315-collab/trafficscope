@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { DomainMetrics, PlanType } from '../types/domain';
 import { getOrGenerateDomainData } from '../data/mockDomains';
 import { exportToPdf, exportToExcel } from '../utils/exportUtils';
@@ -14,9 +14,16 @@ import { OverviewMetrics } from '../components/OverviewMetrics';
 import { TrafficChart } from '../components/TrafficChart';
 import { TrafficSources } from '../components/TrafficSources';
 import { GeoMapSection } from '../components/GeoMapSection';
-import { AiInsightsModal } from '../components/AiInsightsModal';
-import { CompareDomainsView } from '../components/CompareDomainsView';
-import { PricingModal } from '../components/PricingModal';
+
+const AiInsightsModal = lazy(() =>
+  import('../components/AiInsightsModal').then(m => ({ default: m.AiInsightsModal }))
+);
+const CompareDomainsView = lazy(() =>
+  import('../components/CompareDomainsView').then(m => ({ default: m.CompareDomainsView }))
+);
+const PricingModal = lazy(() =>
+  import('../components/PricingModal').then(m => ({ default: m.PricingModal }))
+);
 
 // Icons
 import { Download, FileText, Sparkles, ExternalLink, FlaskConical } from 'lucide-react';
@@ -198,9 +205,9 @@ export default function Dashboard() {
     }
 
     if (type === 'pdf') {
-      exportToPdf(primaryMetrics);
+      await exportToPdf(primaryMetrics);
     } else {
-      exportToExcel(activeMetricsList);
+      await exportToExcel(activeMetricsList);
     }
   };
 
@@ -280,11 +287,13 @@ export default function Dashboard() {
             {isPrimaryLoading || !primaryMetrics ? (
               <DashboardSkeleton />
             ) : isCompareMode && selectedDomains.length > 1 ? (
-              <CompareDomainsView
-                metricsList={activeMetricsList}
-                onRemoveFromCompare={handleRemoveDomain}
-                onExitCompareMode={() => setIsCompareMode(false)}
-              />
+              <Suspense fallback={<DashboardSkeleton />}>
+                <CompareDomainsView
+                  metricsList={activeMetricsList}
+                  onRemoveFromCompare={handleRemoveDomain}
+                  onExitCompareMode={() => setIsCompareMode(false)}
+                />
+              </Suspense>
             ) : (
               <>
                 <div className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -371,24 +380,28 @@ export default function Dashboard() {
       </div>
 
       {primaryMetrics && (
-        <AiInsightsModal
-          domain={primaryDomain}
-          metrics={primaryMetrics}
-          aiReport={primaryMetrics.aiReport}
-          isOpen={isAiModalOpen}
-          onClose={() => setIsAiModalOpen(false)}
-          onReanalyze={handleTriggerAiAnalysis}
-          isAiLoading={isAiLoading}
-        />
+        <Suspense fallback={null}>
+          <AiInsightsModal
+            domain={primaryDomain}
+            metrics={primaryMetrics}
+            aiReport={primaryMetrics.aiReport}
+            isOpen={isAiModalOpen}
+            onClose={() => setIsAiModalOpen(false)}
+            onReanalyze={handleTriggerAiAnalysis}
+            isAiLoading={isAiLoading}
+          />
+        </Suspense>
       )}
 
-      <PricingModal
-        isOpen={isPricingOpen}
-        onClose={() => setIsPricingOpen(false)}
-        currentPlan={currentPlan}
-        onChangePlan={() => {}}
-        userId={user?.id}
-      />
+      <Suspense fallback={null}>
+        <PricingModal
+          isOpen={isPricingOpen}
+          onClose={() => setIsPricingOpen(false)}
+          currentPlan={currentPlan}
+          onChangePlan={() => {}}
+          userId={user?.id}
+        />
+      </Suspense>
     </div>
   );
 }
