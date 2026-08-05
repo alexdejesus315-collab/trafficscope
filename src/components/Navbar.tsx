@@ -143,14 +143,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isCompanyMenuOpen ? 'rotate-180' : ''}`} />
           </Button>
 
-          <div ref={profileToggleRef} className="flex items-center rounded-xl border border-border overflow-hidden shadow-2xs">
+          <div ref={profileToggleRef} className="flex items-center rounded-xl border border-gray-200 overflow-hidden shadow-2xs bg-white">
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
               className={`flex items-center gap-2 px-3 py-1.5 text-xs font-bold transition-all hover:brightness-95 ${
-  isTest
-    ? 'bg-white text-orange-600'
-    : 'bg-white text-emerald-600'
-}`}
+                isTest
+                  ? 'bg-white text-orange-600'
+                  : 'bg-white text-emerald-600'
+              }`}
             >
               {isTest ? (
                 <>
@@ -165,7 +165,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </button>
 
-            <div className="w-px h-5 bg-border/60" />
+            <div className="w-px h-5 bg-gray-200" />
 
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
@@ -189,7 +189,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => void onSignOut()}
                 variant="ghost"
                 size="icon-sm"
-                className="text-muted-foreground hover:text-rose-500 hover:bg-rose-50 transition-colors"
+                className="text-gray-500 hover:text-rose-500 hover:bg-rose-50 transition-colors"
                 aria-label="Terminar sessão"
               >
                 <LogOut className="h-4 w-4" />
@@ -204,7 +204,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                          bg-white rounded-2xl 
                          border border-gray-200
                          shadow-[0_8px_30px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)]
-                         overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150"
+                         overflow-hidden z-50"
             >
               <div className="bg-[#111111] p-4 flex items-center gap-2">
                 <Search className="h-3.5 w-3.5 text-white/70" />
@@ -309,7 +309,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     setIsProfileOpen(false);
                     onOpenBuyCredits?.();
                   }}
-                  className="group relative w-full flex items-center gap-2.5 py-0 px-2 rounded-lg 
+                  className="group relative w-full flex items-center gap-2.5 py-2 px-4 rounded-lg 
                              bg-emerald-500 hover:bg-emerald-500 text-white font-semibold text-sm 
                              shadow-[0_0_20px_rgba(16,185,129,0.35),0_4px_12px_rgba(16,185,129,0.25)]
                              hover:shadow-[0_0_32px_rgba(16,185,129,0.5),0_6px_16px_rgba(16,185,129,0.35)]
