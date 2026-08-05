@@ -75,8 +75,16 @@ export const Navbar: React.FC<NavbarProps> = ({
   const panelRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
 
+  // ALTERADO: enquanto uma pagina institucional (overlay) estiver aberta, nao
+  // fechar o painel por clique-fora ou Esc — quem trata a navegacao e a
+  // propria pagina (useEscapeGoBack / botao Voltar), e o painel deve
+  // reaparecer aberto ao voltar (regra de escada: overlay -> painel -> Dashboard).
+  const isOverlayActive = Boolean(
+    (location.state as { backgroundLocation?: unknown } | null)?.backgroundLocation
+  );
+
   useEffect(() => {
-    if (!isCompanyMenuOpen) return;
+    if (!isCompanyMenuOpen || isOverlayActive) return;
 
     function handleClickOutside(e: MouseEvent) {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
@@ -95,7 +103,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscape);
     };
-  }, [isCompanyMenuOpen, onCloseCompanyMenu]);
+  }, [isCompanyMenuOpen, onCloseCompanyMenu, isOverlayActive]);
 
   return (
     <header className="dark sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border text-foreground shadow-2xs">
