@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +23,7 @@ interface UserProfileModalProps {
   profile: UserProfile;
   onOpenBuyCredits: () => void;
   onToggleMode: (mode: UserMode) => void;
+  onRefetch?: () => void; // ← NOVO
 }
 
 export const UserProfileModal: React.FC<UserProfileModalProps> = ({
@@ -31,7 +32,15 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   profile,
   onOpenBuyCredits,
   onToggleMode,
+  onRefetch,
 }) => {
+  // NOVO: atualiza dados sempre que o modal abre
+  useEffect(() => {
+    if (isOpen && onRefetch) {
+      onRefetch();
+    }
+  }, [isOpen, onRefetch]);
+
   const { credits, mode, totalSearches, totalPurchases } = profile;
   const isTest = mode === 'test';
   const maxCredits = Math.max(credits, 10);

@@ -11,8 +11,8 @@ export function useCredits(userId: string | undefined) {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  // Carrega perfil do usuário
-  useEffect(() => {
+  // MOVIDO PARA FORA do useEffect — agora é acessível no return
+  async function fetchProfile() {
     if (!userId) {
       setProfile({
         credits: 0,
@@ -24,39 +24,40 @@ export function useCredits(userId: string | undefined) {
       return;
     }
 
-    async function fetchProfile() {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('credits, mode, total_searches, total_purchases')
-        .eq('user_id', userId)
-        .maybeSingle();
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('credits, mode, total_searches, total_purchases')
+      .eq('user_id', userId)
+      .maybeSingle();
 
-      if (!error && data) {
-        setProfile({
-          credits: data.credits ?? 0,
-          mode: data.mode as UserMode,
-          totalSearches: data.total_searches ?? 0,
-          totalPurchases: data.total_purchases ?? 0,
-        });
-      } else {
-        // Se não existe perfil, cria um com modo teste
-        await supabase.from('user_profiles').insert({
-          user_id: userId,
-          credits: 0,
-          mode: 'test',
-          total_searches: 0,
-          total_purchases: 0,
-        });
-        setProfile({
-          credits: 0,
-          mode: 'test',
-          totalSearches: 0,
-          totalPurchases: 0,
-        });
-      }
-      setIsLoading(false);
+    if (!error && data) {
+      setProfile({
+        credits: data.credits ?? 0,
+        mode: data.mode as UserMode,
+        totalSearches: data.total_searches ?? 0,
+        totalPurchases: data.total_purchases ?? 0,
+      });
+    } else {
+      // Se não existe perfil, cria um com modo teste
+      await supabase.from('user_profiles').insert({
+        user_id: userId,
+        credits: 0,
+        mode: 'test',
+        total_searches: 0,
+        total_purchases: 0,
+      });
+      setProfile({
+        credits: 0,
+        mode: 'test',
+        totalSearches: 0,
+        totalPurchases: 0,
+      });
     }
+    setIsLoading(false);
+  }
 
+  // useEffect agora só chama a função
+  useEffect(() => {
     fetchProfile();
   }, [userId]);
 
@@ -117,6 +118,7 @@ export function useCredits(userId: string | undefined) {
     isLoading,
     consumeCredit,
     setMode,
+    refetch: fetchProfile,
     canUseRealData: profile.mode === 'real' && profile.credits > 0,
     isTestMode: profile.mode === 'test' || profile.credits <= 0,
   };

@@ -89,6 +89,7 @@ export default function Dashboard() {
     isLoading: creditsLoading,
     consumeCredit,
     setMode,
+    refetch,
     isTestMode,
   } = useCredits(user?.id);
 
@@ -447,8 +448,8 @@ export default function Dashboard() {
         profile={profile}
         onOpenBuyCredits={() => setIsBuyCreditsOpen(true)}
         onToggleMode={setMode}
+        onRefetch={refetch} // ← NOVO
       />
-
       <BuyCreditsModal
         isOpen={isBuyCreditsOpen}
         onClose={() => setIsBuyCreditsOpen(false)}
