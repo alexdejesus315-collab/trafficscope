@@ -163,7 +163,7 @@ export default function Dashboard() {
     if (selectedDomains.length > 0) {
       loadData();
     }
-  }, [selectedDomains, mode, isTestMode]);
+  }, [selectedDomains]);
 
   const primaryDomain =
     (primaryDomainOverride && selectedDomains.includes(primaryDomainOverride))
