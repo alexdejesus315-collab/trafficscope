@@ -1,5 +1,4 @@
-import React, { useRef, useEffect } from 'react';
-import { TestTube2 } from 'lucide-react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { User } from '@supabase/supabase-js';
 import {
@@ -20,9 +19,14 @@ import {
   BatteryWarning,
   BatteryCharging,
   UserCircle,
+  TestTube2,
+  ShoppingCart,
+  Search,
+  ArrowRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { UserProfile } from '../types/domain';
+import { Badge } from '@/components/ui/badge';
+import { UserProfile, UserMode } from '../types/domain';
 
 export const COMPANY_PANEL_WIDTH = 'clamp(260px, 22vw, 400px)';
 
@@ -33,7 +37,8 @@ interface NavbarProps {
   onToggleCompanyMenu: () => void;
   onCloseCompanyMenu: () => void;
   profile?: UserProfile;
-  onOpenProfile: () => void;
+  onToggleMode?: (mode: UserMode) => void;
+  onOpenBuyCredits?: () => void;
 }
 
 const COMPANY_LINKS = [
@@ -51,11 +56,15 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleCompanyMenu,
   onCloseCompanyMenu,
   profile,
-  onOpenProfile,
+  onToggleMode,
+  onOpenBuyCredits,
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const toggleBtnRef = useRef<HTMLButtonElement>(null);
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
+  const profileToggleRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const isOverlayActive = Boolean(
     (location.state as { backgroundLocation?: unknown } | null)?.backgroundLocation
@@ -63,7 +72,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   useEffect(() => {
     if (!isCompanyMenuOpen || isOverlayActive) return;
-
     function handleClickOutside(e: MouseEvent) {
       if (toggleBtnRef.current?.contains(e.target as Node)) return;
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
@@ -73,7 +81,6 @@ export const Navbar: React.FC<NavbarProps> = ({
     function handleEscape(e: KeyboardEvent) {
       if (e.key === 'Escape') onCloseCompanyMenu();
     }
-
     document.addEventListener('mousedown', handleClickOutside);
     document.addEventListener('keydown', handleEscape);
     return () => {
@@ -82,10 +89,34 @@ export const Navbar: React.FC<NavbarProps> = ({
     };
   }, [isCompanyMenuOpen, onCloseCompanyMenu, isOverlayActive]);
 
-  const credits = profile?.credits ?? 0;
-  const isTest = profile?.mode === 'test' || credits <= 0;
+  // Fecha dropdown do perfil ao clicar fora
+  useEffect(() => {
+    if (!isProfileOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (profileToggleRef.current?.contains(e.target as Node)) return;
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(e.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    }
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === 'Escape') setIsProfileOpen(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isProfileOpen]);
 
+  const credits = profile?.credits ?? 0;
+  const mode = profile?.mode ?? 'test';
+  const totalSearches = profile?.totalSearches ?? 0;
+  const totalPurchases = profile?.totalPurchases ?? 0;
+  const isTest = mode === 'test' || credits <= 0;
   const BatteryIcon = credits === 0 ? BatteryWarning : credits <= 3 ? Battery : BatteryCharging;
+
+
 
   return (
     <header className="dark sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border text-foreground shadow-2xs">
@@ -102,7 +133,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </a>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        {/* Container relative para o dropdown ficar posicionado debaixo */}
+        <div className="flex items-center gap-2 sm:gap-3 relative">
           <Button
             ref={toggleBtnRef}
             variant="outline"
@@ -115,39 +147,44 @@ export const Navbar: React.FC<NavbarProps> = ({
             <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isCompanyMenuOpen ? 'rotate-180' : ''}`} />
           </Button>
 
-          {/* NOVO: Indicador de Créditos / Modo */}
-          <button
-            onClick={onOpenProfile}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all hover:scale-105 ${
-              isTest
-                ? 'border-amber-200 bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400'
-                : 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400'
-            }`}
-          >
-            {isTest ? (
-              <>
-                <TestTube2 className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Modo Teste</span>
-              </>
-            ) : (
-              <>
-                <BatteryIcon className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">{credits} créditos</span>
-              </>
-            )}
-          </button>
+          {/* CÁPSULA CONECTADA: Modo + Perfil */}
+          <div ref={profileToggleRef} className="flex items-center rounded-xl border border-border overflow-hidden shadow-2xs">
+            {/* Créditos / Modo */}
+            <button
+              onClick={() => setIsProfileOpen(!isProfileOpen)}
+              className={`flex items-center gap-2 px-3 py-1.5 text-xs font-bold transition-all hover:brightness-95 ${
+                isTest
+                  ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400'
+                  : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400'
+              }`}
+            >
+              {isTest ? (
+                <>
+                  <TestTube2 className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Modo Teste</span>
+                </>
+              ) : (
+                <>
+                  <BatteryIcon className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">{credits} créditos</span>
+                </>
+              )}
+            </button>
 
-          {/* Perfil */}
-          <Button
-            onClick={onOpenProfile}
-            variant="outline"
-            size="sm"
-            className="gap-1.5"
-          >
-            <UserCircle className="h-4 w-4" />
-            <span className="hidden md:inline">Perfil</span>
-          </Button>
+            {/* Divisor sutil */}
+            <div className="w-px h-5 bg-border/60" />
 
+            {/* Perfil */}
+            <button
+              onClick={() => setIsProfileOpen(!isProfileOpen)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-foreground bg-background hover:bg-muted transition-colors"
+            >
+              <UserCircle className="h-4 w-4" />
+              <span className="hidden md:inline">Perfil</span>
+            </button>
+          </div>
+
+          {/* Avatar + Logout */}
           {user && onSignOut && (
             <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-2 py-1.5 shadow-2xs">
               {user.user_metadata?.avatar_url ? (
@@ -161,33 +198,157 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => void onSignOut()}
                 variant="ghost"
                 size="icon-sm"
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-rose-500 hover:bg-rose-50 transition-colors"
                 aria-label="Terminar sessão"
               >
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
           )}
+
+          {/* ═══════════════════════════════════════════════════════════════
+              DROPDOWN DO PERFIL — Pixel-perfect conforme imagem
+              ═══════════════════════════════════════════════════════════════ */}
+          {isProfileOpen && (
+            <div
+              ref={profileDropdownRef}
+              className="absolute top-[calc(100%+10px)] right-0 w-[340px] 
+                         bg-white rounded-2xl 
+                         border border-gray-200
+                         shadow-[0_8px_30px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)]
+                         overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150"
+            >
+              {/* ── HEADER PRETO FOSCO ── */}
+              <div className="bg-[#111111] p-4 flex items-center gap-2">
+                <Search className="h-3.5 w-3.5 text-white/70" />
+                <p className="text-sm font-semibold text-white">{totalSearches} pesquisas realizadas</p>
+              </div>
+
+              {/* ── CORPO BRANCO ── */}
+              <div className="p-5 space-y-5">
+
+                {/* MODO DE PESQUISA */}
+                <div className="space-y-2">
+                  <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+                    Modo de Pesquisa
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Modo Teste — ativo: borda azul, fundo azul claro */}
+                    <button
+                      onClick={() => onToggleMode?.('test')}
+                      className={`flex items-start gap-2.5 p-3 rounded-xl border-2 transition-all text-left ${
+                        isTest
+                          ? 'border-orange-400 bg-orange-50'
+                          : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                      }`}
+                    >
+                      <TestTube2 className={`h-4 w-4 shrink-0 mt-0.5 ${isTest ? 'text-orange-500' : 'text-gray-400'}`} />
+                      <div>
+                        <div className={`text-sm font-semibold ${isTest ? 'text-gray-900' : 'text-gray-600'}`}>Modo Teste</div>
+                        <div className="text-[11px] text-gray-400 mt-0.5">Ilimitado • Sintético</div>
+                      </div>
+                    </button>
+
+                    {/* Modo Real — inativo: borda cinza */}
+                    <button
+                      onClick={() => onToggleMode?.('real')}
+                      disabled={credits <= 0}
+                      className={`flex items-start gap-2.5 p-3 rounded-xl border-2 transition-all text-left ${
+                        !isTest
+                          ? 'border-emerald-400 bg-emerald-50'
+                          : credits <= 0
+                            ? 'border-gray-200 opacity-40 cursor-not-allowed'
+                            : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                      }`}
+                    >
+                      <Zap className={`h-4 w-4 shrink-0 mt-0.5 ${!isTest ? 'text-emerald-500' : 'text-gray-400'}`} />
+                      <div>
+                        <div className={`text-sm font-semibold ${!isTest ? 'text-gray-900' : 'text-gray-600'}`}>Modo Real</div>
+                        <div className="text-[11px] text-gray-400 mt-0.5">{credits > 0 ? `${credits} créditos` : 'Sem créditos'}</div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* CRÉDITOS DISPONÍVEIS — barra PRETA com ticks */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+                      <BatteryIcon className="h-3.5 w-3.5" />
+                      Créditos Disponíveis
+                    </label>
+                    <span className="text-sm font-bold text-gray-900">{credits} <span className="text-gray-400 font-normal text-xs">/ carga</span></span>
+                  </div>
+
+                  {/* Barra com ticks */}
+                  <div className="relative">
+                    <div className="h-3 w-full bg-gray-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-black rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min((credits / 10) * 100, 100)}%` }}
+                      />
+                    </div>
+                    {/* Ticks abaixo da barra */}
+                    <div className="flex justify-between px-0.5 mt-1">
+                      {[0, 1, 2, 3, 4, 5].map((i) => (
+                        <div key={i} className="flex flex-col items-center">
+                          <div className="w-px h-1.5 bg-gray-300" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {credits === 0 && (
+                    <p className="text-xs text-red-500 font-medium flex items-center gap-1">
+                      <BatteryWarning className="h-3 w-3" />
+                      Sem créditos. Compra mais para usar dados reais.
+                    </p>
+                  )}
+                </div>
+
+                {/* STATS — ícone acima, centralizado, borda cinza */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col items-center rounded-xl p-4 border border-gray-200 bg-white">
+                    <Search className="h-4 w-4 text-sky-500 mb-2" />
+                    <div className="text-xl font-bold text-gray-900">{totalSearches}</div>
+                    <div className="text-[11px] text-gray-500 mt-0.5">Pesquisas</div>
+                  </div>
+                  <div className="flex flex-col items-center rounded-xl p-4 border border-gray-200 bg-white">
+                    <ShoppingCart className="h-4 w-4 text-emerald-500 mb-2" />
+                    <div className="text-xl font-bold text-gray-900">{totalPurchases * 10}</div>
+                    <div className="text-[11px] text-gray-500 mt-0.5">Créditos Comprados</div>
+                  </div>
+                </div>
+
+                {/* CTA — verde com seta */}
+                <button
+                  onClick={() => {
+                    setIsProfileOpen(false);
+                    onOpenBuyCredits?.();
+                  }}
+                  className="group relative w-full flex items-center gap-2.5 py-1 px-2 rounded-lg 
+                             bg-emerald-500 hover:bg-emerald-500 text-white font-semibold text-sm 
+                             shadow-[0_0_20px_rgba(16,185,129,0.35),0_4px_12px_rgba(16,185,129,0.25)]
+                             hover:shadow-[0_0_32px_rgba(16,185,129,0.5),0_6px_16px_rgba(16,185,129,0.35)]
+                             transition-all duration-300 active:scale-[0.98] overflow-hidden"
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                  <span>Comprar Créditos</span>
+                  <span className="text-xs opacity-90 font-medium">$2 / 10 pesquisas</span>
+                  <ArrowRight className="h-4 w-4 ml-auto" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       {isCompanyMenuOpen && (
-        <div
-          ref={panelRef}
-          style={{ width: COMPANY_PANEL_WIDTH }}
-          className="fixed top-16 left-0 z-50 h-[calc(100vh-4rem)] bg-background border-r border-border shadow-2xl overflow-y-auto p-3"
-        >
-          <p className="px-2 pt-1 pb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Empresa
-          </p>
+        <div ref={panelRef} style={{ width: COMPANY_PANEL_WIDTH }} className="fixed top-16 left-0 z-50 h-[calc(100vh-4rem)] bg-background border-r border-border shadow-2xl overflow-y-auto p-3">
+          <p className="px-2 pt-1 pb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Empresa</p>
           <div className="flex flex-col gap-1">
             {COMPANY_LINKS.map(({ to, icon: Icon, label, desc }) => (
-              <Link
-                key={to}
-                to={to}
-                state={{ backgroundLocation: location }}
-                className="flex flex-col items-start gap-0.5 rounded-lg px-3 py-2.5 hover:bg-muted/60 transition-colors"
-              >
+              <Link key={to} to={to} state={{ backgroundLocation: location }} className="flex flex-col items-start gap-0.5 rounded-lg px-3 py-2.5 hover:bg-muted/60 transition-colors">
                 <span className="flex items-center gap-2 font-semibold text-foreground">
                   <Icon className="h-4 w-4 text-[#F7FFFF]" />
                   {label}
@@ -197,9 +358,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             ))}
           </div>
           <div className="mt-3 pt-3 border-t border-border">
-            <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Redes Sociais
-            </p>
+            <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Redes Sociais</p>
             <div className="flex items-center gap-2 px-2">
               {[Instagram, Linkedin, Twitter, Facebook].map((Icon, i) => (
                 <span key={i} title="Em breve" className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground/40 cursor-not-allowed">

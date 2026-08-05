@@ -103,7 +103,6 @@ export default function Dashboard() {
   const [isCompanyMenuOpen, setIsCompanyMenuOpen] = useState(false);
 
   // Modais
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isBuyCreditsOpen, setIsBuyCreditsOpen] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
@@ -289,7 +288,8 @@ export default function Dashboard() {
         onToggleCompanyMenu={() => setIsCompanyMenuOpen(prev => !prev)}
         onCloseCompanyMenu={() => setIsCompanyMenuOpen(false)}
         profile={profile}
-        onOpenProfile={() => setIsProfileOpen(true)}
+        onToggleMode={setMode}
+        onOpenBuyCredits={() => setIsBuyCreditsOpen(true)}
       />
 
       <div
@@ -441,14 +441,7 @@ export default function Dashboard() {
       )}
 
       {/* NOVOS Modais */}
-      <UserProfileModal
-        isOpen={isProfileOpen}
-        onClose={() => setIsProfileOpen(false)}
-        profile={profile}
-        onOpenBuyCredits={() => setIsBuyCreditsOpen(true)}
-        onToggleMode={setMode}
-        onRefetch={refetch} // ← NOVO
-      />
+      
       <BuyCreditsModal
         isOpen={isBuyCreditsOpen}
         onClose={() => setIsBuyCreditsOpen(false)}
