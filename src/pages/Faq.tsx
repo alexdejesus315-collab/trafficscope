@@ -1,8 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronDown, X, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useEscapeGoBack } from '../hooks/useEscapeGoBack';
 
 const FAQ_ITEMS = [
   {
@@ -40,9 +39,19 @@ const FAQ_ITEMS = [
 ];
 
 export default function Faq() {
-  useEscapeGoBack();
   const navigate = useNavigate();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  const voltarParaEmpresa = () => navigate('/', { state: { openCompanyMenu: true } });
+  const fecharTudo = () => navigate('/', { state: { openCompanyMenu: false } });
+
+  useEffect(() => {
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === 'Escape') voltarParaEmpresa();
+    }
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, []);
 
   return (
     <div className="fixed inset-0 z-50 bg-white overflow-y-auto">

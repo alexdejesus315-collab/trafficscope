@@ -1,4 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { DomainMetrics, PlanType } from '../types/domain';
 import { getOrGenerateDomainData } from '../data/mockDomains';
 import { exportToPdf, exportToExcel } from '../utils/exportUtils';
@@ -79,6 +80,8 @@ function DashboardSkeleton() {
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [selectedDomains, setSelectedDomains] = useState<string[]>([]);
   const { plan: currentPlan } = useSubscription(user?.id);
   const [metricsMap, setMetricsMap] = useState<Record<string, DomainMetrics>>({});
@@ -93,6 +96,17 @@ export default function Dashboard() {
   // ALTERADO: estado do painel "Empresa" subido para aqui, para poder empurrar
   // o conteúdo (DomainInputHeader + main) quando o painel abre.
   const [isCompanyMenuOpen, setIsCompanyMenuOpen] = useState(false);
+
+  // ALTERADO: regra de escada — ao voltar de uma pagina institucional pela
+  // seta "Voltar", esta reabre explicitamente o painel Empresa via state da
+  // navegacao; o X navega sem esse sinal e o Dashboard fica limpo.
+  useEffect(() => {
+    const state = location.state as { openCompanyMenu?: boolean } | null;
+    if (state?.openCompanyMenu) {
+      setIsCompanyMenuOpen(true);
+      navigate('.', { replace: true, state: null });
+    }
+  }, [location.state, navigate]);
 
   // Modals
   const [isPricingOpen, setIsPricingOpen] = useState(false);
