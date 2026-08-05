@@ -367,52 +367,18 @@ app.post(
 
   // ===== ALTERADO: Free passa a ter exportação liberada e ilimitada =====
   app.post("/api/check-export-limit", async (req, res) => {
-    const user = await getUserFromRequest(req);
-    if (!user) return res.status(401).json({ error: "Sessão inválida" });
-
-    const plan = await resolveUserPlan(user);
-
-    if (plan === 'free') {
-      // Dados de teste => sem custo real, sem limite de exportações
-      return res.json({ success: true });
-    }
-
-    if (plan === 'pro') {
-      const today = new Date().toISOString().slice(0, 10);
-      const { data: usage } = await supabaseAdmin
-        .from('export_usage')
-        .select('count')
-        .eq('user_id', user.id)
-        .eq('usage_date', today)
-        .maybeSingle();
-
-      const currentCount = usage?.count ?? 0;
-
-      if (currentCount >= 20) {
-        return res.status(429).json({ error: 'Limite diário de 20 exportações atingido no plano Pro.' });
-      }
-
-      await supabaseAdmin
-        .from('export_usage')
-        .upsert(
-          { user_id: user.id, usage_date: today, count: currentCount + 1 },
-          { onConflict: 'user_id,usage_date' }
-        );
-    }
-
+    // NOVO: exportação liberada para todos (modo teste e real)
     return res.json({ success: true });
   });
 
   // ===== ALTERADO: Analyze Domain Metrics Endpoint =====
   // Free (ou sem sessão) => sempre dados sintéticos (getOrGenerateDomainData), nunca Apify, sem limite diário.
   // Pro/Enterprise => dados reais via Apify (com cache), fallback sintético se a Apify falhar.
-  app.post("/api/analyze-domain", planAwareRateLimit, async (req, res) => {
+  app.post("/api/analyze-domain", async (req, res) => {
     try {
-      const { domain, domains } = req.body;
-      const user = await getUserFromRequest(req);
-      const plan = await resolveUserPlan(user);
+      const { domain, domains, useRealData } = req.body;
 
-      // Modo comparação (vários domínios) — sempre dados de teste por agora
+      // Modo comparação (vários domínios) — sempre dados de teste
       if (domains && Array.isArray(domains) && domains.length > 0) {
         const results = domains.map((d: string) => ({
           ...getOrGenerateDomainData(d),
@@ -425,36 +391,10 @@ app.post(
         return res.status(400).json({ error: "Parâmetro domain ou domains é obrigatório" });
       }
 
-      if (plan === 'free') {
+      // NOVO: usa dados reais apenas se useRealData for true (frontend já consumiu crédito)
+      if (!useRealData) {
         const data = { ...getOrGenerateDomainData(domain), dataSource: 'synthetic' };
         return res.json({ success: true, data });
-      }
-
-      // ALTERADO: limite diário de domínios analisados para Pro/Enterprise (tabela domain_usage)
-      if (user) {
-        const dailyLimit = plan === 'enterprise' ? 40 : 20;
-        const today = new Date().toISOString().slice(0, 10);
-        const { data: usage } = await supabaseAdmin
-          .from('domain_usage')
-          .select('count')
-          .eq('user_id', user.id)
-          .eq('usage_date', today)
-          .maybeSingle();
-
-        const currentCount = usage?.count ?? 0;
-
-        if (currentCount >= dailyLimit) {
-          return res.status(429).json({
-            error: `Limite diário de ${dailyLimit} domínios analisados atingido no plano ${plan === 'enterprise' ? 'Enterprise' : 'Pro'}.`,
-          });
-        }
-
-        await supabaseAdmin
-          .from('domain_usage')
-          .upsert(
-            { user_id: user.id, usage_date: today, count: currentCount + 1 },
-            { onConflict: 'user_id,usage_date' }
-          );
       }
 
       try {

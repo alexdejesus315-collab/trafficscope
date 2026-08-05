@@ -126,12 +126,8 @@ export default function Dashboard() {
         if (!updatedMap[d]) {
           setLoadingDomains(prev => new Set(prev).add(d));
           try {
-            // NOVO: consome crédito se modo real
-            let useRealData = false;
-            if (mode === 'real' && !isTestMode) {
-              const consumed = await consumeCredit();
-              useRealData = consumed;
-            }
+            // Define se usa dados reais baseado no modo atual
+            const useRealData = mode === 'real' && !isTestMode;
 
             const res = await fetch('/api/analyze-domain', {
               method: 'POST',
@@ -167,7 +163,7 @@ export default function Dashboard() {
     if (selectedDomains.length > 0) {
       loadData();
     }
-  }, [selectedDomains, mode, isTestMode, consumeCredit]);
+  }, [selectedDomains, mode, isTestMode]);
 
   const primaryDomain =
     (primaryDomainOverride && selectedDomains.includes(primaryDomainOverride))
@@ -183,16 +179,19 @@ export default function Dashboard() {
   const isSyntheticData =
     primaryMetrics?.dataSource === 'synthetic' || isTestMode;
 
-  // NOVO: handleAddDomain verifica créditos em modo real
-  const handleAddDomain = (domain: string) => {
+  // ALTERADO: consome crédito no momento da adição, não no useEffect
+  const handleAddDomain = async (domain: string) => {
     const cleanDomain = domain.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/.*$/, '').trim();
     if (!cleanDomain) return;
 
-    // Se modo real e sem créditos, abre modal de compra
-    if (mode === 'real' && credits <= 0) {
-      alert('Sem créditos disponíveis. Compre créditos para usar dados reais, ou mude para o Modo Teste.');
-      setIsBuyCreditsOpen(true);
-      return;
+    // Se modo real, consome 1 crédito ANTES de adicionar
+    if (mode === 'real' && !isTestMode) {
+      const consumed = await consumeCredit();
+      if (!consumed) {
+        alert('Sem créditos disponíveis. Compre créditos para usar dados reais, ou mude para o Modo Teste.');
+        setIsBuyCreditsOpen(true);
+        return;
+      }
     }
 
     if (!selectedDomains.includes(cleanDomain)) {
