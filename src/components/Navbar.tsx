@@ -89,7 +89,6 @@ export const Navbar: React.FC<NavbarProps> = ({
     };
   }, [isCompanyMenuOpen, onCloseCompanyMenu, isOverlayActive]);
 
-  // Fecha dropdown do perfil ao clicar fora
   useEffect(() => {
     if (!isProfileOpen) return;
     function handleClickOutside(e: MouseEvent) {
@@ -116,8 +115,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   const isTest = mode === 'test' || credits <= 0;
   const BatteryIcon = credits === 0 ? BatteryWarning : credits <= 3 ? Battery : BatteryCharging;
 
-
-
   return (
     <header className="dark sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border text-foreground shadow-2xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -133,7 +130,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </a>
 
-        {/* Container relative para o dropdown ficar posicionado debaixo */}
         <div className="flex items-center gap-2 sm:gap-3 relative">
           <Button
             ref={toggleBtnRef}
@@ -147,9 +143,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isCompanyMenuOpen ? 'rotate-180' : ''}`} />
           </Button>
 
-          {/* CÁPSULA CONECTADA: Modo + Perfil */}
           <div ref={profileToggleRef} className="flex items-center rounded-xl border border-border overflow-hidden shadow-2xs">
-            {/* Créditos / Modo */}
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
               className={`flex items-center gap-2 px-3 py-1.5 text-xs font-bold transition-all hover:brightness-95 ${
@@ -171,10 +165,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </button>
 
-            {/* Divisor sutil */}
             <div className="w-px h-5 bg-border/60" />
 
-            {/* Perfil */}
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-foreground bg-background hover:bg-muted transition-colors"
@@ -184,7 +176,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           </div>
 
-          {/* Avatar + Logout */}
           {user && onSignOut && (
             <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-2 py-1.5 shadow-2xs">
               {user.user_metadata?.avatar_url ? (
@@ -206,9 +197,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           )}
 
-          {/* ═══════════════════════════════════════════════════════════════
-              DROPDOWN DO PERFIL — Pixel-perfect conforme imagem
-              ═══════════════════════════════════════════════════════════════ */}
           {isProfileOpen && (
             <div
               ref={profileDropdownRef}
@@ -218,24 +206,22 @@ export const Navbar: React.FC<NavbarProps> = ({
                          shadow-[0_8px_30px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)]
                          overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150"
             >
-              {/* ── HEADER PRETO FOSCO ── */}
               <div className="bg-[#111111] p-4 flex items-center gap-2">
                 <Search className="h-3.5 w-3.5 text-white/70" />
                 <p className="text-sm font-semibold text-white">{totalSearches} pesquisas realizadas</p>
               </div>
 
-              {/* ── CORPO BRANCO ── */}
               <div className="p-5 space-y-5">
-
-                {/* MODO DE PESQUISA */}
                 <div className="space-y-2">
                   <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
                     Modo de Pesquisa
                   </label>
                   <div className="grid grid-cols-2 gap-3">
-                    {/* Modo Teste — ativo: borda azul, fundo azul claro */}
                     <button
-                      onClick={() => onToggleMode?.('test')}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleMode?.('test');
+                      }}
                       className={`flex items-start gap-2.5 p-3 rounded-xl border-2 transition-all text-left ${
                         isTest
                           ? 'border-orange-400 bg-orange-50'
@@ -249,9 +235,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                       </div>
                     </button>
 
-                    {/* Modo Real — inativo: borda cinza */}
                     <button
-                      onClick={() => onToggleMode?.('real')}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleMode?.('real');
+                      }}
                       disabled={credits <= 0}
                       className={`flex items-start gap-2.5 p-3 rounded-xl border-2 transition-all text-left ${
                         !isTest
@@ -270,7 +258,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </div>
                 </div>
 
-                {/* CRÉDITOS DISPONÍVEIS — barra PRETA com ticks */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <label className="flex items-center gap-1.5 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
@@ -280,7 +267,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <span className="text-sm font-bold text-gray-900">{credits} <span className="text-gray-400 font-normal text-xs">/ carga</span></span>
                   </div>
 
-                  {/* Barra com ticks */}
                   <div className="relative">
                     <div className="h-3 w-full bg-gray-200 rounded-full overflow-hidden">
                       <div
@@ -288,7 +274,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                         style={{ width: `${Math.min((credits / 10) * 100, 100)}%` }}
                       />
                     </div>
-                    {/* Ticks abaixo da barra */}
                     <div className="flex justify-between px-0.5 mt-1">
                       {[0, 1, 2, 3, 4, 5].map((i) => (
                         <div key={i} className="flex flex-col items-center">
@@ -306,7 +291,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                   )}
                 </div>
 
-                {/* STATS — ícone acima, centralizado, borda cinza */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="flex flex-col items-center rounded-xl p-4 border border-gray-200 bg-white">
                     <Search className="h-4 w-4 text-sky-500 mb-2" />
@@ -320,13 +304,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </div>
                 </div>
 
-                {/* CTA — verde com seta */}
                 <button
                   onClick={() => {
                     setIsProfileOpen(false);
                     onOpenBuyCredits?.();
                   }}
-                  className="group relative w-full flex items-center gap-2.5 py-1 px-2 rounded-lg 
+                  className="group relative w-full flex items-center gap-2.5 py-0 px-2 rounded-lg 
                              bg-emerald-500 hover:bg-emerald-500 text-white font-semibold text-sm 
                              shadow-[0_0_20px_rgba(16,185,129,0.35),0_4px_12px_rgba(16,185,129,0.25)]
                              hover:shadow-[0_0_32px_rgba(16,185,129,0.5),0_6px_16px_rgba(16,185,129,0.35)]
