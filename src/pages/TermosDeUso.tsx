@@ -1,18 +1,27 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, X, ArrowLeft } from 'lucide-react';
-import { useEscapeGoBack } from '../hooks/useEscapeGoBack';
+import { X, ArrowLeft } from 'lucide-react';
 
 export default function TermosDeUso() {
-  useEscapeGoBack();
   const navigate = useNavigate();
+
+  const voltarParaEmpresa = () => navigate('/', { state: { openCompanyMenu: true } });
+  const fecharTudo = () => navigate('/', { state: { openCompanyMenu: false } });
+
+  useEffect(() => {
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === 'Escape') voltarParaEmpresa();
+    }
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, []);
 
   return (
     <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
       <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-gray-200 z-10">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <button
-            onClick={() => navigate(-1)}
+            onClick={voltarParaEmpresa}
             className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
             aria-label="Voltar"
           >
@@ -20,7 +29,7 @@ export default function TermosDeUso() {
             Voltar
           </button>
           <button
-            onClick={() => navigate(-1)}
+            onClick={fecharTudo}
             className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors"
             aria-label="Fechar"
           >
