@@ -58,7 +58,7 @@ export default function Faq() {
       <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-gray-200 z-10">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <button
-            onClick={() => navigate(-1)}
+            onClick={voltarParaEmpresa}
             className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
             aria-label="Voltar"
           >
@@ -66,7 +66,7 @@ export default function Faq() {
             Voltar
           </button>
           <button
-            onClick={() => navigate(-1)}
+            onClick={fecharTudo}
             className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors"
             aria-label="Fechar"
           >
