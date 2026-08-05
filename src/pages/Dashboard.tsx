@@ -27,10 +27,8 @@ const PricingModal = lazy(() =>
 );
 
 // Icons
-import { Download, FileText, Sparkles, ExternalLink, FlaskConical } from 'lucide-react';
+import { Download, FileText, Sparkles, ExternalLink, FlaskConical, GitCompare } from 'lucide-react';
 
-// Skeleton — mostrado enquanto os dados reais do domínio ainda não chegaram,
-// para nunca renderizar dados mock/antigos "pendurados" durante o loading.
 function DashboardSkeleton() {
   return (
     <div className="space-y-6 animate-pulse">
@@ -89,17 +87,9 @@ export default function Dashboard() {
 
   const [isCompareMode, setIsCompareMode] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
-  // ALTERADO: domínio em destaque escolhido manualmente (clicando num chip),
-  // em vez de ser sempre o primeiro da lista.
   const [primaryDomainOverride, setPrimaryDomainOverride] = useState<string | null>(null);
-
-  // ALTERADO: estado do painel "Empresa" subido para aqui, para poder empurrar
-  // o conteúdo (DomainInputHeader + main) quando o painel abre.
   const [isCompanyMenuOpen, setIsCompanyMenuOpen] = useState(false);
 
-  // ALTERADO: regra de escada — ao voltar de uma pagina institucional pela
-  // seta "Voltar", esta reabre explicitamente o painel Empresa via state da
-  // navegacao; o X navega sem esse sinal e o Dashboard fica limpo.
   useEffect(() => {
     const state = location.state as { openCompanyMenu?: boolean } | null;
     if (state?.openCompanyMenu) {
@@ -108,11 +98,9 @@ export default function Dashboard() {
     }
   }, [location.state, navigate]);
 
-  // Modals
   const [isPricingOpen, setIsPricingOpen] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
-  // Load domain data whenever selectedDomains changes
   useEffect(() => {
     async function loadData() {
       const updatedMap: Record<string, DomainMetrics> = { ...metricsMap };
@@ -163,14 +151,9 @@ export default function Dashboard() {
     .map(d => metricsMap[d])
     .filter((m): m is DomainMetrics => Boolean(m));
 
-  // ALTERADO: indicador de dados de teste — usa o campo dataSource vindo do servidor,
-  // com fallback para o plano atual (Free = sempre dados sintéticos).
   const isSyntheticData =
     primaryMetrics?.dataSource === 'synthetic' || currentPlan === 'free';
 
-  // ALTERADO: Free deixa de ficar limitado a um único domínio — os dados são
-  // sintéticos (sem custo real), por isso passa a ter o mesmo limite generoso
-  // do Enterprise. Só o Pro mantém o teto de 5 (é o plano com dados reais/pagos).
   const handleAddDomain = (domain: string) => {
     const cleanDomain = domain.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/.*$/, '').trim();
     if (!cleanDomain) return;
@@ -186,20 +169,16 @@ export default function Dashboard() {
     }
   };
 
-  // Remove Domain handler
   const handleRemoveDomain = (domain: string) => {
     setSelectedDomains(prev => prev.filter(d => d !== domain));
-    // ALTERADO: se o domínio removido era o que estava em destaque, limpa o override
     setPrimaryDomainOverride(prev => (prev === domain ? null : prev));
   };
 
-  // Clear All Domains handler
   const handleClearAllDomains = () => {
     setSelectedDomains([]);
     setPrimaryDomainOverride(null);
   };
 
-  // ALTERADO: Exportação liberada para todos os planos (Free = dados de teste)
   const handleExport = async (type: 'pdf' | 'excel') => {
     if (!primaryMetrics) return;
 
@@ -225,7 +204,6 @@ export default function Dashboard() {
     }
   };
 
-  // ALTERADO: Trigger AI Report (Groq) — liberado para todos os planos
   const handleTriggerAiAnalysis = async () => {
     if (!primaryMetrics) return;
 
@@ -269,9 +247,6 @@ export default function Dashboard() {
       <Navbar
         currentPlan={currentPlan}
         onOpenPricing={() => setIsPricingOpen(true)}
-        isCompareMode={isCompareMode}
-        onToggleCompareMode={() => setIsCompareMode(!isCompareMode)}
-        activeDomainCount={selectedDomains.length}
         user={user}
         onSignOut={() => void signOut()}
         isCompanyMenuOpen={isCompanyMenuOpen}
@@ -279,8 +254,6 @@ export default function Dashboard() {
         onCloseCompanyMenu={() => setIsCompanyMenuOpen(false)}
       />
 
-      {/* ALTERADO: o conteúdo abaixo do header é empurrado para a direita
-          (margin-left) enquanto o painel "Empresa" estiver aberto. */}
       <div
         className="transition-[margin] duration-300 ease-in-out"
         style={{ marginLeft: isCompanyMenuOpen ? COMPANY_PANEL_WIDTH : 0 }}
@@ -328,7 +301,6 @@ export default function Dashboard() {
                         >
                           <ExternalLink className="h-4 w-4" />
                         </a>
-                        {/* ALTERADO: badge de dados de teste (plano Free) */}
                         {isSyntheticData && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold px-2 py-0.5">
                             <FlaskConical className="h-3 w-3" />
@@ -344,7 +316,7 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Button
                       onClick={() => handleExport('pdf')}
                       id="export-pdf-btn"
@@ -367,11 +339,27 @@ export default function Dashboard() {
                       Exportar Excel
                     </Button>
 
+                    {/* NOVO: Botão Modo Comparar movido para o card */}
+                    <Button
+                      onClick={() => setIsCompareMode(!isCompareMode)}
+                      id="compare-mode-toggle-btn"
+                      variant={isCompareMode ? 'default' : 'outline'}
+                      size="sm"
+                      className="gap-1.5"
+                    >
+                      <GitCompare className="h-4 w-4" />
+                      Modo Comparar
+                      {selectedDomains.length > 1 && (
+                        <span className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
+                          isCompareMode ? 'bg-background text-foreground' : 'bg-muted text-foreground'
+                        }`}>
+                          {selectedDomains.length}
+                        </span>
+                      )}
+                    </Button>
+
                     <Button
                       onClick={() => {
-                        // ALTERADO: se ja existe relatorio para este dominio, so reabre o
-                        // painel (preserva a conversa); so gera um relatorio novo quando
-                        // ainda nao existe nenhum.
                         if (primaryMetrics?.aiReport) {
                           setIsAiModalOpen(true);
                         } else {
@@ -391,7 +379,6 @@ export default function Dashboard() {
                 <OverviewMetrics metrics={primaryMetrics} />
                 <TrafficChart metricsList={activeMetricsList} />
 
-                {/* ALTERADO: Fontes de tráfego e mapa geográfico agora disponíveis em todos os planos */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <TrafficSources metrics={primaryMetrics} />
                   <GeoMapSection metrics={primaryMetrics} />
