@@ -260,6 +260,8 @@ app.post(
 
       console.log('Webhook Paddle recebido:', event.eventType);
 
+      // === SUBSCRIÇÕES ANTIGAS (mantido para compatibilidade) ===
+            // === SUBSCRIÇÕES ANTIGAS (mantido para compatibilidade, mas inativo no novo modelo) ===
       if (
         event.eventType === EventName.SubscriptionCreated ||
         event.eventType === EventName.SubscriptionUpdated
@@ -269,9 +271,9 @@ app.post(
 
         if (userId) {
           const priceId = sub.items?.[0]?.price?.id;
-          const billingCycle =
-            priceId === PADDLE_PRICES.pro.annual ? 'annual' : 'monthly';
-          const plan = priceId === PADDLE_PRICES.enterprise.monthly ? 'enterprise' : 'pro';
+          // NOVO: como o modelo mudou para créditos, subscrições antigas são tratadas como Pro
+          const billingCycle = 'monthly';
+          const plan = 'pro';
 
           await supabaseAdmin.from('subscriptions').upsert(
             {
@@ -300,6 +302,46 @@ app.post(
             .from('subscriptions')
             .update({ status: 'canceled', updated_at: new Date().toISOString() })
             .eq('user_id', userId);
+        }
+      }
+
+      // === NOVO: COMPRA ÚNICA DE CRÉDITOS ===
+      if (event.eventType === EventName.TransactionCompleted) {
+        const transaction = event.data;
+        const userId = transaction.customData?.user_id as string | undefined;
+        const creditsToAdd = (transaction.customData?.credits_to_add as number) || 10;
+
+        if (userId) {
+          // Busca perfil atual
+          const { data: profile } = await supabaseAdmin
+            .from('user_profiles')
+            .select('credits, total_purchases')
+            .eq('user_id', userId)
+            .single();
+
+          const currentCredits = profile?.credits ?? 0;
+          const currentPurchases = profile?.total_purchases ?? 0;
+
+          const newCredits = currentCredits + creditsToAdd;
+          const newPurchases = currentPurchases + 1;
+
+          // Atualiza perfil com créditos e ativa modo real
+          await supabaseAdmin
+            .from('user_profiles')
+            .upsert(
+              {
+                user_id: userId,
+                credits: newCredits,
+                total_purchases: newPurchases,
+                mode: 'real',
+                updated_at: new Date().toISOString(),
+              },
+              { onConflict: 'user_id' }
+            );
+
+          console.log(`✅ Créditos adicionados: user=${userId}, +${creditsToAdd}, total=${newCredits}`);
+        } else {
+          console.error('❌ TransactionCompleted sem user_id em customData');
         }
       }
 

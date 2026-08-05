@@ -1,66 +1,60 @@
 import React, { useRef, useEffect } from 'react';
+import { TestTube2 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { User } from '@supabase/supabase-js';
-import { Activity, Crown, LogOut, ChevronDown, Info, HelpCircle, Shield, FileText, Mail, Instagram, Linkedin, Twitter, Facebook } from 'lucide-react';
-import { PlanType } from '../types/domain';
+import {
+  Activity,
+  LogOut,
+  ChevronDown,
+  Info,
+  HelpCircle,
+  Shield,
+  FileText,
+  Mail,
+  Instagram,
+  Linkedin,
+  Twitter,
+  Facebook,
+  Zap,
+  Battery,
+  BatteryWarning,
+  BatteryCharging,
+  UserCircle,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { UserProfile } from '../types/domain';
 
 export const COMPANY_PANEL_WIDTH = 'clamp(260px, 22vw, 400px)';
 
 interface NavbarProps {
-  currentPlan: PlanType;
-  onOpenPricing: () => void;
   user?: User | null;
   onSignOut?: () => void;
   isCompanyMenuOpen: boolean;
   onToggleCompanyMenu: () => void;
   onCloseCompanyMenu: () => void;
+  profile?: UserProfile;
+  onOpenProfile: () => void;
 }
 
 const COMPANY_LINKS = [
-  {
-    to: '/sobre',
-    icon: Info,
-    label: 'Sobre Nós',
-    desc: 'Conhece a missão do TrafficScope',
-  },
-  {
-    to: '/faq',
-    icon: HelpCircle,
-    label: 'FAQ',
-    desc: 'Respostas às perguntas mais comuns',
-  },
-  {
-    to: '/politica-privacidade',
-    icon: Shield,
-    label: 'Política de Privacidade',
-    desc: 'Como tratamos os teus dados',
-  },
-  {
-    to: '/termos-de-uso',
-    icon: FileText,
-    label: 'Termos de Uso',
-    desc: 'Regras de utilização da plataforma',
-  },
-  {
-    to: '/suporte',
-    icon: Mail,
-    label: 'Suporte',
-    desc: 'Fala com a nossa equipa',
-  },
+  { to: '/sobre', icon: Info, label: 'Sobre Nós', desc: 'Conhece a missão do TrafficScope' },
+  { to: '/faq', icon: HelpCircle, label: 'FAQ', desc: 'Respostas às perguntas mais comuns' },
+  { to: '/politica-privacidade', icon: Shield, label: 'Política de Privacidade', desc: 'Como tratamos os teus dados' },
+  { to: '/termos-de-uso', icon: FileText, label: 'Termos de Uso', desc: 'Regras de utilização da plataforma' },
+  { to: '/suporte', icon: Mail, label: 'Suporte', desc: 'Fala com a nossa equipa' },
 ];
 
 export const Navbar: React.FC<NavbarProps> = ({
-  currentPlan,
-  onOpenPricing,
   user,
   onSignOut,
   isCompanyMenuOpen,
   onToggleCompanyMenu,
   onCloseCompanyMenu,
+  profile,
+  onOpenProfile,
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
-  const toggleBtnRef = useRef<HTMLButtonElement>(null); // ← NOVO
+  const toggleBtnRef = useRef<HTMLButtonElement>(null);
   const location = useLocation();
 
   const isOverlayActive = Boolean(
@@ -71,17 +65,13 @@ export const Navbar: React.FC<NavbarProps> = ({
     if (!isCompanyMenuOpen || isOverlayActive) return;
 
     function handleClickOutside(e: MouseEvent) {
-      // ← NOVO: ignora cliques no próprio botão de toggle
       if (toggleBtnRef.current?.contains(e.target as Node)) return;
-
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
         onCloseCompanyMenu();
       }
     }
     function handleEscape(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        onCloseCompanyMenu();
-      }
+      if (e.key === 'Escape') onCloseCompanyMenu();
     }
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -92,10 +82,15 @@ export const Navbar: React.FC<NavbarProps> = ({
     };
   }, [isCompanyMenuOpen, onCloseCompanyMenu, isOverlayActive]);
 
+  const credits = profile?.credits ?? 0;
+  const isTest = profile?.mode === 'test' || credits <= 0;
+
+  const BatteryIcon = credits === 0 ? BatteryWarning : credits <= 3 ? Battery : BatteryCharging;
+
   return (
     <header className="dark sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border text-foreground shadow-2xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+        <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <div>
             <div className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.3em] text-foreground">
               <Activity className="h-4 w-4 text-foreground" />
@@ -108,7 +103,6 @@ export const Navbar: React.FC<NavbarProps> = ({
         </a>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* ← NOVO: ref no botão */}
           <Button
             ref={toggleBtnRef}
             variant="outline"
@@ -121,15 +115,37 @@ export const Navbar: React.FC<NavbarProps> = ({
             <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isCompanyMenuOpen ? 'rotate-180' : ''}`} />
           </Button>
 
+          {/* NOVO: Indicador de Créditos / Modo */}
+          <button
+            onClick={onOpenProfile}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all hover:scale-105 ${
+              isTest
+                ? 'border-amber-200 bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400'
+                : 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400'
+            }`}
+          >
+            {isTest ? (
+              <>
+                <TestTube2 className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Modo Teste</span>
+              </>
+            ) : (
+              <>
+                <BatteryIcon className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{credits} créditos</span>
+              </>
+            )}
+          </button>
+
+          {/* Perfil */}
           <Button
-            onClick={onOpenPricing}
-            id="pricing-plan-btn"
+            onClick={onOpenProfile}
             variant="outline"
             size="sm"
-            className="gap-1.5 font-bold"
+            className="gap-1.5"
           >
-            <Crown className="h-4 w-4 text-amber-500" />
-            <span className="uppercase tracking-wider">{currentPlan}</span>
+            <UserCircle className="h-4 w-4" />
+            <span className="hidden md:inline">Perfil</span>
           </Button>
 
           {user && onSignOut && (
@@ -186,11 +202,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </p>
             <div className="flex items-center gap-2 px-2">
               {[Instagram, Linkedin, Twitter, Facebook].map((Icon, i) => (
-                <span
-                  key={i}
-                  title="Em breve"
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground/40 cursor-not-allowed"
-                >
+                <span key={i} title="Em breve" className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground/40 cursor-not-allowed">
                   <Icon className="h-4 w-4" />
                 </span>
               ))}

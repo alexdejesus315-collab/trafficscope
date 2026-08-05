@@ -1,11 +1,18 @@
-export type PlanType = 'free' | 'pro' | 'enterprise';
+export type UserMode = 'test' | 'real';
+
+export interface UserProfile {
+  credits: number;
+  mode: UserMode;
+  totalSearches: number;
+  totalPurchases: number;
+}
 
 export interface TrafficPoint {
   date: string;
   visits: number;
   uniqueVisitors: number;
   pageViews: number;
-  [domainName: string]: string | number; // for comparative charts
+  [domainName: string]: string | number;
 }
 
 export interface TrafficSource {

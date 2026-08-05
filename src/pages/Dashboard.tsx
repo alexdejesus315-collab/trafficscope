@@ -1,10 +1,10 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { DomainMetrics, PlanType } from '../types/domain';
+import { DomainMetrics, UserProfile } from '../types/domain';
 import { getOrGenerateDomainData } from '../data/mockDomains';
 import { exportToPdf, exportToExcel } from '../utils/exportUtils';
 import { useAuth } from '../hooks/useAuth';
-import { useSubscription } from '../hooks/useSubscription';
+import { useCredits } from '../hooks/useCredits';
 import { supabase } from '../lib/supabaseClient';
 import { Button } from '@/components/ui/button';
 
@@ -15,15 +15,14 @@ import { OverviewMetrics } from '../components/OverviewMetrics';
 import { TrafficChart } from '../components/TrafficChart';
 import { TrafficSources } from '../components/TrafficSources';
 import { GeoMapSection } from '../components/GeoMapSection';
+import { UserProfileModal } from '../components/UserProfileModal';
+import { BuyCreditsModal } from '../components/BuyCreditsModal';
 
 const AiInsightsModal = lazy(() =>
   import('../components/AiInsightsModal').then(m => ({ default: m.AiInsightsModal }))
 );
 const CompareDomainsView = lazy(() =>
   import('../components/CompareDomainsView').then(m => ({ default: m.CompareDomainsView }))
-);
-const PricingModal = lazy(() =>
-  import('../components/PricingModal').then(m => ({ default: m.PricingModal }))
 );
 
 // Icons
@@ -80,8 +79,20 @@ export default function Dashboard() {
   const { user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+
+  // NOVO: hook de créditos substitui useSubscription
+  const {
+    credits,
+    mode,
+    totalSearches,
+    totalPurchases,
+    isLoading: creditsLoading,
+    consumeCredit,
+    setMode,
+    isTestMode,
+  } = useCredits(user?.id);
+
   const [selectedDomains, setSelectedDomains] = useState<string[]>([]);
-  const { plan: currentPlan } = useSubscription(user?.id);
   const [metricsMap, setMetricsMap] = useState<Record<string, DomainMetrics>>({});
   const [loadingDomains, setLoadingDomains] = useState<Set<string>>(new Set());
 
@@ -90,6 +101,12 @@ export default function Dashboard() {
   const [primaryDomainOverride, setPrimaryDomainOverride] = useState<string | null>(null);
   const [isCompanyMenuOpen, setIsCompanyMenuOpen] = useState(false);
 
+  // Modais
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isBuyCreditsOpen, setIsBuyCreditsOpen] = useState(false);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+
+  // Reabre painel Empresa ao voltar de overlay
   useEffect(() => {
     const state = location.state as { openCompanyMenu?: boolean } | null;
     if (state?.openCompanyMenu) {
@@ -98,9 +115,7 @@ export default function Dashboard() {
     }
   }, [location.state, navigate]);
 
-  const [isPricingOpen, setIsPricingOpen] = useState(false);
-  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
-
+  // Load domain data — consome crédito se modo real
   useEffect(() => {
     async function loadData() {
       const updatedMap: Record<string, DomainMetrics> = { ...metricsMap };
@@ -110,13 +125,23 @@ export default function Dashboard() {
         if (!updatedMap[d]) {
           setLoadingDomains(prev => new Set(prev).add(d));
           try {
+            // NOVO: consome crédito se modo real
+            let useRealData = false;
+            if (mode === 'real' && !isTestMode) {
+              const consumed = await consumeCredit();
+              useRealData = consumed;
+            }
+
             const res = await fetch('/api/analyze-domain', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
                 ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
               },
-              body: JSON.stringify({ domain: d })
+              body: JSON.stringify({
+                domain: d,
+                useRealData,
+              })
             });
             const result = await res.json();
             if (result.success && result.data) {
@@ -138,8 +163,10 @@ export default function Dashboard() {
       setMetricsMap(updatedMap);
     }
 
-    loadData();
-  }, [selectedDomains]);
+    if (selectedDomains.length > 0) {
+      loadData();
+    }
+  }, [selectedDomains, mode, isTestMode, consumeCredit]);
 
   const primaryDomain =
     (primaryDomainOverride && selectedDomains.includes(primaryDomainOverride))
@@ -151,20 +178,23 @@ export default function Dashboard() {
     .map(d => metricsMap[d])
     .filter((m): m is DomainMetrics => Boolean(m));
 
+  // Dados sintéticos = teste ou quando a API retorna mock
   const isSyntheticData =
-    primaryMetrics?.dataSource === 'synthetic' || currentPlan === 'free';
+    primaryMetrics?.dataSource === 'synthetic' || isTestMode;
 
+  // NOVO: handleAddDomain verifica créditos em modo real
   const handleAddDomain = (domain: string) => {
     const cleanDomain = domain.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/.*$/, '').trim();
     if (!cleanDomain) return;
 
-    const maxDomains = currentPlan === 'pro' ? 5 : currentPlan === 'enterprise' ? 10 : 999;
+    // Se modo real e sem créditos, abre modal de compra
+    if (mode === 'real' && credits <= 0) {
+      alert('Sem créditos disponíveis. Compre créditos para usar dados reais, ou mude para o Modo Teste.');
+      setIsBuyCreditsOpen(true);
+      return;
+    }
 
     if (!selectedDomains.includes(cleanDomain)) {
-      if (selectedDomains.length >= maxDomains) {
-        alert(`O limite de comparação simultânea é de ${maxDomains} websites.`);
-        return;
-      }
       setSelectedDomains(prev => [...prev, cleanDomain]);
     }
   };
@@ -242,16 +272,24 @@ export default function Dashboard() {
     }
   };
 
+  // Profile object para passar aos componentes
+  const profile: UserProfile = {
+    credits,
+    mode,
+    totalSearches,
+    totalPurchases,
+  };
+
   return (
     <div className="min-h-screen bg-[#FFFFFF] text-gray-900 font-sans antialiased selection:bg-[#279ef9] selection:text-white pb-16">
       <Navbar
-        currentPlan={currentPlan}
-        onOpenPricing={() => setIsPricingOpen(true)}
         user={user}
         onSignOut={() => void signOut()}
         isCompanyMenuOpen={isCompanyMenuOpen}
         onToggleCompanyMenu={() => setIsCompanyMenuOpen(prev => !prev)}
         onCloseCompanyMenu={() => setIsCompanyMenuOpen(false)}
+        profile={profile}
+        onOpenProfile={() => setIsProfileOpen(true)}
       />
 
       <div
@@ -339,7 +377,6 @@ export default function Dashboard() {
                       Exportar Excel
                     </Button>
 
-                    {/* NOVO: Botão Modo Comparar movido para o card */}
                     <Button
                       onClick={() => setIsCompareMode(!isCompareMode)}
                       id="compare-mode-toggle-btn"
@@ -403,15 +440,20 @@ export default function Dashboard() {
         </Suspense>
       )}
 
-      <Suspense fallback={null}>
-        <PricingModal
-          isOpen={isPricingOpen}
-          onClose={() => setIsPricingOpen(false)}
-          currentPlan={currentPlan}
-          onChangePlan={() => {}}
-          userId={user?.id}
-        />
-      </Suspense>
+      {/* NOVOS Modais */}
+      <UserProfileModal
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        profile={profile}
+        onOpenBuyCredits={() => setIsBuyCreditsOpen(true)}
+        onToggleMode={setMode}
+      />
+
+      <BuyCreditsModal
+        isOpen={isBuyCreditsOpen}
+        onClose={() => setIsBuyCreditsOpen(false)}
+        userId={user?.id}
+      />
     </div>
   );
 }
