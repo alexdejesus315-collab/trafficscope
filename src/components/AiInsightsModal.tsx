@@ -20,7 +20,7 @@ type ChatMsg =
   | { sender: 'ai'; kind: 'report'; domain: string; metrics: DomainMetrics; report: AiAnalysisReport };
 
 const MAX_LINE_CHARS = 90;
-const MAX_REPLY_CHARS = 220;
+const MAX_REPLY_CHARS = 600;
 
 // Remove markdown (**negrito**, *itálico*, `código`, #títulos, listas, tabelas) —
 // o chat mostra texto simples, não deve renderizar símbolos crus.
@@ -46,12 +46,28 @@ function cleanText(text: string): string {
     .trim();
 }
 
-// Corta por nº de caracteres (não por frases) — cortar por "." parte
-// domínios como "facebook.com" a meio.
+// Corta por nº de caracteres, mas tenta primeiro terminar num fim de frase
+// (. ! ?) para não deixar a ideia a meio; só cai para corte por palavra
+// se não houver nenhum fim de frase perto do limite.
 function truncate(text: string, max = MAX_LINE_CHARS): string {
   const clean = cleanText(text);
   if (clean.length <= max) return clean;
-  return clean.slice(0, max).replace(/\s+\S*$/, '') + '…';
+
+  const slice = clean.slice(0, max);
+  const lastSentenceEnd = Math.max(
+    slice.lastIndexOf('. '),
+    slice.lastIndexOf('! '),
+    slice.lastIndexOf('? '),
+    slice.endsWith('.') || slice.endsWith('!') || slice.endsWith('?') ? slice.length - 1 : -1
+  );
+
+  // Só usa o corte por frase se não perder demasiado conteúdo (pelo menos
+  // 50% do limite); caso contrário, mantém o corte por palavra com reticências.
+  if (lastSentenceEnd >= max * 0.5) {
+    return slice.slice(0, lastSentenceEnd + 1).trim();
+  }
+
+  return slice.replace(/\s+\S*$/, '') + '…';
 }
 
 const DOT = {
