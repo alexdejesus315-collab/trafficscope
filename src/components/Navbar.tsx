@@ -135,7 +135,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             ref={toggleBtnRef}
             variant="outline"
             size="sm"
-            className="gap-1.5"
+            className="gap-1.5 !bg-white !text-black !border-gray-200 hover:!bg-gray-100 hover:!text-black"
             onClick={onToggleCompanyMenu}
             aria-expanded={isCompanyMenuOpen}
           >
@@ -148,8 +148,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => setIsProfileOpen(!isProfileOpen)}
               className={`flex items-center gap-2 px-3 py-1.5 text-xs font-bold transition-all hover:brightness-95 ${
                 isTest
-                  ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400'
-                  : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400'
+                  ? 'bg-amber-50 text-amber-800 white:bg-amber-950/20 white:text-amber-400'
+                  : 'bg-emerald-100 text-emerald-800 white:bg-emerald-950/20 white:text-emerald-400'
               }`}
             >
               {isTest ? (
@@ -169,7 +169,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-foreground bg-background hover:bg-muted transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-black bg-white hover:bg-gray-50 transition-colors"
             >
               <UserCircle className="h-4 w-4" />
               <span className="hidden md:inline">Perfil</span>
@@ -177,11 +177,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {user && onSignOut && (
-            <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-2 py-1.5 shadow-2xs">
+            <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-2 py-1.5 shadow-2xs">
               {user.user_metadata?.avatar_url ? (
                 <img src={user.user_metadata.avatar_url} alt={user.email ?? 'Avatar'} className="h-8 w-8 rounded-full" />
               ) : (
-                <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-sm font-semibold text-foreground">
+                <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center text-sm font-semibold text-black">
                   {user.email?.[0]?.toUpperCase() ?? 'U'}
                 </div>
               )}
