@@ -368,7 +368,16 @@ export default function Dashboard() {
                     </Button>
 
                     <Button
-                      onClick={handleTriggerAiAnalysis}
+                      onClick={() => {
+                        // ALTERADO: se ja existe relatorio para este dominio, so reabre o
+                        // painel (preserva a conversa); so gera um relatorio novo quando
+                        // ainda nao existe nenhum.
+                        if (primaryMetrics?.aiReport) {
+                          setIsAiModalOpen(true);
+                        } else {
+                          handleTriggerAiAnalysis();
+                        }
+                      }}
                       id="ai-report-banner-btn"
                       size="sm"
                       className="gap-1.5"
