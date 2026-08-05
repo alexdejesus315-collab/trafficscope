@@ -219,9 +219,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleMode?.('test');
-                      }}
+  e.stopPropagation();
+  setTimeout(() => onToggleMode?.('real'), 0);
+}}
                       className={`flex items-start gap-2.5 p-3 rounded-xl border-2 transition-all text-left ${
                         isTest
                           ? 'border-orange-400 bg-orange-50'
