@@ -112,7 +112,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const mode = profile?.mode ?? 'test';
   const totalSearches = profile?.totalSearches ?? 0;
   const totalPurchases = profile?.totalPurchases ?? 0;
-  const isTest = mode === 'test' || credits <= 0;
+  const isTest = mode === 'test';
   const BatteryIcon = credits === 0 ? BatteryWarning : credits <= 3 ? Battery : BatteryCharging;
 
   return (
@@ -147,10 +147,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
               className={`flex items-center gap-2 px-3 py-1.5 text-xs font-bold transition-all hover:brightness-95 ${
-                isTest
-                  ? 'bg-amber-50 text-amber-800 white:bg-amber-950/20 white:text-amber-400'
-                  : 'bg-emerald-100 text-emerald-800 white:bg-emerald-950/20 white:text-emerald-400'
-              }`}
+  isTest
+    ? 'bg-white text-orange-600'
+    : 'bg-white text-emerald-600'
+}`}
             >
               {isTest ? (
                 <>
