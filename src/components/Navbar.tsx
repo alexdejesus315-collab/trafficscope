@@ -218,16 +218,18 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </label>
                   <div className="grid grid-cols-2 gap-3">
                     <button
-                      onMouseDown={(e) => {
-  e.stopPropagation();
-  onToggleMode?.('real');
-}}
-                      className={`flex items-start gap-2.5 p-3 rounded-xl border-2 transition-all text-left ${
-                        isTest
-                          ? 'border-orange-400 bg-orange-50'
-                          : 'border-gray-200 text-gray-500 hover:border-gray-300'
-                      }`}
-                    >
+  onClick={(e) => {
+    e.stopPropagation();
+    if (credits > 0) onToggleMode?.('real');
+  }}
+  className={`... ${
+    !isTest
+      ? 'border-emerald-400 bg-emerald-50'
+      : credits <= 0
+        ? 'border-gray-200 opacity-40 cursor-not-allowed pointer-events-none'
+        : 'border-gray-200 text-gray-500 hover:border-gray-300'
+  }`}
+>
                       <TestTube2 className={`h-4 w-4 shrink-0 mt-0.5 ${isTest ? 'text-orange-500' : 'text-gray-400'}`} />
                       <div>
                         <div className={`text-sm font-semibold ${isTest ? 'text-gray-900' : 'text-gray-600'}`}>Modo Teste</div>
