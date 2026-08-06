@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://trafficscope.onrender.com/sitemap.xml
