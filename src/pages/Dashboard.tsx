@@ -1,5 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useCompanyPanel } from '../context/CompanyPanelContext';
 import { DomainMetrics, UserProfile } from '../types/domain';
 import { getOrGenerateDomainData } from '../data/mockDomains';
 import { exportToPdf, exportToExcel } from '../utils/exportUtils';
@@ -75,10 +75,9 @@ function DashboardSkeleton() {
   );
 }
 
-export default function Dashboard() {
+export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolean }) {
   const { user, signOut } = useAuth();
-  const location = useLocation();
-  const navigate = useNavigate();
+  const { isMenuOpen } = useCompanyPanel();
 
   // NOVO: hook de créditos substitui useSubscription
   const {
@@ -100,20 +99,10 @@ export default function Dashboard() {
   const [isCompareMode, setIsCompareMode] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [primaryDomainOverride, setPrimaryDomainOverride] = useState<string | null>(null);
-  const [isCompanyMenuOpen, setIsCompanyMenuOpen] = useState(false);
 
   // Modais
   const [isBuyCreditsOpen, setIsBuyCreditsOpen] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
-
-  // Reabre painel Empresa ao voltar de overlay
-  useEffect(() => {
-    const state = location.state as { openCompanyMenu?: boolean } | null;
-    if (state?.openCompanyMenu) {
-      setIsCompanyMenuOpen(true);
-      navigate('.', { replace: true, state: null });
-    }
-  }, [location.state, navigate]);
 
   // Load domain data — consome crédito se modo real
   useEffect(() => {
@@ -284,9 +273,7 @@ export default function Dashboard() {
       <Navbar
         user={user}
         onSignOut={() => void signOut()}
-        isCompanyMenuOpen={isCompanyMenuOpen}
-        onToggleCompanyMenu={() => setIsCompanyMenuOpen(prev => !prev)}
-        onCloseCompanyMenu={() => setIsCompanyMenuOpen(false)}
+        isOverlayActive={isOverlayActive}
         profile={profile}
         onToggleMode={setMode}
         onOpenBuyCredits={() => setIsBuyCreditsOpen(true)}
@@ -294,7 +281,7 @@ export default function Dashboard() {
 
       <div
         className="transition-[margin] duration-300 ease-in-out"
-        style={{ marginLeft: isCompanyMenuOpen ? COMPANY_PANEL_WIDTH : 0 }}
+        style={{ marginLeft: isMenuOpen ? COMPANY_PANEL_WIDTH : 0 }}
       >
         <DomainInputHeader
           selectedDomains={selectedDomains}

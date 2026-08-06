@@ -27,15 +27,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { UserProfile, UserMode } from '../types/domain';
+import { useCompanyPanel } from '../context/CompanyPanelContext';
 
 export const COMPANY_PANEL_WIDTH = 'clamp(260px, 22vw, 400px)';
 
 interface NavbarProps {
   user?: User | null;
   onSignOut?: () => void;
-  isCompanyMenuOpen: boolean;
-  onToggleCompanyMenu: () => void;
-  onCloseCompanyMenu: () => void;
+  isOverlayActive: boolean;
   profile?: UserProfile;
   onToggleMode?: (mode: UserMode) => void;
   onOpenBuyCredits?: () => void;
@@ -52,9 +51,7 @@ const COMPANY_LINKS = [
 export const Navbar: React.FC<NavbarProps> = ({
   user,
   onSignOut,
-  isCompanyMenuOpen,
-  onToggleCompanyMenu,
-  onCloseCompanyMenu,
+  isOverlayActive,
   profile,
   onToggleMode,
   onOpenBuyCredits,
@@ -65,21 +62,18 @@ export const Navbar: React.FC<NavbarProps> = ({
   const profileToggleRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-
-  const isOverlayActive = Boolean(
-    (location.state as { backgroundLocation?: unknown } | null)?.backgroundLocation
-  );
+  const { isMenuOpen, isMenuClosing, toggleMenu, closeMenuNow } = useCompanyPanel();
 
   useEffect(() => {
-    if (!isCompanyMenuOpen || isOverlayActive) return;
+    if (!isMenuOpen || isOverlayActive) return;
     function handleClickOutside(e: MouseEvent) {
       if (toggleBtnRef.current?.contains(e.target as Node)) return;
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        onCloseCompanyMenu();
+        closeMenuNow();
       }
     }
     function handleEscape(e: KeyboardEvent) {
-      if (e.key === 'Escape') onCloseCompanyMenu();
+      if (e.key === 'Escape') closeMenuNow();
     }
     document.addEventListener('mousedown', handleClickOutside);
     document.addEventListener('keydown', handleEscape);
@@ -87,7 +81,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscape);
     };
-  }, [isCompanyMenuOpen, onCloseCompanyMenu, isOverlayActive]);
+  }, [isMenuOpen, closeMenuNow, isOverlayActive]);
 
   useEffect(() => {
     if (!isProfileOpen) return;
@@ -116,7 +110,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const BatteryIcon = credits === 0 ? BatteryWarning : credits <= 3 ? Battery : BatteryCharging;
 
   return (
-    <header className="dark sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border text-foreground shadow-2xs">
+    <header className="dark sticky top-0 z-[60] bg-background/95 backdrop-blur-md border-b border-border text-foreground shadow-2xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <div>
@@ -136,11 +130,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             variant="outline"
             size="sm"
             className="gap-1.5 !bg-white !text-black !border-gray-200 hover:!bg-gray-100 hover:!text-black"
-            onClick={onToggleCompanyMenu}
-            aria-expanded={isCompanyMenuOpen}
+            onClick={toggleMenu}
+            aria-expanded={isMenuOpen}
           >
             <span className="hidden md:inline">Empresa</span>
-            <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isCompanyMenuOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`} />
           </Button>
 
           <div ref={profileToggleRef} className="flex items-center rounded-xl border border-border overflow-hidden shadow-2xs">
@@ -326,8 +320,16 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {isCompanyMenuOpen && (
-        <div ref={panelRef} style={{ width: COMPANY_PANEL_WIDTH }} className="fixed top-16 left-0 z-50 h-[calc(100vh-4rem)] bg-background border-r border-border shadow-2xl overflow-y-auto p-3">
+      {isMenuOpen && (
+        <div
+          ref={panelRef}
+          style={{ width: COMPANY_PANEL_WIDTH }}
+          className={`fixed top-16 left-0 z-50 h-[calc(100vh-4rem)] bg-background border-r border-border shadow-2xl overflow-y-auto p-3 duration-200 ${
+            isMenuClosing
+              ? 'animate-out fade-out slide-out-to-left-4'
+              : ''
+          }`}
+        >
           <p className="px-2 pt-1 pb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Empresa</p>
           <div className="flex flex-col gap-1">
             {COMPANY_LINKS.map(({ to, icon: Icon, label, desc }) => (

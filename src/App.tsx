@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Activity } from 'lucide-react';
 import { useAuth } from './hooks/useAuth';
+import { CompanyPanelProvider } from './context/CompanyPanelContext';
 
 const Login = lazy(() => import('./pages/Login'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -38,12 +39,20 @@ export default function App() {
   }
 
   return (
+    <CompanyPanelProvider>
     <Suspense fallback={<PageFallback />}>
       {/* Camada de baixo: renderiza sempre a localização "real" de fundo
           quando existe, para o Dashboard nunca desmontar por causa de um overlay. */}
       <Routes location={backgroundLocation || location}>
         <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
-        <Route path="/" element={user ? <Dashboard /> : <Navigate to="/login" replace />} />
+        <Route
+          path="/"
+          element={
+            user
+              ? <Dashboard isOverlayActive={Boolean(backgroundLocation)} />
+              : <Navigate to="/login" replace />
+          }
+        />
         {/* Fallback: acesso direto ao URL (refresh de página) sem overlay ativo */}
         <Route path="/sobre" element={<Sobre />} />
         <Route path="/faq" element={<Faq />} />
@@ -64,5 +73,6 @@ export default function App() {
         </Routes>
       )}
     </Suspense>
+    </CompanyPanelProvider>
   );
 }
