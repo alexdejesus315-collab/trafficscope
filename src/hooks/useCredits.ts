@@ -12,7 +12,7 @@ export function useCredits(userId: string | undefined) {
   const [isLoading, setIsLoading] = useState(true);
 
   // MOVIDO PARA FORA do useEffect — agora é acessível no return
-  async function fetchProfile() {
+  const fetchProfile = useCallback(async () => {
     if (!userId) {
       setProfile({
         credits: 0,
@@ -54,12 +54,12 @@ export function useCredits(userId: string | undefined) {
       });
     }
     setIsLoading(false);
-  }
+  }, [userId]);
 
   // useEffect agora só chama a função
   useEffect(() => {
     fetchProfile();
-  }, [userId]);
+  }, [fetchProfile]);
 
   // Consome 1 crédito (retorna true se conseguiu, false se não tinha créditos)
   const consumeCredit = useCallback(async (): Promise<boolean> => {
