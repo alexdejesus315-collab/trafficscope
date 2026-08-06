@@ -11,9 +11,18 @@ interface CompanyPagePanelProps {
 }
 
 export function CompanyPagePanel({ title, children }: CompanyPagePanelProps) {
-  const { requestCloseDetail } = useCompanyPanel();
+  const { requestCloseDetail, isClosing } = useCompanyPanel();
   const [isVisible, setIsVisible] = useState(false);
   const [isLocalClosing, setIsLocalClosing] = useState(false);
+
+  // Reage também a fechos disparados de fora (ex: botão "Empresa" na Navbar),
+  // não só aos botões internos "Voltar"/"Fechar" — garante que a animação
+  // de saída toca sempre, seja qual for a origem do fecho.
+  useEffect(() => {
+    if (isClosing) {
+      setIsLocalClosing(true);
+    }
+  }, [isClosing]);
 
   // Guard por ref (não por state) para não sofrer de closures desatualizadas
   // no listener de ESC, que só é registado uma vez.

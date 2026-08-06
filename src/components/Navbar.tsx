@@ -66,18 +66,27 @@ export const Navbar: React.FC<NavbarProps> = ({
 const state = location.state as { backgroundLocation?: Location } | undefined;
 const trueBackgroundLocation = state?.backgroundLocation ?? location;
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const { isMenuOpen, isMenuClosing, toggleMenu, closeMenuNow } = useCompanyPanel();
+  const { isMenuOpen, isMenuClosing, closeMenuNow, openMenu, requestCloseDetail } = useCompanyPanel();
+
+  // Fecha o painel preto e o branco em conjunto, sem desfasamento.
+  const closeEverything = React.useCallback(() => {
+    if (isOverlayActive) {
+      requestCloseDetail('close');
+    } else {
+      closeMenuNow();
+    }
+  }, [closeMenuNow, isOverlayActive, requestCloseDetail]);
 
   useEffect(() => {
     if (!isMenuOpen || isOverlayActive) return;
     function handleClickOutside(e: MouseEvent) {
       if (toggleBtnRef.current?.contains(e.target as Node)) return;
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        closeMenuNow();
+        closeEverything();
       }
     }
     function handleEscape(e: KeyboardEvent) {
-      if (e.key === 'Escape') closeMenuNow();
+      if (e.key === 'Escape') closeEverything();
     }
     document.addEventListener('mousedown', handleClickOutside);
     document.addEventListener('keydown', handleEscape);
@@ -85,7 +94,7 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscape);
     };
-  }, [isMenuOpen, closeMenuNow, isOverlayActive]);
+  }, [isMenuOpen, isOverlayActive, closeEverything]);
 
   useEffect(() => {
     if (!isProfileOpen) return;
@@ -134,7 +143,13 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
             variant="outline"
             size="sm"
             className="gap-1.5 !bg-white !text-black !border-gray-200 hover:!bg-gray-100 hover:!text-black"
-            onClick={toggleMenu}
+            onClick={() => {
+              if (isMenuOpen) {
+                closeEverything();
+              } else {
+                openMenu();
+              }
+            }}
             aria-expanded={isMenuOpen}
           >
             <span className="hidden md:inline">Empresa</span>
