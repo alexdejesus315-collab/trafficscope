@@ -61,6 +61,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const profileToggleRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
+  // Garante que o "fundo" nunca é outra página de overlay (Sobre/Faq/etc.),
+// só o Dashboard real. Evita empilhar overlays uns sobre os outros.
+const state = location.state as { backgroundLocation?: Location } | undefined;
+const trueBackgroundLocation = state?.backgroundLocation ?? location;
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { isMenuOpen, isMenuClosing, toggleMenu, closeMenuNow } = useCompanyPanel();
 
@@ -333,7 +337,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <p className="px-2 pt-1 pb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Empresa</p>
           <div className="flex flex-col gap-1">
             {COMPANY_LINKS.map(({ to, icon: Icon, label, desc }) => (
-              <Link key={to} to={to} state={{ backgroundLocation: location }} className="flex flex-col items-start gap-0.5 rounded-lg px-3 py-2.5 hover:bg-muted/60 transition-colors">
+              <Link key={to} to={to} state={{ backgroundLocation: trueBackgroundLocation }} className="flex flex-col items-start gap-0.5 rounded-lg px-3 py-2.5 hover:bg-muted/60 transition-colors">
                 <span className="flex items-center gap-2 font-semibold text-foreground">
                   <Icon className="h-4 w-4 text-[#F7FFFF]" />
                   {label}
