@@ -31,44 +31,44 @@ import { Download, FileText, Sparkles, ExternalLink, FlaskConical, GitCompare } 
 function DashboardSkeleton() {
   return (
     <div className="space-y-6 animate-pulse">
-      <div className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-card rounded-2xl p-5 border border-border shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-xl bg-gray-200 shrink-0" />
+          <div className="h-12 w-12 rounded-xl bg-muted shrink-0" />
           <div className="space-y-2">
-            <div className="h-5 w-40 rounded bg-gray-200" />
-            <div className="h-3 w-28 rounded bg-gray-200" />
+            <div className="h-5 w-40 rounded bg-muted" />
+            <div className="h-3 w-28 rounded bg-muted" />
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className="h-8 w-28 rounded-lg bg-gray-200" />
-          <div className="h-8 w-28 rounded-lg bg-gray-200" />
-          <div className="h-8 w-28 rounded-lg bg-gray-200" />
+          <div className="h-8 w-28 rounded-lg bg-muted" />
+          <div className="h-8 w-28 rounded-lg bg-muted" />
+          <div className="h-8 w-28 rounded-lg bg-muted" />
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-2xs space-y-3">
-            <div className="h-3 w-20 rounded bg-gray-200" />
-            <div className="h-7 w-24 rounded bg-gray-200" />
-            <div className="h-3 w-16 rounded bg-gray-200" />
+          <div key={i} className="bg-card rounded-2xl p-5 border border-border shadow-2xs space-y-3">
+            <div className="h-3 w-20 rounded bg-muted" />
+            <div className="h-7 w-24 rounded bg-muted" />
+            <div className="h-3 w-16 rounded bg-muted" />
           </div>
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-2xs space-y-4">
-        <div className="h-4 w-48 rounded bg-gray-200" />
-        <div className="h-64 w-full rounded-xl bg-gray-100" />
+      <div className="bg-card rounded-2xl p-5 border border-border shadow-2xs space-y-4">
+        <div className="h-4 w-48 rounded bg-muted" />
+        <div className="h-64 w-full rounded-xl bg-muted" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-2xs space-y-4">
-          <div className="h-4 w-40 rounded bg-gray-200" />
-          <div className="h-40 w-full rounded-xl bg-gray-100" />
+        <div className="bg-card rounded-2xl p-5 border border-border shadow-2xs space-y-4">
+          <div className="h-4 w-40 rounded bg-muted" />
+          <div className="h-40 w-full rounded-xl bg-muted" />
         </div>
-        <div className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-2xs space-y-4">
-          <div className="h-4 w-48 rounded bg-gray-200" />
-          <div className="h-40 w-full rounded-xl bg-gray-100" />
+        <div className="bg-card rounded-2xl p-5 border border-border shadow-2xs space-y-4">
+          <div className="h-4 w-48 rounded bg-muted" />
+          <div className="h-40 w-full rounded-xl bg-muted" />
         </div>
       </div>
     </div>
@@ -269,7 +269,7 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
   };
 
   return (
-    <div className="min-h-screen bg-[#FFFFFF] text-gray-900 font-sans antialiased selection:bg-[#279ef9] selection:text-white pb-16">
+    <div className="min-h-screen bg-background text-foreground font-sans antialiased selection:bg-primary selection:text-primary-foreground pb-16">
       <Navbar
         user={user}
         onSignOut={() => void signOut()}
@@ -308,21 +308,21 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
               </Suspense>
             ) : (
               <>
-                <div className="bg-white rounded-2xl p-5 border border-gray-200/80 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="bg-card rounded-2xl p-5 border border-border shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <img
                       src={primaryMetrics.logo}
                       alt={primaryMetrics.name}
-                      className="h-12 w-12 rounded-xl bg-gray-50 p-1 border border-gray-200 shrink-0"
+                      className="h-12 w-12 rounded-xl bg-muted p-1 border border-border shrink-0"
                     />
                     <div>
                       <div className="flex items-center gap-2">
-                        <h2 className="text-xl font-bold text-gray-900 font-mono">{primaryMetrics.domain}</h2>
+                        <h2 className="text-xl font-bold text-foreground font-mono">{primaryMetrics.domain}</h2>
                         <a
                           href={`https://${primaryMetrics.domain}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-gray-400 hover:text-[#279ef9] transition-colors"
+                          className="text-muted-foreground hover:text-primary transition-colors"
                         >
                           <ExternalLink className="h-4 w-4" />
                         </a>
@@ -333,8 +333,8 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
                           </span>
                         )}
                       </div>
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mt-0.5">
-                        <span className="font-semibold text-[#279ef9]">{primaryMetrics.category}</span>
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                        <span className="font-semibold text-primary">{primaryMetrics.category}</span>
                         <span>•</span>
                         <span>{primaryMetrics.lastUpdated}</span>
                       </div>

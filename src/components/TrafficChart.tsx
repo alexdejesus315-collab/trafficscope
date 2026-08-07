@@ -27,7 +27,7 @@ export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
     return entry;
   });
 
-  const domainColors = ['#279ef9', '#059669', '#d97706', '#db2777', '#279ef9'];
+  const domainColors = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)'];
 
   const formatNumberShort = (num: number) => {
     if (num >= 1000000000) return `${(num / 1000000000).toFixed(1)}B`;
@@ -44,7 +44,7 @@ export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border">
           <div>
             <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-              <BarChart2 className="h-5 w-5 text-[#279ef9]" />
+              <BarChart2 className="h-5 w-5 text-primary" />
               <span>Evolução do Tráfego Estimado</span>
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -59,7 +59,7 @@ export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
                 onClick={() => setChartType('area')}
                 className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                   chartType === 'area'
-                    ? 'bg-background text-[#279ef9] shadow-2xs border border-border'
+                    ? 'bg-background text-primary shadow-2xs border border-border'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -69,7 +69,7 @@ export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
                 onClick={() => setChartType('line')}
                 className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                   chartType === 'line'
-                    ? 'bg-background text-[#279ef9] shadow-2xs border border-border'
+                    ? 'bg-background text-primary shadow-2xs border border-border'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -92,11 +92,11 @@ export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
                     </linearGradient>
                   ))}
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
-                <XAxis dataKey="date" stroke="#6b7280" fontSize={11} tickLine={false} />
-                <YAxis stroke="#6b7280" fontSize={11} tickFormatter={formatNumberShort} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                <XAxis dataKey="date" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} />
+                <YAxis stroke="var(--muted-foreground)" fontSize={11} tickFormatter={formatNumberShort} tickLine={false} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e5e7eb', borderRadius: '0.75rem', color: '#111827', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                  contentStyle={{ backgroundColor: 'var(--popover)', borderColor: 'var(--border)', borderRadius: '0.75rem', color: 'var(--popover-foreground)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
                   formatter={(val: any) => [typeof val === 'number' ? val.toLocaleString('pt-BR') : val, 'Visitas']}
                 />
                 <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }} />
@@ -115,11 +115,11 @@ export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
               </AreaChart>
             ) : (
               <LineChart data={mergedChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
-                <XAxis dataKey="date" stroke="#6b7280" fontSize={11} tickLine={false} />
-                <YAxis stroke="#6b7280" fontSize={11} tickFormatter={formatNumberShort} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                <XAxis dataKey="date" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} />
+                <YAxis stroke="var(--muted-foreground)" fontSize={11} tickFormatter={formatNumberShort} tickLine={false} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e5e7eb', borderRadius: '0.75rem', color: '#111827', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                  contentStyle={{ backgroundColor: 'var(--popover)', borderColor: 'var(--border)', borderRadius: '0.75rem', color: 'var(--popover-foreground)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
                   formatter={(val: any) => [typeof val === 'number' ? val.toLocaleString('pt-BR') : val, 'Visitas']}
                 />
                 <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }} />
@@ -155,7 +155,7 @@ export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
                 <span className="text-xs font-extrabold text-foreground font-mono">
                   {formatNumberShort(m.monthlyVisits)}
                 </span>
-                <span className={`block text-[10px] font-bold ${m.growthRate >= 0 ? 'text-[#279ef9]' : 'text-rose-600'}`}>
+                <span className={`block text-[10px] font-bold ${m.growthRate >= 0 ? 'text-primary' : 'text-rose-600'}`}>
                   {m.growthRate >= 0 ? `+${m.growthRate}%` : `${m.growthRate}%`}
                 </span>
               </div>

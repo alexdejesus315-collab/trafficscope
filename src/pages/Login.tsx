@@ -10,18 +10,18 @@ export default function Login() {
     <div className="min-h-screen bg-muted flex items-center justify-center p-6">
       <div className="flex w-full max-w-5xl gap-4">
 
-        {/* Black Box */}
-        <div className="hidden md:flex w-[50%] min-h-[85vh] flex-col justify-between bg-foreground px-10 py-10 text-background rounded-xl shadow-xl shadow-black/5">
-          <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-background/70">
-            <Activity className="h-4 w-4 text-background" />
+        {/* Brand Box */}
+        <div className="hidden md:flex w-[50%] min-h-[85vh] flex-col justify-between bg-sidebar px-10 py-10 text-sidebar-foreground rounded-xl shadow-xl shadow-black/5">
+          <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-sidebar-foreground/70">
+            <Activity className="h-4 w-4 text-sidebar-foreground" />
             TrafficScope
           </div>
 
           <div className="space-y-4">
-            <p className="text-xl font-semibold leading-snug tracking-tight text-background">
+            <p className="text-xl font-semibold leading-snug tracking-tight text-sidebar-foreground">
               Pare de adivinhar o crescimento dos seus concorrentes. Tenha os números.
             </p>
-            <p className="text-xs text-background/60"></p>
+            <p className="text-xs text-sidebar-foreground/60"></p>
           </div>
         </div>
 

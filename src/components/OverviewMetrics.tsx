@@ -57,7 +57,7 @@ export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({ metrics }) => 
         <CardContent className="flex flex-col justify-between h-full">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Tempo Médio</span>
-            <div className="p-2 rounded-xl bg-[#279ef9]/10 text-[#279ef9]">
+            <div className="p-2 rounded-xl bg-primary/10 text-primary">
               <Clock className="h-4 w-4" />
             </div>
           </div>

@@ -47,10 +47,13 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const progressPercent = (credits / maxCredits) * 100;
 
   // Determina o "nível" do jogador baseado em pesquisas totais
+  // Nota: paleta de ranks é decorativa e independente das cores semânticas de
+  // estado (Modo Teste/Modo Real/avisos); só "Especialista" usa a cor de marca,
+  // por isso aponta para o token primary em vez do hex fixo.
   const getLevel = (searches: number) => {
     if (searches >= 500) return { name: 'Lenda', color: '#F59E0B', icon: Crown };
     if (searches >= 200) return { name: 'Mestre', color: '#8B5CF6', icon: Trophy };
-    if (searches >= 50) return { name: 'Especialista', color: '#279ef9', icon: Zap };
+    if (searches >= 50) return { name: 'Especialista', color: 'var(--primary)', icon: Zap };
     return { name: 'Explorador', color: '#10B981', icon: Search };
   };
 
@@ -63,17 +66,17 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto p-0 gap-0">
-        {/* Header com gradiente */}
-        <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-6 rounded-t-lg overflow-hidden">
+        {/* Header com gradiente — painel fixo escuro (tokens neutros), independente do modo claro/escuro do resto do tema */}
+        <div className="relative bg-gradient-to-br from-foreground via-foreground/90 to-foreground text-background p-6 rounded-t-lg overflow-hidden">
           <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-2 right-2 w-24 h-24 rounded-full bg-[#279ef9] blur-3xl" />
-            <div className="absolute bottom-2 left-2 w-20 h-20 rounded-full bg-emerald-500 blur-3xl" />
+            <div className="absolute top-2 right-2 w-24 h-24 rounded-full bg-primary blur-3xl" />
+            <div className="absolute bottom-2 left-2 w-20 h-20 rounded-full bg-primary blur-3xl" />
           </div>
 
           <div className="relative z-10 flex items-center gap-4">
             <div
               className="h-16 w-16 rounded-2xl flex items-center justify-center shadow-lg border-2"
-              style={{ borderColor: level.color, backgroundColor: `${level.color}20` }}
+              style={{ borderColor: level.color, backgroundColor: `color-mix(in srgb, ${level.color} 20%, transparent)` }}
             >
               <LevelIcon className="h-8 w-8" style={{ color: level.color }} />
             </div>
@@ -85,7 +88,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 Nível: {level.name}
               </Badge>
               <h2 className="text-xl font-bold">O teu Perfil</h2>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-background/60 mt-0.5">
                 {totalSearches} pesquisas realizadas
               </p>
             </div>
@@ -103,7 +106,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 onClick={() => onToggleMode('test')}
                 className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${
                   isTest
-                    ? 'border-[#279ef9] bg-[#279ef9]/5 text-foreground'
+                    ? 'border-amber-500 bg-amber-50 text-foreground dark:bg-amber-950/20'
                     : 'border-border text-muted-foreground hover:border-muted-foreground/50'
                 }`}
               >
@@ -158,7 +161,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   <div
                     key={mark}
                     className={`h-1.5 w-0.5 rounded-full ${
-                      credits >= mark ? 'bg-emerald-500' : 'bg-muted-foreground/20'
+                      credits >= mark ? 'bg-primary' : 'bg-muted-foreground/20'
                     }`}
                   />
                 ))}
@@ -182,12 +185,12 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-muted/50 rounded-xl p-3 text-center border border-border">
-              <Search className="h-4 w-4 text-[#279ef9] mx-auto mb-1" />
+              <Search className="h-4 w-4 text-primary mx-auto mb-1" />
               <div className="text-lg font-bold font-mono">{totalSearches}</div>
               <div className="text-[10px] text-muted-foreground font-medium">Pesquisas</div>
             </div>
             <div className="bg-muted/50 rounded-xl p-3 text-center border border-border">
-              <ShoppingCart className="h-4 w-4 text-emerald-500 mx-auto mb-1" />
+              <ShoppingCart className="h-4 w-4 text-primary mx-auto mb-1" />
               <div className="text-lg font-bold font-mono">{totalPurchases * 10}</div>
               <div className="text-[10px] text-muted-foreground font-medium">Créditos Comprados</div>
             </div>
@@ -199,7 +202,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               onClose();
               onOpenBuyCredits();
             }}
-            className="w-full gap-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold shadow-lg shadow-emerald-500/20"
+            className="w-full gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-bold shadow-lg shadow-primary/20"
           >
             <ShoppingCart className="h-4 w-4" />
             Comprar Créditos

@@ -17,7 +17,7 @@ export const TrafficSources: React.FC<TrafficSourcesProps> = ({ metrics }) => {
       case 'pesquisa orgânica':
         return <Search className="h-4 w-4 text-emerald-600" />;
       case 'direto':
-        return <Globe className="h-4 w-4 text-[#279ef9]" />;
+        return <Globe className="h-4 w-4 text-primary" />;
       case 'social':
         return <Share2 className="h-4 w-4 text-pink-600" />;
       case 'email':
@@ -36,7 +36,7 @@ export const TrafficSources: React.FC<TrafficSourcesProps> = ({ metrics }) => {
         <div className="flex items-center justify-between pb-2 border-b border-border">
           <div>
             <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-              <Compass className="h-5 w-5 text-[#279ef9]" />
+              <Compass className="h-5 w-5 text-primary" />
               <span>Fontes de Tráfego</span>
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -65,7 +65,7 @@ export const TrafficSources: React.FC<TrafficSourcesProps> = ({ metrics }) => {
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e5e7eb', borderRadius: '0.75rem', color: '#111827', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                  contentStyle={{ backgroundColor: 'var(--popover)', borderColor: 'var(--border)', borderRadius: '0.75rem', color: 'var(--popover-foreground)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
                   formatter={(val: any) => [`${val}%`, 'Participação']}
                 />
               </PieChart>

@@ -60,15 +60,15 @@ export function CompanyPagePanel({ title, children }: CompanyPagePanelProps) {
   return (
     <div
       style={{ left: COMPANY_PANEL_WIDTH, width: COMPANY_PANEL_WIDTH }}
-      className={`fixed top-16 z-40 h-[calc(100vh-4rem)] bg-white border-r border-gray-200 shadow-2xl overflow-y-auto transition-all duration-200 ease-out ${
+      className={`fixed top-16 z-40 h-[calc(100vh-4rem)] bg-background border-r border-border shadow-2xl overflow-y-auto transition-all duration-200 ease-out ${
         show ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
       }`}
     >
-      <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-gray-200 z-10">
+      <div className="sticky top-0 bg-background/95 backdrop-blur-md border-b border-border z-10">
         <div className="px-4 h-14 flex items-center justify-between">
           <button
             onClick={voltarParaEmpresa}
-            className="flex items-center gap-2 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors"
+            className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
             aria-label="Voltar"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
@@ -76,7 +76,7 @@ export function CompanyPagePanel({ title, children }: CompanyPagePanelProps) {
           </button>
           <button
             onClick={fecharTudo}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             aria-label="Fechar"
           >
             <X className="h-4 w-4" />

@@ -18,7 +18,7 @@ export const GeoMapSection: React.FC<GeoMapSectionProps> = ({ metrics }) => {
         <div className="flex items-center justify-between pb-2 border-b border-border">
           <div>
             <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-              <Globe className="h-5 w-5 text-[#279ef9]" />
+              <Globe className="h-5 w-5 text-primary" />
               <span>Origem Geográfica do Tráfego</span>
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">

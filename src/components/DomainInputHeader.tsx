@@ -119,7 +119,7 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
         {/* Active Domains Chips */}
         <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
           <span className="text-muted-foreground font-semibold flex items-center gap-1">
-            <Layers className="h-3.5 w-3.5 text-[#279ef9]" />
+            <Layers className="h-3.5 w-3.5 text-primary" />
             Domínios ativos:
           </span>
 
@@ -135,8 +135,8 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
                 className={cn(
                   'inline-flex items-center gap-1.5 pl-2.5 pr-1 py-1 rounded-lg border font-mono text-xs font-semibold shadow-2xs transition-colors cursor-pointer',
                   isActive
-                    ? 'bg-[#279ef9] text-white border-[#279ef9]'
-                    : 'bg-[#FFFFFF]/8 text-[#279ef9] border-[#279ef9]/25 hover:bg-[#279ef9]/15 dark:bg-[#279ef9]/40 dark:text-[#A1C6DE] dark:border-[#279ef9]/60'
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-primary/8 text-primary border-primary/25 hover:bg-primary/15 dark:bg-primary/40 dark:text-primary-foreground dark:border-primary/60'
                 )}
               >
                 <span>{d}</span>
@@ -149,7 +149,7 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
                   size="icon-xs"
                   className={cn(
                     'hover:bg-transparent',
-                    isActive ? 'text-white/70 hover:text-white' : 'text-[#FC2034]/50 hover:text-rose-600'
+                    isActive ? 'text-primary-foreground/70 hover:text-primary-foreground' : 'text-destructive/50 hover:text-destructive'
                   )}
                   title="Remover domínio"
                 >
@@ -161,7 +161,7 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
 
           <button
             onClick={onClearAllDomains}
-            className="text-xs text-muted-foreground hover:text-rose-600 underline ml-1 cursor-pointer"
+            className="text-xs text-muted-foreground hover:text-destructive underline ml-1 cursor-pointer"
           >
             Limpar todos
           </button>
