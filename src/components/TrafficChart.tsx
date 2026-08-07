@@ -37,7 +37,7 @@ export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
   };
 
   return (
-    <Card className="shadow-2xs">
+    <Card className="shadow-2xs hover:shadow-md transition-shadow duration-200">
       <CardContent className="space-y-4">
 
         {/* Header & Chart Controls */}
@@ -143,7 +143,7 @@ export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
         {/* Chart Legend / Summary */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2">
           {metricsList.map((m, idx) => (
-            <div key={m.domain} className="bg-muted p-3 rounded-xl border border-border flex items-center justify-between">
+            <div key={m.domain} className="bg-muted p-3 rounded-xl border border-border flex items-center justify-between hover:border-primary/30 transition-colors">
               <div className="flex items-center gap-2">
                 <span
                   className="h-3 w-3 rounded-full"

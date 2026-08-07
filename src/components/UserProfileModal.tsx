@@ -184,12 +184,12 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-muted/50 rounded-xl p-3 text-center border border-border">
+            <div className="bg-muted/50 rounded-xl p-3 text-center border border-border hover:border-primary/30 transition-colors">
               <Search className="h-4 w-4 text-primary mx-auto mb-1" />
               <div className="text-lg font-bold font-mono">{totalSearches}</div>
               <div className="text-[10px] text-muted-foreground font-medium">Pesquisas</div>
             </div>
-            <div className="bg-muted/50 rounded-xl p-3 text-center border border-border">
+            <div className="bg-muted/50 rounded-xl p-3 text-center border border-border hover:border-primary/30 transition-colors">
               <ShoppingCart className="h-4 w-4 text-primary mx-auto mb-1" />
               <div className="text-lg font-bold font-mono">{totalPurchases * 10}</div>
               <div className="text-[10px] text-muted-foreground font-medium">Créditos Comprados</div>

@@ -29,7 +29,7 @@ export const TrafficSources: React.FC<TrafficSourcesProps> = ({ metrics }) => {
   };
 
   return (
-    <Card className="shadow-2xs">
+    <Card className="shadow-2xs hover:shadow-md transition-shadow duration-200">
       <CardContent className="space-y-4">
 
         {/* Header */}

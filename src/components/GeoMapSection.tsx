@@ -11,7 +11,7 @@ export const GeoMapSection: React.FC<GeoMapSectionProps> = ({ metrics }) => {
   const countries = metrics.countryTraffic || [];
 
   return (
-    <Card className="shadow-2xs">
+    <Card className="shadow-2xs hover:shadow-md transition-shadow duration-200">
       <CardContent className="space-y-4">
 
         {/* Header */}

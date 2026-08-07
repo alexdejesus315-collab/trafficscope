@@ -124,7 +124,7 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
 
   return (
     <header className="sticky top-0 z-[60] bg-sidebar/95 backdrop-blur-md border-b border-sidebar-border text-sidebar-foreground shadow-2xs">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <div>
             <div className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.3em] text-sidebar-foreground">
@@ -137,7 +137,7 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
           </div>
         </a>
 
-        <div className="flex items-center gap-2 sm:gap-3 relative">
+        <div className="flex items-center gap-3 sm:gap-5 relative">
           <Button
             ref={toggleBtnRef}
             variant="outline"
@@ -156,13 +156,13 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
             <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`} />
           </Button>
 
-          <div ref={profileToggleRef} className="flex items-center rounded-xl border border-sidebar-border overflow-hidden shadow-2xs">
+          <div ref={profileToggleRef} className="flex items-center rounded-full border border-sidebar-border overflow-hidden shadow-2xs">
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className={`flex items-center gap-2 px-3 py-1.5 text-xs font-bold transition-all hover:brightness-95 ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium transition-all hover:brightness-95 ${
                 isTest
-                  ? 'bg-amber-500/15 text-amber-300'
-                  : 'bg-emerald-500/15 text-emerald-300'
+                  ? 'text-amber-300/90'
+                  : 'text-emerald-300/90'
               }`}
             >
               {isTest ? (
@@ -343,7 +343,7 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
         <div
           ref={panelRef}
           style={{ width: COMPANY_PANEL_WIDTH }}
-          className={`fixed top-16 left-0 z-50 h-[calc(100vh-4rem)] bg-sidebar border-r border-sidebar-border shadow-2xl overflow-y-auto p-3 duration-200 ${
+          className={`fixed top-20 left-0 z-50 h-[calc(100vh-5rem)] bg-sidebar border-r border-sidebar-border shadow-2xl overflow-y-auto p-3 duration-200 ${
             isMenuClosing
               ? 'animate-out fade-out slide-out-to-left-4'
               : ''

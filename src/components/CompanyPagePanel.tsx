@@ -60,7 +60,7 @@ export function CompanyPagePanel({ title, children }: CompanyPagePanelProps) {
   return (
     <div
       style={{ left: COMPANY_PANEL_WIDTH, width: COMPANY_PANEL_WIDTH }}
-      className={`fixed top-16 z-40 h-[calc(100vh-4rem)] bg-background border-r border-border shadow-2xl overflow-y-auto transition-all duration-200 ease-out ${
+      className={`fixed top-20 z-40 h-[calc(100vh-5rem)] bg-background border-r border-border shadow-2xl overflow-y-auto transition-all duration-200 ease-out ${
         show ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
       }`}
     >

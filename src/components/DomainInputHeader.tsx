@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Plus, X, Layers } from 'lucide-react';
+import { Search, Plus, X, Layers, Activity } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -43,9 +43,15 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
 
   // Sem domínios selecionados: layout "hero" centrado, como a primeira página de um app de IA.
   if (isEmpty) {
+    const suggestedDomains = ['google.com', 'amazon.com', 'netflix.com'];
+
     return (
-      <div className="bg-background text-foreground min-h-[70vh] flex items-center justify-center px-4">
+      <div className="bg-background text-foreground min-h-[60vh] flex items-center justify-center px-4">
         <div className="w-full max-w-2xl text-center">
+          <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 mb-5">
+            <Activity className="h-6 w-6 text-primary" />
+          </div>
+
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
             Comece por adicionar um domínio
           </h1>
@@ -54,26 +60,40 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
           </p>
 
           <form onSubmit={handleSearchSubmit} className="relative mt-8">
-            <div className="relative flex items-center">
-              <Search className="absolute left-4 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
+            <div className="relative flex items-center bg-card border border-border rounded-2xl shadow-sm p-1.5">
+              <Search className="absolute left-5 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
               <Input
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Digite um ou mais domínios..."
-                className="pl-12 pr-28 py-3 h-auto text-sm sm:text-base rounded-xl"
+                className="pl-12 pr-28 py-3 h-auto text-sm sm:text-base rounded-xl border-0 shadow-none bg-transparent"
                 autoFocus
               />
               <Button
                 type="submit"
                 size="sm"
-                className="absolute right-2 gap-1.5"
+                className="absolute right-2.5 gap-1.5"
               >
                 Adicionar
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
           </form>
+
+          <div className="flex flex-wrap items-center justify-center gap-2 mt-5">
+            <span className="text-xs text-muted-foreground">Experimenta:</span>
+            {suggestedDomains.map((d) => (
+              <button
+                key={d}
+                type="button"
+                onClick={() => onAddDomain(d)}
+                className="text-xs font-mono px-3 py-1 rounded-full border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
+              >
+                {d}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     );

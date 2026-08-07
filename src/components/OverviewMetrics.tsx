@@ -11,14 +11,14 @@ export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({ metrics }) => 
   const isPositiveGrowth = metrics.growthRate >= 0;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
 
       {/* 1. Tráfego Total */}
-      <Card className="shadow-2xs">
+      <Card className="shadow-2xs hover:shadow-md transition-shadow duration-200">
         <CardContent className="flex flex-col justify-between h-full">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Tráfego Total</span>
-            <div className="p-2 rounded-xl bg-[#368948]/10 text-[#368948]">
+            <div className="p-2 rounded-full bg-[#368948]/10 text-[#368948]">
               <Eye className="h-4 w-4" />
             </div>
           </div>

@@ -31,7 +31,7 @@ import { Download, FileText, Sparkles, ExternalLink, FlaskConical, GitCompare } 
 function DashboardSkeleton() {
   return (
     <div className="space-y-6 animate-pulse">
-      <div className="bg-card rounded-2xl p-5 border border-border shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-card rounded-2xl p-5 border border-border shadow-2xs hover:shadow-md transition-shadow duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="h-12 w-12 rounded-xl bg-muted shrink-0" />
           <div className="space-y-2">
