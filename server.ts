@@ -50,6 +50,66 @@ const FIXED_REFERENCE_DOMAINS = [
   "google.com", "wikipedia.org", "shopify.com", "mercadolivre.com.br", "walmart.com"
 ];
 
+// ===== NOVO: Pools de nicho e ângulos narrativos para o Blog =====
+const NICHE_POOLS: { category: string; domains: string[] }[] = [  { category: "E-commerce Global", domains: ["amazon.com", "ebay.com", "jumia.co.ao", "aliexpress.com", "temu.com"] },
+  { category: "Streaming & Entretenimento", domains: ["netflix.com", "disneyplus.com", "primevideo.com", "spotify.com", "hbomax.com"] },
+  { category: "Fintech & Pagamentos", domains: ["paypal.com", "stripe.com", "revolut.com", "nubank.com.br", "wise.com"] },
+  { category: "Redes Sociais", domains: ["instagram.com", "tiktok.com", "x.com", "linkedin.com", "snapchat.com"] },
+  { category: "Viagens & Turismo", domains: ["booking.com", "airbnb.com", "expedia.com", "tripadvisor.com", "skyscanner.com"] },
+  { category: "Entrega & Mobilidade", domains: ["ubereats.com", "doordash.com", "glovoapp.com", "ifood.com.br", "uber.com"] },
+  { category: "Produtividade & SaaS", domains: ["notion.so", "slack.com", "zoom.us", "canva.com", "figma.com"] },
+];
+
+const NARRATIVE_ANGLES = [
+  {
+    key: "rivalry",
+    instruction: "Foque numa RIVALIDADE direta entre dois domínios do dataset com trajetórias opostas — um a crescer, outro a estagnar ou cair. O título deve criar tensão entre os dois.",
+  },
+  {
+    key: "prediction",
+    instruction: "Foque numa PREVISÃO/TENDÊNCIA futura baseada nos dados atuais — o que estes números sugerem para os próximos 6-12 meses neste setor.",
+  },
+  {
+    key: "warning",
+    instruction: "Foque num ALERTA ou RISCO que os dados revelam — um sinal de alerta que empresas do setor deveriam notar, com tom de urgência mas sem exagero.",
+  },
+  {
+    key: "listicle",
+    instruction: "Estruture o artigo como uma pequena lista ordenada (ex: 'Os 3 sinais que os dados revelam sobre X'), usando os domínios do dataset como exemplos de cada ponto.",
+  },
+  {
+    key: "regional",
+    instruction: "Foque na perspetiva REGIONAL/LOCAL — como estas tendências globais se comparam ou impactam mercados emergentes como Angola e África, mesmo que os domínios do dataset sejam globais.",
+  },
+  {
+    key: "mythbusting",
+    instruction: "Foque em DESMENTIR uma suposição comum do setor, usando os dados reais para mostrar que a realidade é diferente do que se pensa.",
+  },
+];
+
+// Evita repetir a mesma combinação nicho+ângulo dos últimos artigos
+async function pickUnusedTopic(): Promise<{ niche: typeof NICHE_POOLS[0]; angle: typeof NARRATIVE_ANGLES[0]; topicKey: string }> {
+  const { data: recentPosts } = await supabaseAdmin
+    .from("blog_posts")
+    .select("topic_key")
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  const recentKeys = new Set((recentPosts || []).map((p) => p.topic_key).filter(Boolean));
+
+  const allCombos: { niche: typeof NICHE_POOLS[0]; angle: typeof NARRATIVE_ANGLES[0]; topicKey: string }[] = [];
+  for (const niche of NICHE_POOLS) {
+    for (const angle of NARRATIVE_ANGLES) {
+      allCombos.push({ niche, angle, topicKey: `${niche.category}::${angle.key}` });
+    }
+  }
+
+  const unused = allCombos.filter((c) => !recentKeys.has(c.topicKey));
+  const pool = unused.length > 0 ? unused : allCombos; // se já usámos tudo, liberta o filtro
+
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 // Cache simples em memória (evita pagar de novo pelo mesmo domínio em pouco tempo)
 const apifyCache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 horas
@@ -650,7 +710,12 @@ Pergunta do usuário: "${lastUserMessage}"
     app.post("/api/blog/generate", async (req, res) => {
       try {
         const user = await getUserFromRequest(req);
-        if (!user || user.id !== OWNER_USER_ID) {
+        if (!user) {
+          console.error("Blog generate: sem sessão válida (token ausente ou expirado).");
+          return res.status(403).json({ error: "Sessão inválida. Faz login novamente." });
+        }
+        if (user.id !== OWNER_USER_ID) {
+          console.error(`Blog generate: user.id (${user.id}) não corresponde a OWNER_USER_ID (${OWNER_USER_ID}).`);
           return res.status(403).json({ error: "Acesso negado." });
         }
 
@@ -658,8 +723,9 @@ Pergunta do usuário: "${lastUserMessage}"
           return res.status(500).json({ error: "GROQ_API_KEY não configurada no servidor." });
         }
 
-        // NOVO: Google Trends (gráfico) + Tavily (estatísticas reais citáveis) — sem custo de créditos
-        const referenceDomains = FIXED_REFERENCE_DOMAINS.slice(0, 5);
+        // NOVO: escolhe nicho + ângulo narrativo, evitando repetir os últimos 5 artigos
+        const topic = await pickUnusedTopic();
+        const referenceDomains = topic.niche.domains;
         const trendsKeywords = referenceDomains.map((d) => d.split('.')[0]);
 
         let chartData: { name: string; value: number }[];
@@ -678,7 +744,7 @@ Pergunta do usuário: "${lastUserMessage}"
 
         let statsContext: { snippets: string[]; sources: { title: string; url: string }[] } = { snippets: [], sources: [] };
         try {
-          statsContext = await fetchRealStats('estatísticas tráfego web e-commerce global 2026');
+          statsContext = await fetchRealStats(`estatísticas ${topic.niche.category} tendências globais 2026`);
         } catch (searchErr) {
           console.error('Falha na pesquisa Tavily, artigo seguirá sem estatísticas externas:', searchErr);
         }
@@ -693,8 +759,10 @@ Factos e estatísticas reais publicadas recentemente sobre o setor (use-os para 
 parafraseando, NUNCA copiando texto literal):
 ${statsContext.snippets.map((s, i) => `[Fonte ${i + 1}] ${s}`).join('\n')}
 
-REGRAS PARA O TÍTULO (crítico para gerar cliques):
-- Use um dos formatos: número + surpresa ("X cresceu 31% enquanto Y estagnou"), pergunta direta que o leitor
+ÂNGULO NARRATIVO OBRIGATÓRIO PARA ESTE ARTIGO:
+${topic.angle.instruction}
+
+REGRAS PARA O TÍTULO (crítico para gerar cliques):- Use um dos formatos: número + surpresa ("X cresceu 31% enquanto Y estagnou"), pergunta direta que o leitor
   quer responder, ou contraste chocante entre dois dados reais do dataset.
 - Inclua sempre pelo menos um número concreto vindo dos dados fornecidos.
 - Máximo 70 caracteres. Nunca prometa algo que o artigo não entrega.
@@ -712,17 +780,20 @@ REGRAS PARA O CONTEÚDO:
   {{IMG_1}} e {{IMG_2}}, cada um numa linha própria, sem mais nada à volta.
 - Usa subtítulos que também gerem curiosidade, não só descritivos (ex: "O Motivo por Trás do Crescimento
   de 31% da Jumia" em vez de "Análise da Jumia").
-- Termina com uma secção final que aponte uma implicação prática ou pergunta em aberto para o leitor,
-  incentivando a explorar mais o TrafficScope.
-- 400-600 palavras, tom analítico mas envolvente — nunca sensacionalista ao ponto de distorcer os dados.
+- Termina com uma secção final que aponte uma implicação prática ou pergunta em aberto para o leitor.
+- Em UM único ponto do corpo do texto (não no título, não no excerpt, não na conclusão), insira uma
+  referência natural e sutil ao tipo de análise que a TrafficScope permite fazer — por exemplo, mencionando
+  de passagem que "monitorizar esse tipo de variação em tempo real" ou "cruzar esses dados com o próprio
+  domínio de um negócio" é algo que ferramentas de inteligência competitiva tornam possível. NUNCA use
+  linguagem de venda direta (nunca escreva "experimente", "assine", "clique aqui", "compre", nomes de
+  planos ou preços). A menção deve soar como uma observação natural de analista, não como publicidade.- 400-600 palavras, tom analítico mas envolvente — nunca sensacionalista ao ponto de distorcer os dados.
 
 Responda APENAS com um objeto JSON válido, sem texto antes ou depois, neste formato exato:
 {
   "title": "título com gatilho de curiosidade, baseado em dado real",
   "excerpt": "1-2 frases com lacuna de curiosidade e um número concreto",
   "content": "corpo do artigo em markdown, 400-600 palavras, com gancho inicial forte, incluindo {{IMG_1}} e {{IMG_2}} em pontos estratégicos",
-  "category": "ex: Mercado Global, Análise Setorial, Tendências",
-  "chart_type": "bar",
+"category": "${topic.niche.category}",  "chart_type": "bar",
   "chart_data": [{"name": "dominio.com", "value": 12345}, ...],
   "image_prompts": ["duas palavras-chave em inglês para a imagem 1, ex: online shopping laptop", "duas palavras-chave em inglês para a imagem 2, ex: global business growth"]
 }`;
@@ -770,6 +841,7 @@ Responda APENAS com um objeto JSON válido, sem texto antes ou depois, neste for
             chart_type: article.chart_type || null,
             chart_data: article.chart_data || null,
             sources: statsContext.sources.length > 0 ? statsContext.sources : null,
+            topic_key: topic.topicKey,
           })
           .select()
           .single();

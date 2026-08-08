@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { BlogPost } from '../types/blog';
 import { BlogChart } from '../components/BlogChart';
@@ -7,7 +7,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAuth } from '../hooks/useAuth';
 import { isOwner } from '../lib/ownerConfig';
-import { Trash2 } from 'lucide-react';
+import { Trash2, ArrowRight } from 'lucide-react';
 
 export default function BlogPostDetail() {
   const { slug } = useParams();
@@ -54,8 +54,10 @@ export default function BlogPostDetail() {
           </button>
         )}
       </div>
+
       <h1 className="text-2xl font-bold text-foreground mt-1 mb-4">{post.title}</h1>
-{post.chart_data && post.chart_data.length > 0 && (
+
+      {post.chart_data && post.chart_data.length > 0 && (
         <div className="flex flex-wrap items-center gap-3 my-4">
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Empresas citadas:</span>
           {post.chart_data.map((d: any) => (
@@ -69,8 +71,25 @@ export default function BlogPostDetail() {
           ))}
         </div>
       )}
-      {post.chart_data && <BlogChart data={post.chart_data} type={post.chart_type as any} />}      <div className="prose prose-sm max-w-none text-foreground prose-headings:text-foreground prose-strong:text-foreground prose-table:text-xs prose-th:bg-muted">
+
+      {post.chart_data && <BlogChart data={post.chart_data} type={post.chart_type as any} />}
+
+      <div className="prose prose-sm max-w-none text-foreground prose-headings:text-foreground prose-strong:text-foreground prose-table:text-xs prose-th:bg-muted">
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
+      </div>
+
+      <div className="mt-8 p-5 rounded-2xl bg-muted/50 border border-border">
+        <p className="text-sm text-foreground">
+          Curioso sobre como {post.chart_data?.[0]?.name || 'estes domínios'} se compara ao teu próprio site?
+          A TrafficScope analisa qualquer domínio em segundos.
+        </p>
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 mt-3 text-sm font-semibold text-primary hover:underline"
+        >
+          Ver a minha análise gratuita
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
       </div>
 
       {post.sources && post.sources.length > 0 && (
