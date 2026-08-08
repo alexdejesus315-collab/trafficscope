@@ -1,5 +1,5 @@
 @import "tailwindcss";
-
+@plugin "@tailwindcss/typography";
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -169,5 +169,8 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  .prose img {
+    @apply max-h-80 w-full object-cover rounded-xl;
   }
 }

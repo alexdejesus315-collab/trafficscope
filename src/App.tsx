@@ -11,7 +11,8 @@ const Faq = lazy(() => import('./pages/Faq'));
 const PoliticaPrivacidade = lazy(() => import('./pages/PoliticaPrivacidade'));
 const TermosDeUso = lazy(() => import('./pages/TermosDeUso'));
 const Suporte = lazy(() => import('./pages/Suporte'));
-
+const Blog = lazy(() => import('./pages/Blog'));
+const BlogPostDetail = lazy(() => import('./pages/BlogPostDetail'));
 function PageFallback() {
   return (
     <div className="min-h-screen bg-[#FFFFFF] flex items-center justify-center">
@@ -45,7 +46,7 @@ export default function App() {
           quando existe, para o Dashboard nunca desmontar por causa de um overlay. */}
       <Routes location={backgroundLocation || location}>
         <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
-        <Route
+<Route
           path="/"
           element={
             user
@@ -53,7 +54,8 @@ export default function App() {
               : <Navigate to="/login" replace />
           }
         />
-        {/* Acesso direto/refresh sem overlay ativo: nunca mostra a página sozinha, volta ao Dashboard */}
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:slug" element={<BlogPostDetail />} />        {/* Acesso direto/refresh sem overlay ativo: nunca mostra a página sozinha, volta ao Dashboard */}
         <Route path="/sobre" element={<Navigate to="/" replace />} />
         <Route path="/faq" element={<Navigate to="/" replace />} />
         <Route path="/politica-privacidade" element={<Navigate to="/" replace />} />

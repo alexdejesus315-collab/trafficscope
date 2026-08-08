@@ -7,8 +7,9 @@ import { getOrGenerateDomainData } from "./src/data/mockDomains";
 import rateLimit from "express-rate-limit";
 import { Paddle, EventName } from '@paddle/paddle-node-sdk';
 import { supabaseAdmin } from './src/lib/supabaseAdmin';
+import { OWNER_USER_ID } from './src/lib/ownerConfig';
 import { PADDLE_PRICES } from './src/lib/paddleConfig';
-
+import googleTrends from 'google-trends-api';
 const paddle = new Paddle(process.env.PADDLE_API_KEY!);
 
 async function getUserFromRequest(req: express.Request) {
@@ -216,6 +217,93 @@ async function fetchApifyTrafficData(domains: string[]): Promise<any[]> {
   }
 
   return response.json();
+}
+
+// ===== NOVO: Dados reais e gratuitos para o Blog =====
+
+// Google Trends — popularidade de pesquisa real, sem custo por chamada
+async function fetchTrendsData(keywords: string[]): Promise<{ name: string; value: number }[]> {
+  const results = await googleTrends.interestOverTime({
+    keyword: keywords,
+    startTime: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000), // últimos 90 dias
+  });
+  const parsed = JSON.parse(results);
+  const timelineData = parsed?.default?.timelineData;
+  if (!timelineData?.length) throw new Error('Google Trends sem dados para estas keywords');
+
+  const sums = keywords.map(() => 0);
+  timelineData.forEach((point: any) => {
+    point.value.forEach((v: number, i: number) => { sums[i] += v; });
+  });
+  const averages = sums.map((s) => Math.round(s / timelineData.length));
+
+  return keywords.map((k, i) => ({ name: k, value: averages[i] }));
+}
+
+// Tavily — pesquisa web real, com fontes citáveis
+async function fetchRealStats(query: string): Promise<{ snippets: string[]; sources: { title: string; url: string }[] }> {
+  if (!process.env.TAVILY_API_KEY) {
+    throw new Error('TAVILY_API_KEY não configurada');
+  }
+  const res = await fetch('https://api.tavily.com/search', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      api_key: process.env.TAVILY_API_KEY,
+      query,
+      search_depth: 'basic',
+      max_results: 5,
+    }),
+  });
+  if (!res.ok) throw new Error(`Tavily respondeu com status ${res.status}`);
+  const data = await res.json();
+  const results = data.results || [];
+  return {
+    snippets: results.map((r: any) => r.content).slice(0, 5),
+    sources: results.map((r: any) => ({ title: r.title, url: r.url })).slice(0, 5),
+  };
+}
+
+// Unsplash — fotos reais e gratuitas, com atribuição obrigatória
+async function fetchUnsplashImage(query: string): Promise<{ url: string; alt: string; photographer: string; photographerUrl: string } | null> {
+  if (!process.env.UNSPLASH_ACCESS_KEY) return null;
+
+  const res = await fetch(
+    `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape`,
+    { headers: { Authorization: `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}` } }
+  );
+  if (!res.ok) return null;
+
+  const data = await res.json();
+  const photo = data.results?.[0];
+  if (!photo) return null;
+
+  return {
+    url: photo.urls.regular,
+    alt: photo.alt_description || query,
+    photographer: photo.user.name,
+    photographerUrl: `${photo.user.links.html}?utm_source=trafficscope&utm_medium=referral`,
+  };
+}
+
+// Substitui marcadores {{IMG_1}}, {{IMG_2}}, etc. por imagens reais do Unsplash com crédito
+async function injectImagesIntoContent(content: string, imagePrompts: string[]): Promise<string> {
+  let result = content;
+  for (let i = 0; i < imagePrompts.length; i++) {
+    const marker = `{{IMG_${i + 1}}}`;
+    if (!result.includes(marker)) continue;
+
+    const image = await fetchUnsplashImage(imagePrompts[i]);
+    if (image) {
+      const block = `\n\n![${image.alt}](${image.url})\n*Foto: [${image.photographer}](${image.photographerUrl}) via Unsplash*\n\n`;
+      result = result.replace(marker, block);
+    } else {
+      result = result.replace(marker, ''); // sem imagem disponível, remove o marcador
+    }
+  }
+  // Remove marcadores sobrantes, caso a IA tenha criado mais do que temos prompts
+  result = result.replace(/\{\{IMG_\d+\}\}/g, '');
+  return result;
 }
 
 async function getDomainDataWithCache(requestedDomain: string): Promise<any> {
@@ -558,6 +646,165 @@ Pergunta do usuário: "${lastUserMessage}"
     }
   });
 
+// ===== NOVO: Geração de artigos do Blog (só o dono) =====
+    app.post("/api/blog/generate", async (req, res) => {
+      try {
+        const user = await getUserFromRequest(req);
+        if (!user || user.id !== OWNER_USER_ID) {
+          return res.status(403).json({ error: "Acesso negado." });
+        }
+
+        if (!process.env.GROQ_API_KEY) {
+          return res.status(500).json({ error: "GROQ_API_KEY não configurada no servidor." });
+        }
+
+        // NOVO: Google Trends (gráfico) + Tavily (estatísticas reais citáveis) — sem custo de créditos
+        const referenceDomains = FIXED_REFERENCE_DOMAINS.slice(0, 5);
+        const trendsKeywords = referenceDomains.map((d) => d.split('.')[0]);
+
+        let chartData: { name: string; value: number }[];
+        try {
+          const trendsResults = await fetchTrendsData(trendsKeywords);
+          // Remapeia de volta para o domínio completo (ex: "amazon" → "amazon.com"),
+          // já que o Trends foi consultado com a keyword truncada mas o favicon precisa do domínio real
+          chartData = trendsResults.map((r, i) => ({ name: referenceDomains[i], value: r.value }));
+        } catch (trendsErr) {
+          console.error('Falha no Google Trends, a usar dados de teste como fallback:', trendsErr);
+          chartData = referenceDomains.map((d) => {
+            const m = getOrGenerateDomainData(d);
+            return { name: d, value: m.monthlyVisits };
+          });
+        }
+
+        let statsContext: { snippets: string[]; sources: { title: string; url: string }[] } = { snippets: [], sources: [] };
+        try {
+          statsContext = await fetchRealStats('estatísticas tráfego web e-commerce global 2026');
+        } catch (searchErr) {
+          console.error('Falha na pesquisa Tavily, artigo seguirá sem estatísticas externas:', searchErr);
+        }
+
+        const prompt = `
+Você é um analista sênior de mercado digital da TrafficScope, especialista em copywriting orientado a dados.
+Escreva um artigo de blog em Português sobre tendências de tráfego web e comportamento de mercado.
+
+Dados reais de popularidade de pesquisa (Google Trends, últimos 90 dias, escala 0-100): ${JSON.stringify(chartData)}
+
+Factos e estatísticas reais publicadas recentemente sobre o setor (use-os para fundamentar o artigo,
+parafraseando, NUNCA copiando texto literal):
+${statsContext.snippets.map((s, i) => `[Fonte ${i + 1}] ${s}`).join('\n')}
+
+REGRAS PARA O TÍTULO (crítico para gerar cliques):
+- Use um dos formatos: número + surpresa ("X cresceu 31% enquanto Y estagnou"), pergunta direta que o leitor
+  quer responder, ou contraste chocante entre dois dados reais do dataset.
+- Inclua sempre pelo menos um número concreto vindo dos dados fornecidos.
+- Máximo 70 caracteres. Nunca prometa algo que o artigo não entrega.
+
+REGRAS PARA O EXCERPT (aparece na listagem do blog, é a isca para o clique):
+- 1-2 frases que criem uma lacuna de curiosidade (o leitor precisa de abrir o artigo para saber "porquê"
+  ou "como"), sem revelar a resposta completa.
+- Deve conter pelo menos um dado numérico específico.
+
+REGRAS PARA O CONTEÚDO:
+- Abre com um gancho nas primeiras 2 frases: um dado surpreendente ou contraintuitivo, antes de qualquer
+  contexto genérico.
+- Insere EXATAMENTE 2 marcadores de imagem no corpo do texto, em pontos que façam sentido visualmente
+  (ex: depois de introduzir um conceito, antes de uma secção nova). Os marcadores são literalmente o texto
+  {{IMG_1}} e {{IMG_2}}, cada um numa linha própria, sem mais nada à volta.
+- Usa subtítulos que também gerem curiosidade, não só descritivos (ex: "O Motivo por Trás do Crescimento
+  de 31% da Jumia" em vez de "Análise da Jumia").
+- Termina com uma secção final que aponte uma implicação prática ou pergunta em aberto para o leitor,
+  incentivando a explorar mais o TrafficScope.
+- 400-600 palavras, tom analítico mas envolvente — nunca sensacionalista ao ponto de distorcer os dados.
+
+Responda APENAS com um objeto JSON válido, sem texto antes ou depois, neste formato exato:
+{
+  "title": "título com gatilho de curiosidade, baseado em dado real",
+  "excerpt": "1-2 frases com lacuna de curiosidade e um número concreto",
+  "content": "corpo do artigo em markdown, 400-600 palavras, com gancho inicial forte, incluindo {{IMG_1}} e {{IMG_2}} em pontos estratégicos",
+  "category": "ex: Mercado Global, Análise Setorial, Tendências",
+  "chart_type": "bar",
+  "chart_data": [{"name": "dominio.com", "value": 12345}, ...],
+  "image_prompts": ["duas palavras-chave em inglês para a imagem 1, ex: online shopping laptop", "duas palavras-chave em inglês para a imagem 2, ex: global business growth"]
+}`;
+
+        const response = await groq.chat.completions.create({
+          model: "openai/gpt-oss-120b",
+          response_format: { type: "json_object" },
+          reasoning_effort: "low",
+          messages: [
+            {
+              role: "system",
+              content: "Você escreve artigos de blog para a TrafficScope, uma plataforma de inteligência competitiva. Responda SEMPRE apenas com JSON válido, sem markdown fora do campo 'content', sem texto adicional.",
+            },
+            { role: "user", content: prompt },
+          ],
+        });
+
+        const raw = response.choices[0]?.message?.content || "{}";
+        const article = JSON.parse(raw);
+
+        // NOVO: substitui os marcadores {{IMG_1}}/{{IMG_2}} por fotos reais do Unsplash
+        try {
+          article.content = await injectImagesIntoContent(article.content, article.image_prompts || []);
+        } catch (imgErr) {
+          console.error('Falha ao injetar imagens Unsplash, artigo segue sem fotos:', imgErr);
+          article.content = article.content.replace(/\{\{IMG_\d+\}\}/g, '');
+        }
+
+        const slugBase = article.title
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)/g, "");
+        const slug = `${slugBase}-${Date.now()}`;
+
+        const { data: inserted, error } = await supabaseAdmin
+          .from("blog_posts")
+          .insert({
+            slug,
+            title: article.title,
+            excerpt: article.excerpt,
+            content: article.content,
+            category: article.category,
+            chart_type: article.chart_type || null,
+            chart_data: article.chart_data || null,
+            sources: statsContext.sources.length > 0 ? statsContext.sources : null,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        return res.json({ success: true, post: inserted });
+      } catch (err: any) {
+        console.error("Erro ao gerar artigo do blog:", err);
+        return res.status(500).json({ error: "Falha ao gerar artigo." });
+      }
+    });
+
+    // ===== NOVO: Eliminar artigo do Blog (só o dono) =====
+    app.delete("/api/blog/:slug", async (req, res) => {
+      try {
+        const user = await getUserFromRequest(req);
+        if (!user || user.id !== OWNER_USER_ID) {
+          return res.status(403).json({ error: "Acesso negado." });
+        }
+
+        const { slug } = req.params;
+        const { error } = await supabaseAdmin
+          .from("blog_posts")
+          .delete()
+          .eq("slug", slug);
+
+        if (error) throw error;
+
+        return res.json({ success: true });
+      } catch (err: any) {
+        console.error("Erro ao eliminar artigo do blog:", err);
+        return res.status(500).json({ error: "Falha ao eliminar artigo." });
+      }
+    });
 
   // Vite middleware integration for Development vs Production
   if (process.env.NODE_ENV !== "production") {

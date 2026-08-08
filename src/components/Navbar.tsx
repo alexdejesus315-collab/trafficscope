@@ -1,6 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { User } from '@supabase/supabase-js';
+import { Link, useLocation, useNavigate } from 'react-router-dom';import { User } from '@supabase/supabase-js';
 import {
   Activity,
   LogOut,
@@ -28,7 +27,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { UserProfile, UserMode } from '../types/domain';
 import { useCompanyPanel } from '../context/CompanyPanelContext';
-
+import { supabase } from '../lib/supabaseClient';
+import { isOwner } from '../lib/ownerConfig';
 export const COMPANY_PANEL_WIDTH = 'clamp(260px, 22vw, 400px)';
 
 interface NavbarProps {
@@ -60,8 +60,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   const toggleBtnRef = useRef<HTMLButtonElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const profileToggleRef = useRef<HTMLDivElement>(null);
-  const location = useLocation();
-  // Garante que o "fundo" nunca é outra página de overlay (Sobre/Faq/etc.),
+const location = useLocation();
+  const navigate = useNavigate();
+  const showGenerateButton = isOwner(user?.id);  // Garante que o "fundo" nunca é outra página de overlay (Sobre/Faq/etc.),
 // só o Dashboard real. Evita empilhar overlays uns sobre os outros.
 const state = location.state as { backgroundLocation?: Location } | undefined;
 const trueBackgroundLocation = state?.backgroundLocation ?? location;
@@ -137,10 +138,42 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
           </div>
         </a>
 
-        <div className="flex items-center gap-3 sm:gap-5 relative">
+<div className="flex items-center gap-3 sm:gap-5 relative">
           <Button
-            ref={toggleBtnRef}
-            variant="outline"
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/blog')}
+            className="!text-sidebar-foreground hover:!bg-sidebar-accent/15"
+          >
+            Blog
+          </Button>
+
+          {showGenerateButton && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 !bg-sidebar-accent !text-sidebar-accent-foreground !border-sidebar-border hover:!bg-sidebar-accent/80"
+              onClick={async () => {
+                const { data: { session } } = await supabase.auth.getSession();
+                const res = await fetch('/api/blog/generate', {
+                  method: 'POST',
+                  headers: { Authorization: `Bearer ${session?.access_token}` },
+                });
+                const data = await res.json();
+                if (data.success) {
+                  alert('Artigo gerado com sucesso!');
+                  navigate(`/blog/${data.post.slug}`);
+                } else {
+                  alert(data.error || 'Erro ao gerar artigo.');
+                }
+              }}
+            >
+              Gerar Artigo
+            </Button>
+          )}
+
+          <Button
+            ref={toggleBtnRef}            variant="outline"
             size="sm"
             className="gap-1.5 !bg-sidebar-accent !text-sidebar-accent-foreground !border-sidebar-border hover:!bg-sidebar-accent/80 hover:!text-sidebar-accent-foreground"
             onClick={() => {

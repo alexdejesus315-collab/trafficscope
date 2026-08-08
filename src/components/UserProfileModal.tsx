@@ -48,7 +48,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
   // Determina o "nível" do jogador baseado em pesquisas totais
   // Nota: paleta de ranks é decorativa e independente das cores semânticas de
-  // estado (Modo Teste/Modo Real/avisos); só "Especialista" usa a cor de marca,
+  // estado (/Modo Real/avisos); só "Especialista" usa a cor de marca,
   // por isso aponta para o token primary em vez do hex fixo.
   const getLevel = (searches: number) => {
     if (searches >= 500) return { name: 'Lenda', color: '#F59E0B', icon: Crown };
@@ -112,7 +112,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               >
                 <TestTube2 className="h-4 w-4 shrink-0" />
                 <div className="text-left">
-                  <div className="text-xs font-bold">Modo Teste</div>
+                  <div className="text-xs font-bold"></div>
                   <div className="text-[10px] opacity-70">Ilimitado • Sintético</div>
                 </div>
               </button>
