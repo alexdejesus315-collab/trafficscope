@@ -23,6 +23,9 @@ import {
   Search,
   ArrowRight,
   History as HistoryIcon,
+  Bell,
+  Check,
+  CheckCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -30,6 +33,7 @@ import { UserProfile, UserMode } from '../types/domain';
 import { useCompanyPanel } from '../context/CompanyPanelContext';
 import { supabase } from '../lib/supabaseClient';
 import { isOwner } from '../lib/ownerConfig';
+import { useNotifications } from '../hooks/useNotifications';
 export const COMPANY_PANEL_WIDTH = 'clamp(260px, 22vw, 400px)';
 
 interface NavbarProps {
@@ -61,6 +65,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   const toggleBtnRef = useRef<HTMLButtonElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const profileToggleRef = useRef<HTMLDivElement>(null);
+  const notifDropdownRef = useRef<HTMLDivElement>(null);
+  const notifToggleRef = useRef<HTMLButtonElement>(null);
 const location = useLocation();
   const navigate = useNavigate();
   const showGenerateButton = isOwner(user?.id);  // Garante que o "fundo" nunca é outra página de overlay (Sobre/Faq/etc.),
@@ -68,7 +74,9 @@ const location = useLocation();
 const state = location.state as { backgroundLocation?: Location } | undefined;
 const trueBackgroundLocation = state?.backgroundLocation ?? location;
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const { isMenuOpen, isMenuClosing, closeMenuNow, openMenu, requestCloseDetail } = useCompanyPanel();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications(user?.id);
 
   // Fecha o painel preto e o branco em conjunto, sem desfasamento.
   const closeEverything = React.useCallback(() => {
@@ -117,6 +125,26 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
     };
   }, [isProfileOpen]);
 
+
+  useEffect(() => {
+    if (!isNotifOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (notifToggleRef.current?.contains(e.target as Node)) return;
+      if (notifDropdownRef.current && !notifDropdownRef.current.contains(e.target as Node)) {
+        setIsNotifOpen(false);
+      }
+    }
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === 'Escape') setIsNotifOpen(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isNotifOpen]);
+
   const credits = profile?.credits ?? 0;
   const mode = profile?.mode ?? 'test';
   const totalSearches = profile?.totalSearches ?? 0;
@@ -159,6 +187,84 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
           >
             <HistoryIcon className="h-4 w-4" />
           </Button>
+
+          <button
+            ref={notifToggleRef}
+            onClick={() => setIsNotifOpen(!isNotifOpen)}
+            className="relative flex items-center justify-center h-8 w-8 rounded-full !text-sidebar-foreground hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+            aria-label="Notificações"
+            title="Notificações"
+          >
+            <Bell className="h-4 w-4" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </button>
+
+          {isNotifOpen && (
+            <div
+              ref={notifDropdownRef}
+              className="absolute top-[calc(100%+10px)] right-0 w-[360px] max-h-[420px]
+                         bg-popover rounded-2xl
+                         border border-border
+                         shadow-[0_8px_30px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)]
+                         overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150
+                         flex flex-col"
+            >
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
+                <p className="text-sm font-semibold text-foreground">Notificações</p>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllAsRead}
+                    className="flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                  >
+                    <CheckCheck className="h-3.5 w-3.5" />
+                    Marcar tudo
+                  </button>
+                )}
+              </div>
+
+              <div className="overflow-y-auto flex-1">
+                {notifications.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-center text-muted-foreground gap-1.5">
+                    <Bell className="h-6 w-6 opacity-30" />
+                    <p className="text-xs">Sem notificações por agora.</p>
+                  </div>
+                ) : (
+                  notifications.map((n) => (
+                    <button
+                      key={n.id}
+                      onClick={() => {
+                        if (!n.isRead) markAsRead(n.id);
+                        if (n.link) {
+                          setIsNotifOpen(false);
+                          navigate(n.link);
+                        }
+                      }}
+                      className={`w-full text-left px-4 py-3 border-b border-border/60 last:border-0 transition-colors hover:bg-accent/50 ${
+                        n.isRead ? '' : 'bg-primary/5'
+                      }`}
+                    >
+                      <div className="flex items-start gap-2">
+                        {!n.isRead && (
+                          <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                        )}
+                        <div className={`min-w-0 ${n.isRead ? 'pl-3.5' : ''}`}>
+                          <p className="text-sm font-semibold text-foreground truncate">{n.title}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
+                          <p className="text-[10px] text-muted-foreground/70 mt-1">
+                            {new Date(n.created_at).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
 
           {showGenerateButton && (
             <Button

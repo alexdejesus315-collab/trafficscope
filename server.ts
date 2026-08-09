@@ -419,6 +419,35 @@ async function injectImagesIntoContent(content: string, imagePrompts: string[]):
   return result;
 }
 
+// ===== NOVO: Sistema de Notificações =====
+type NotificationType =
+  | 'search_completed'
+  | 'credits_low'
+  | 'credits_zero'
+  | 'usage_milestone'
+  | 'credits_purchased'
+  | 'new_blog_post';
+
+async function createNotification(
+  userId: string | null, // null = notificação global (todos os utilizadores)
+  type: NotificationType,
+  title: string,
+  message: string,
+  link?: string
+) {
+  try {
+    await supabaseAdmin.from('notifications').insert({
+      user_id: userId,
+      type,
+      title,
+      message,
+      link: link || null,
+    });
+  } catch (err) {
+    console.error('Falha ao criar notificação:', err);
+  }
+}
+
 async function saveSearchHistory(userId: string, domain: string, result: any) {
   try {
     await supabaseAdmin.from('search_history').insert({
@@ -566,6 +595,15 @@ app.post(
             );
 
           console.log(`✅ Créditos adicionados: user=${userId}, +${creditsToAdd}, total=${newCredits}`);
+
+          // NOVO: notifica o utilizador da compra confirmada
+          await createNotification(
+            userId,
+            'credits_purchased',
+            'Créditos adicionados',
+            `Foram adicionados ${creditsToAdd} créditos à tua conta. Total: ${newCredits}.`,
+            undefined
+          );
         } else {
           console.error('❌ TransactionCompleted sem user_id em customData');
         }
@@ -631,6 +669,13 @@ app.post(
         const user = await getUserFromRequest(req);
         if (user) {
           await saveSearchHistory(user.id, domain, finalData);
+          await createNotification(
+            user.id,
+            'search_completed',
+            'Pesquisa concluída',
+            `A análise de ${domain} foi concluída com dados reais.`,
+            '/history'
+          );
         }
 
         return res.json({ success: true, data: finalData });
@@ -1028,6 +1073,15 @@ Responda APENAS com um objeto JSON válido, sem texto antes ou depois, neste for
           .single();
 
         if (error) throw error;
+
+        // NOVO: notificação global — todos os utilizadores veem que saiu artigo novo
+        await createNotification(
+          null,
+          'new_blog_post',
+          'Novo artigo no blog',
+          article.title,
+          `/blog/${slug}`
+        );
 
         return res.json({ success: true, post: inserted });
       } catch (err: any) {

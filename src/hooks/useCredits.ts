@@ -73,20 +73,60 @@ export function useCredits(userId: string | undefined) {
 
     if (!data || data.credits <= 0) return false;
 
+    const newCredits = data.credits - 1;
+    const newTotalSearches = profile.totalSearches + 1;
+
     const { error } = await supabase
       .from('user_profiles')
       .update({
-        credits: data.credits - 1,
-        total_searches: profile.totalSearches + 1,
+        credits: newCredits,
+        total_searches: newTotalSearches,
       })
       .eq('user_id', userId);
 
     if (!error) {
       setProfile(prev => ({
         ...prev,
-        credits: prev.credits - 1,
-        totalSearches: prev.totalSearches + 1,
+        credits: newCredits,
+        totalSearches: newTotalSearches,
       }));
+
+      // NOVO: notificações de créditos e marcos de uso
+      const notifications: { type: string; title: string; message: string; link?: string }[] = [];
+
+      if (newCredits === 0) {
+        notifications.push({
+          type: 'credits_zero',
+          title: 'Créditos esgotados',
+          message: 'Ficaste sem créditos. Compra mais para continuares em Modo Real.',
+        });
+      } else if (newCredits <= 2) {
+        notifications.push({
+          type: 'credits_low',
+          title: 'Créditos a acabar',
+          message: `Restam-te apenas ${newCredits} créditos.`,
+        });
+      }
+
+      const MILESTONES = [10, 50, 100, 250, 500];
+      if (MILESTONES.includes(newTotalSearches)) {
+        notifications.push({
+          type: 'usage_milestone',
+          title: 'Marco atingido!',
+          message: `Já fizeste ${newTotalSearches} pesquisas na TrafficScope.`,
+        });
+      }
+
+      for (const n of notifications) {
+        await supabase.from('notifications').insert({
+          user_id: userId,
+          type: n.type,
+          title: n.title,
+          message: n.message,
+          link: n.link || null,
+        });
+      }
+
       return true;
     }
     return false;
