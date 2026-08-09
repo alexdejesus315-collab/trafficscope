@@ -213,25 +213,26 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
             <HistoryIcon className="h-4 w-4" />
           </Button>
 
-          <button
-            ref={notifToggleRef}
-            onClick={() => setIsNotifOpen(!isNotifOpen)}
-            className="relative flex items-center justify-center h-8 w-8 rounded-full !text-sidebar-foreground hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
-            aria-label="Notificações"
-            title="Notificações"
-          >
-            <Bell className="h-4 w-4" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
-            )}
-          </button>
+          <div className="relative">
+            <button
+              ref={notifToggleRef}
+              onClick={() => setIsNotifOpen(!isNotifOpen)}
+              className="relative flex items-center justify-center h-8 w-8 rounded-full !text-sidebar-foreground hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+              aria-label="Notificações"
+              title="Notificações"
+            >
+              <Bell className="h-4 w-4" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
 
-          {isNotifOpen && (
-            <div
-              ref={notifDropdownRef}
-              className="absolute top-[calc(100%+10px)] right-0 w-[360px] max-h-[420px]
+            {isNotifOpen && (
+              <div
+                ref={notifDropdownRef}
+                className="absolute top-[calc(100%+10px)] left-1/2 -translate-x-1/2 w-[360px] max-h-[420px]
                          bg-popover rounded-2xl
                          border border-border
                          shadow-[0_8px_30px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)]
@@ -307,7 +308,8 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
                 )}
               </div>
             </div>
-          )}
+            )}
+          </div>
 
           {showGenerateButton && (
             <Button
