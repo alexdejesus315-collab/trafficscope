@@ -14,7 +14,7 @@ export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({ metrics }) => 
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
 
       {/* 1. Tráfego Total */}
-      <Card className="shadow-2xs hover:shadow-md transition-shadow duration-200">
+      <Card className="hover:shadow-md transition-shadow duration-200">
         <CardContent className="flex flex-col justify-between h-full">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Tráfego Total</span>
@@ -32,7 +32,7 @@ export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({ metrics }) => 
       </Card>
 
       {/* 2. Crescimento */}
-      <Card className="shadow-2xs">
+      <Card>
         <CardContent className="flex flex-col justify-between h-full">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Crescimento</span>

@@ -124,7 +124,7 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
   const BatteryIcon = credits === 0 ? BatteryWarning : credits <= 3 ? Battery : BatteryCharging;
 
   return (
-    <header className="sticky top-0 z-[60] bg-sidebar/95 backdrop-blur-md border-b border-sidebar-border text-sidebar-foreground shadow-2xs">
+<header className="sticky top-0 z-[60] bg-sidebar/95 backdrop-blur-md text-sidebar-foreground shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <div>
@@ -143,16 +143,16 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
             variant="ghost"
             size="sm"
             onClick={() => navigate('/blog')}
-            className="!text-sidebar-foreground hover:!bg-sidebar-accent/15"
+            className="!text-sidebar-foreground text-base font-semibold rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
           >
             Blog
           </Button>
 
           {showGenerateButton && (
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
-              className="gap-1.5 !bg-sidebar-accent !text-sidebar-accent-foreground !border-sidebar-border hover:!bg-sidebar-accent/80"
+              className="gap-1.5 !text-sidebar-foreground text-base font-semibold rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
               onClick={async () => {
                 const { data: { session } } = await supabase.auth.getSession();
                 const res = await fetch('/api/blog/generate', {
@@ -173,9 +173,9 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
           )}
 
           <Button
-            ref={toggleBtnRef}            variant="outline"
+            ref={toggleBtnRef}            variant="ghost"
             size="sm"
-            className="gap-1.5 !bg-sidebar-accent !text-sidebar-accent-foreground !border-sidebar-border hover:!bg-sidebar-accent/80 hover:!text-sidebar-accent-foreground"
+            className="gap-1.5 !text-sidebar-foreground text-base font-semibold rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
             onClick={() => {
               if (isMenuOpen) {
                 closeEverything();
@@ -192,10 +192,10 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
           <div ref={profileToggleRef} className="flex items-center rounded-full border border-sidebar-border overflow-hidden shadow-2xs">
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium transition-all hover:brightness-95 ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold transition-all hover:brightness-95 ${
                 isTest
-                  ? 'text-amber-300/90'
-                  : 'text-emerald-300/90'
+                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300'
+                  : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300'
               }`}
             >
               {isTest ? (

@@ -11,7 +11,7 @@ export const GeoMapSection: React.FC<GeoMapSectionProps> = ({ metrics }) => {
   const countries = metrics.countryTraffic || [];
 
   return (
-    <Card className="shadow-2xs hover:shadow-md transition-shadow duration-200">
+    <Card className="hover:shadow-md transition-shadow duration-200">
       <CardContent className="space-y-4">
 
         {/* Header */}
@@ -30,7 +30,7 @@ export const GeoMapSection: React.FC<GeoMapSectionProps> = ({ metrics }) => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
 
           {/* Visual Map Representation Card */}
-          <div className="lg:col-span-5 bg-muted rounded-xl p-4 border border-border flex flex-col items-center justify-center min-h-[220px] text-center relative overflow-hidden">
+          <div className="lg:col-span-5 bg-muted rounded-xl p-4 flex flex-col items-center justify-center min-h-[220px] text-center relative overflow-hidden">
             <Globe className="h-20 w-20 text-muted-foreground/40 mb-3 stroke-1" />
 
             <div className="relative z-10">
@@ -48,8 +48,7 @@ export const GeoMapSection: React.FC<GeoMapSectionProps> = ({ metrics }) => {
           {/* Countries Grid & List */}
           <div className="lg:col-span-7 space-y-3">
             {countries.map((c, index) => (
-              <div key={c.code} className="bg-muted p-3 rounded-xl border border-border flex items-center justify-between hover:border-muted-foreground/30 transition-all">
-
+<div key={c.code} className="bg-muted p-3 rounded-xl flex items-center justify-between shadow-2xs hover:shadow-md transition-shadow duration-200">
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{c.flag}</span>
                   <div>

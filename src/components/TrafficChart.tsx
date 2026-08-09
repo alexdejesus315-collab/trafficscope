@@ -37,7 +37,7 @@ export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
   };
 
   return (
-    <Card className="shadow-2xs hover:shadow-md transition-shadow duration-200">
+    <Card className="hover:shadow-md transition-shadow duration-200">
       <CardContent className="space-y-4">
 
         {/* Header & Chart Controls */}
@@ -54,12 +54,12 @@ export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
 
           {/* Chart View Toggle */}
           <div className="flex items-center gap-2">
-            <div className="bg-muted p-1 rounded-xl border border-border flex items-center gap-1">
+            <div className="bg-muted p-1 rounded-xl flex items-center gap-1">
               <button
                 onClick={() => setChartType('area')}
                 className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                   chartType === 'area'
-                    ? 'bg-background text-primary shadow-2xs border border-border'
+                    ? 'bg-background text-primary shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >

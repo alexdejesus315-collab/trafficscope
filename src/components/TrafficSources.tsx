@@ -29,7 +29,7 @@ export const TrafficSources: React.FC<TrafficSourcesProps> = ({ metrics }) => {
   };
 
   return (
-    <Card className="shadow-2xs hover:shadow-md transition-shadow duration-200">
+    <Card className="hover:shadow-md transition-shadow duration-200">
       <CardContent className="space-y-4">
 
         {/* Header */}
@@ -94,7 +94,7 @@ export const TrafficSources: React.FC<TrafficSourcesProps> = ({ metrics }) => {
                 </div>
 
                 {/* Progress Bar Container */}
-                <div className="h-2.5 w-full bg-muted rounded-full overflow-hidden border border-border">
+                <div className="h-2.5 w-full bg-muted rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-500"
                     style={{

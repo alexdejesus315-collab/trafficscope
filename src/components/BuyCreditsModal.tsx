@@ -35,7 +35,7 @@ export const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="text-center space-y-2 max-w-xl mx-auto pt-2">
+        <div className="text-center space-y-2 max-w-xl mx-auto pt-2 pb-2">
           <Badge variant="secondary" className="gap-1.5">
             <Zap className="h-3.5 w-3.5 text-primary" />
             Recarga de Créditos
@@ -49,11 +49,7 @@ export const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
         </div>
 
         {/* Card Único */}
-        <Card className="p-6 flex flex-col justify-between space-y-6 border-2 border-primary/30 bg-primary/5 relative overflow-hidden shadow-2xs hover:shadow-md transition-shadow duration-200">
-          <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-bl-xl">
-            MAIS POPULAR
-          </div>
-
+        <Card className="p-6 flex flex-col justify-between space-y-6 border-2 border-primary/30 bg-primary/5 relative overflow-hidden hover:shadow-md transition-shadow duration-200">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">

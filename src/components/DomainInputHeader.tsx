@@ -60,14 +60,14 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
           </p>
 
           <form onSubmit={handleSearchSubmit} className="relative mt-8">
-            <div className="relative flex items-center bg-card border border-border rounded-2xl shadow-sm p-1.5">
+            <div className="relative flex items-center bg-card rounded-2xl shadow-md p-1.5 transition-shadow focus-within:shadow-lg focus-within:ring-2 focus-within:ring-primary/30">
               <Search className="absolute left-5 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
               <Input
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Digite um ou mais domínios..."
-                className="pl-12 pr-28 py-3 h-auto text-sm sm:text-base rounded-xl border-0 shadow-none bg-transparent"
+                className="pl-12 pr-28 py-3 h-auto text-sm sm:text-base rounded-xl border-0 shadow-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
                 autoFocus
               />
               <Button
@@ -88,7 +88,7 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
                 key={d}
                 type="button"
                 onClick={() => onAddDomain(d)}
-                className="text-xs font-mono px-3 py-1 rounded-full border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
+                className="text-xs font-mono px-3 py-1 rounded-full bg-card text-muted-foreground shadow-sm hover:text-primary hover:shadow-md transition-all"
               >
                 {d}
               </button>
@@ -101,7 +101,7 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
 
   // Com domínios ativos: barra compacta no topo, como antes.
   return (
-    <div className="bg-background border-b border-border pt-6 pb-6 text-foreground shadow-2xs">
+    <div className="bg-background pt-6 pb-6 text-foreground shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 flex flex-col items-center text-center">
 
         {/* Title */}
@@ -116,19 +116,19 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
 
         {/* Input Form Bar */}
         <form onSubmit={handleSearchSubmit} className="relative w-full max-w-4xl">
-          <div className="relative flex items-center">
-            <Search className="absolute left-4 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
+          <div className="relative flex items-center bg-card rounded-2xl shadow-md p-1 transition-shadow focus-within:shadow-lg focus-within:ring-2 focus-within:ring-primary/30">
+            <Search className="absolute left-5 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
             <Input
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Digite um ou mais domínios..."
-              className="pl-12 pr-28 py-3 h-auto text-sm sm:text-base rounded-xl"
+              className="pl-12 pr-28 py-3 h-auto text-sm sm:text-base rounded-xl border-0 shadow-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
             />
             <Button
               type="submit"
               size="sm"
-              className="absolute right-2 gap-1.5"
+              className="absolute right-2.5 gap-1.5"
             >
               Adicionar
               <Plus className="h-4 w-4" />
@@ -153,10 +153,10 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
                 onClick={() => onSelectPrimaryDomain?.(d)}
                 title={isActive ? 'Domínio em destaque' : 'Ver este domínio em destaque'}
                 className={cn(
-                  'inline-flex items-center gap-1.5 pl-2.5 pr-1 py-1 rounded-lg border font-mono text-xs font-semibold shadow-2xs transition-colors cursor-pointer',
+                  'inline-flex items-center gap-1.5 pl-2.5 pr-1 py-1 rounded-lg font-mono text-xs font-semibold shadow-sm transition-colors cursor-pointer',
                   isActive
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-primary/8 text-primary border-primary/25 hover:bg-primary/15 dark:bg-primary/40 dark:text-primary-foreground dark:border-primary/60'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-primary/8 text-primary hover:bg-primary/15 dark:bg-primary/40 dark:text-primary-foreground'
                 )}
               >
                 <span>{d}</span>
