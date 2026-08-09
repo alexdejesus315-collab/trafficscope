@@ -51,9 +51,9 @@ const FIXED_REFERENCE_DOMAINS = [
 ];
 
 // ===== NOVO: Pools de nicho e ângulos narrativos para o Blog =====
-const NICHE_POOLS: { category: string; domains: string[] }[] = [  { category: "E-commerce Global", domains: ["amazon.com", "ebay.com", "jumia.co.ao", "aliexpress.com", "temu.com"] },
+const NICHE_POOLS: { category: string; domains: string[] }[] = [  { category: "E-commerce Global", domains: ["amazon.com", "ebay.com", "shopee.com", "aliexpress.com", "temu.com"] },
   { category: "Streaming & Entretenimento", domains: ["netflix.com", "disneyplus.com", "primevideo.com", "spotify.com", "hbomax.com"] },
-  { category: "Fintech & Pagamentos", domains: ["paypal.com", "stripe.com", "revolut.com", "nubank.com.br", "wise.com"] },
+  { category: "Fintech & Pagamentos", domains: ["paypal.com", "stripe.com", "revolut.com", "klarna.com", "wise.com"] },
   { category: "Redes Sociais", domains: ["instagram.com", "tiktok.com", "x.com", "linkedin.com", "snapchat.com"] },
   { category: "Viagens & Turismo", domains: ["booking.com", "airbnb.com", "expedia.com", "tripadvisor.com", "skyscanner.com"] },
   { category: "Entrega & Mobilidade", domains: ["ubereats.com", "doordash.com", "glovoapp.com", "ifood.com.br", "uber.com"] },
@@ -79,7 +79,7 @@ const NARRATIVE_ANGLES = [
   },
   {
     key: "regional",
-    instruction: "Foque na perspetiva REGIONAL/LOCAL — como estas tendências globais se comparam ou impactam mercados emergentes como Angola e África, mesmo que os domínios do dataset sejam globais.",
+    instruction: "Foque na perspetiva REGIONAL/LOCAL, mas só se os domínios do dataset tiverem ligação real a mercados emergentes/África — não force essa ligação se não existir base real nos dados.",
   },
   {
     key: "mythbusting",
@@ -87,22 +87,75 @@ const NARRATIVE_ANGLES = [
   },
 ];
 
-// Evita repetir a mesma combinação nicho+ângulo dos últimos artigos
-async function pickUnusedTopic(): Promise<{ niche: typeof NICHE_POOLS[0]; angle: typeof NARRATIVE_ANGLES[0]; topicKey: string }> {
+// ===== NOVO: Pool de temas de notícia/contexto para o Blog =====
+const NEWS_TOPICS: { category: string; query: string; instruction: string }[] = [
+  {
+    category: "Tecnologia",
+    query: "notícias tecnologia inteligência artificial lançamentos 2026",
+    instruction: "Escolha UMA notícia recente e concreta sobre tecnologia/IA a partir dos factos fornecidos. Explique o que aconteceu e depois ligue explicitamente a como isso deve afetar o tráfego web, a popularidade de busca ou o comportamento digital das empresas/plataformas envolvidas.",
+  },
+  {
+    category: "Mercados Financeiros",
+    query: "notícias mercados financeiros bolsa big tech resultados 2026",
+    instruction: "Escolha UM evento financeiro recente (resultados trimestrais, IPO, fusão, queda/alta de ações) a partir dos factos fornecidos. Ligue explicitamente esse evento a como se reflete ou deve refletir no interesse de busca/tráfego online da empresa envolvida.",
+  },
+  {
+    category: "Geopolítica & Economia Global",
+    query: "geopolítica economia global tarifas sanções comércio internacional 2026",
+    instruction: "Escolha UM desenvolvimento geopolítico recente a partir dos factos fornecidos. Explique as consequências práticas para a economia global e ligue isso a efeitos esperados no comércio digital, e-commerce cross-border ou tráfego web de plataformas afetadas.",
+  },
+  {
+    category: "Startups & Inovação em África",
+    query: "startups inovação tecnologia África funding 2026",
+    instruction: "Escolha UMA notícia recente sobre uma startup ou iniciativa de inovação africana a partir dos factos fornecidos. Explique o que a torna relevante e ligue isso ao potencial de crescimento de tráfego/popularidade digital que representa para o ecossistema africano.",
+  },
+  {
+    category: "China-América & Comércio Global",
+    query: "relação China Estados Unidos comércio tecnologia 2026",
+    instruction: "Escolha UM desenvolvimento recente na relação China-EUA (tecnologia, comércio, tarifas) a partir dos factos fornecidos. Ligue isso a como afeta plataformas digitais, e-commerce global ou o tráfego de empresas destes dois mercados.",
+  },
+  {
+    category: "Criptomoedas",
+    query: "criptomoedas bitcoin mercado cripto notícias 2026",
+    instruction: "Escolha UM movimento recente do mercado cripto a partir dos factos fornecidos. Ligue isso a picos ou quedas esperadas de interesse de busca/tráfego em exchanges e plataformas relacionadas.",
+  },
+  {
+    category: "Moda & Arte",
+    query: "moda arte tendências lançamentos colaborações 2026",
+    instruction: "Escolha UMA tendência ou lançamento recente em moda/arte a partir dos factos fornecidos. Ligue isso a como esse tipo de evento costuma gerar picos de busca e tráfego digital para marcas e plataformas envolvidas.",
+  },
+];
+
+type ComparisonTopic = { type: "comparison"; niche: typeof NICHE_POOLS[0]; angle: typeof NARRATIVE_ANGLES[0]; topicKey: string };
+type NewsTopic = { type: "news"; news: typeof NEWS_TOPICS[0]; topicKey: string };
+type Topic = ComparisonTopic | NewsTopic;
+
+// Evita repetir a mesma combinação nicho+ângulo (ou tema de notícia) dos últimos artigos
+async function pickUnusedTopic(): Promise<Topic> {
   const { data: recentPosts } = await supabaseAdmin
     .from("blog_posts")
     .select("topic_key")
     .order("created_at", { ascending: false })
-    .limit(5);
+    .limit(6);
 
   const recentKeys = new Set((recentPosts || []).map((p) => p.topic_key).filter(Boolean));
 
-  const allCombos: { niche: typeof NICHE_POOLS[0]; angle: typeof NARRATIVE_ANGLES[0]; topicKey: string }[] = [];
+  const comparisonCombos: ComparisonTopic[] = [];
   for (const niche of NICHE_POOLS) {
     for (const angle of NARRATIVE_ANGLES) {
-      allCombos.push({ niche, angle, topicKey: `${niche.category}::${angle.key}` });
+      comparisonCombos.push({ type: "comparison", niche, angle, topicKey: `compare::${niche.category}::${angle.key}` });
     }
   }
+
+  const newsCombos: NewsTopic[] = NEWS_TOPICS.map((news) => ({
+    type: "news",
+    news,
+    topicKey: `news::${news.category}`,
+  }));
+
+  // Notícias entram com peso x6 para equilibrar com o pool bem maior de comparação de tráfego
+  // (42 combinações de comparação vs 7 de notícia — sem este peso, notícia sairia só ~14% das vezes)
+  const allCombos: Topic[] = [...comparisonCombos, ...Array(6).fill(newsCombos).flat()];
 
   const unused = allCombos.filter((c) => !recentKeys.has(c.topicKey));
   const pool = unused.length > 0 ? unused : allCombos; // se já usámos tudo, liberta o filtro
@@ -723,48 +776,70 @@ Pergunta do usuário: "${lastUserMessage}"
           return res.status(500).json({ error: "GROQ_API_KEY não configurada no servidor." });
         }
 
-        // NOVO: escolhe nicho + ângulo narrativo, evitando repetir os últimos 5 artigos
+        // NOVO: escolhe entre tópico de comparação de tráfego ou tópico de notícia/contexto,
+        // evitando repetir os últimos artigos
         const topic = await pickUnusedTopic();
-        const referenceDomains = topic.niche.domains;
-        const trendsKeywords = referenceDomains.map((d) => d.split('.')[0]);
 
-        let chartData: { name: string; value: number }[];
-        try {
-          const trendsResults = await fetchTrendsData(trendsKeywords);
-          // Remapeia de volta para o domínio completo (ex: "amazon" → "amazon.com"),
-          // já que o Trends foi consultado com a keyword truncada mas o favicon precisa do domínio real
-          chartData = trendsResults.map((r, i) => ({ name: referenceDomains[i], value: r.value }));
-        } catch (trendsErr) {
-          console.error('Falha no Google Trends, a usar dados de teste como fallback:', trendsErr);
-          chartData = referenceDomains.map((d) => {
-            const m = getOrGenerateDomainData(d);
-            return { name: d, value: m.monthlyVisits };
-          });
+        let chartData: { name: string; value: number }[] | null = null;
+        let statsQuery: string;
+        let category: string;
+
+        if (topic.type === "comparison") {
+          const referenceDomains = topic.niche.domains;
+          const trendsKeywords = referenceDomains.map((d) => d.split(".")[0]);
+          try {
+            const trendsResults = await fetchTrendsData(trendsKeywords);
+            // Remapeia de volta para o domínio completo (ex: "amazon" → "amazon.com"),
+            // já que o Trends foi consultado com a keyword truncada mas o favicon precisa do domínio real
+            chartData = trendsResults.map((r, i) => ({ name: referenceDomains[i], value: r.value }));
+          } catch (trendsErr) {
+            console.error("Falha no Google Trends, a usar dados de teste como fallback:", trendsErr);
+            chartData = referenceDomains.map((d) => {
+              const m = getOrGenerateDomainData(d);
+              return { name: d, value: m.monthlyVisits };
+            });
+          }
+          statsQuery = `estatísticas ${topic.niche.category} tendências globais 2026`;
+          category = topic.niche.category;
+        } else {
+          statsQuery = topic.news.query;
+          category = topic.news.category;
+          // Sem comparação de domínios fixa; gráfico fica ausente a menos que a IA
+          // identifique um domínio claramente relevante na notícia (tratado no prompt).
         }
 
         let statsContext: { snippets: string[]; sources: { title: string; url: string }[] } = { snippets: [], sources: [] };
         try {
-          statsContext = await fetchRealStats(`estatísticas ${topic.niche.category} tendências globais 2026`);
+          statsContext = await fetchRealStats(statsQuery);
         } catch (searchErr) {
-          console.error('Falha na pesquisa Tavily, artigo seguirá sem estatísticas externas:', searchErr);
+          console.error("Falha na pesquisa Tavily, artigo seguirá sem estatísticas externas:", searchErr);
         }
 
+        const angleInstruction = topic.type === "comparison" ? topic.angle.instruction : topic.news.instruction;
+
+        const chartSection =
+          topic.type === "comparison"
+            ? `Dados reais de popularidade de pesquisa (Google Trends, últimos 90 dias, escala 0-100): ${JSON.stringify(chartData)}`
+            : `Não há dados de comparação de domínios pré-definidos para este artigo — é um artigo de notícia/contexto, não de comparação de tráfego. Só inclua "chart_data" e "chart_type" no JSON de resposta se a notícia mencionar claramente 1-5 domínios/marcas cujo tráfego/popularidade faça sentido ilustrar; caso contrário, devolva "chart_data": null e "chart_type": null.`;
+
         const prompt = `
-Você é um analista sênior de mercado digital da TrafficScope, especialista em copywriting orientado a dados.
+Você é um analista sénior de mercado digital da TrafficScope, especialista em copywriting orientado a dados.
 Escreva um artigo de blog em Português sobre tendências de tráfego web e comportamento de mercado.
 
-Dados reais de popularidade de pesquisa (Google Trends, últimos 90 dias, escala 0-100): ${JSON.stringify(chartData)}
+${chartSection}
 
-Factos e estatísticas reais publicadas recentemente sobre o setor (use-os para fundamentar o artigo,
+Factos e estatísticas reais publicadas recentemente sobre o tema (use-os para fundamentar o artigo,
 parafraseando, NUNCA copiando texto literal):
-${statsContext.snippets.map((s, i) => `[Fonte ${i + 1}] ${s}`).join('\n')}
+${statsContext.snippets.map((s, i) => `[Fonte ${i + 1}] ${s}`).join("\n")}
 
-ÂNGULO NARRATIVO OBRIGATÓRIO PARA ESTE ARTIGO:
-${topic.angle.instruction}
+ÂNGULO/TEMA OBRIGATÓRIO PARA ESTE ARTIGO:
+${angleInstruction}
+${topic.type === "news" ? "\nMesmo sendo um artigo de notícia/contexto (tecnologia, mercados, geopolítica, startups, cripto, moda/arte, etc.), o artigo tem de terminar ligando o assunto a uma implicação concreta para tráfego web, popularidade de busca ou comportamento digital — esse é o nicho da TrafficScope e não pode ficar de fora." : ""}
+${topic.type === "comparison" ? "\nAVISO SOBRE ESCALA: antes de escolher o par de domínios em foco no artigo, avalie se ambos operam numa escala de mercado comparável (ambos globais, ou ambos regionais/de nicho semelhante). Se os dados mostrarem um player claramente global ao lado de um player claramente regional/de nicho menor, NÃO apresente isso como 'quem domina' ou uma disputa direta — em vez disso, explique a diferença de escala como contexto (ex: alcance geográfico diferente), e escolha um par mais equilibrado dentro do dataset para o confronto principal do artigo, se existir." : ""}
 
-REGRAS PARA O TÍTULO (crítico para gerar cliques):- Use um dos formatos: número + surpresa ("X cresceu 31% enquanto Y estagnou"), pergunta direta que o leitor
-  quer responder, ou contraste chocante entre dois dados reais do dataset.
-- Inclua sempre pelo menos um número concreto vindo dos dados fornecidos.
+REGRAS PARA O TÍTULO (crítico para gerar cliques):
+- ${topic.type === "comparison" ? 'Use um dos formatos: número + surpresa ("X cresceu 31% enquanto Y estagnou"), pergunta direta que o leitor quer responder, ou contraste chocante entre dois dados reais do dataset.' : "Use um gancho de curiosidade baseado no facto mais forte encontrado nas fontes: uma pergunta direta, um número concreto, ou uma afirmação que gere tensão."}
+- Inclua sempre pelo menos um dado/número concreto vindo dos dados ou fontes fornecidas.
 - Máximo 70 caracteres. Nunca prometa algo que o artigo não entrega.
 
 REGRAS PARA O EXCERPT (aparece na listagem do blog, é a isca para o clique):
@@ -778,23 +853,24 @@ REGRAS PARA O CONTEÚDO:
 - Insere EXATAMENTE 2 marcadores de imagem no corpo do texto, em pontos que façam sentido visualmente
   (ex: depois de introduzir um conceito, antes de uma secção nova). Os marcadores são literalmente o texto
   {{IMG_1}} e {{IMG_2}}, cada um numa linha própria, sem mais nada à volta.
-- Usa subtítulos que também gerem curiosidade, não só descritivos (ex: "O Motivo por Trás do Crescimento
-  de 31% da Jumia" em vez de "Análise da Jumia").
+- Usa subtítulos que também gerem curiosidade, não só descritivos.
 - Termina com uma secção final que aponte uma implicação prática ou pergunta em aberto para o leitor.
 - Em UM único ponto do corpo do texto (não no título, não no excerpt, não na conclusão), insira uma
   referência natural e sutil ao tipo de análise que a TrafficScope permite fazer — por exemplo, mencionando
   de passagem que "monitorizar esse tipo de variação em tempo real" ou "cruzar esses dados com o próprio
   domínio de um negócio" é algo que ferramentas de inteligência competitiva tornam possível. NUNCA use
   linguagem de venda direta (nunca escreva "experimente", "assine", "clique aqui", "compre", nomes de
-  planos ou preços). A menção deve soar como uma observação natural de analista, não como publicidade.- 400-600 palavras, tom analítico mas envolvente — nunca sensacionalista ao ponto de distorcer os dados.
+  planos ou preços). A menção deve soar como uma observação natural de analista, não como publicidade.
+- 400-600 palavras, tom analítico mas envolvente — nunca sensacionalista ao ponto de distorcer os dados.
 
 Responda APENAS com um objeto JSON válido, sem texto antes ou depois, neste formato exato:
 {
   "title": "título com gatilho de curiosidade, baseado em dado real",
   "excerpt": "1-2 frases com lacuna de curiosidade e um número concreto",
   "content": "corpo do artigo em markdown, 400-600 palavras, com gancho inicial forte, incluindo {{IMG_1}} e {{IMG_2}} em pontos estratégicos",
-"category": "${topic.niche.category}",  "chart_type": "bar",
-  "chart_data": [{"name": "dominio.com", "value": 12345}, ...],
+  "category": "${category}",
+  "chart_type": "bar ou null",
+  "chart_data": ${topic.type === "comparison" ? '[{"name": "dominio.com", "value": 12345}, ...]' : "[{...}] ou null"},
   "image_prompts": ["duas palavras-chave em inglês para a imagem 1, ex: online shopping laptop", "duas palavras-chave em inglês para a imagem 2, ex: global business growth"]
 }`;
 
@@ -837,7 +913,7 @@ Responda APENAS com um objeto JSON válido, sem texto antes ou depois, neste for
             title: article.title,
             excerpt: article.excerpt,
             content: article.content,
-            category: article.category,
+            category: article.category || category,
             chart_type: article.chart_type || null,
             chart_data: article.chart_data || null,
             sources: statsContext.sources.length > 0 ? statsContext.sources : null,
