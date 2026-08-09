@@ -34,6 +34,8 @@ import { useCompanyPanel } from '../context/CompanyPanelContext';
 import { supabase } from '../lib/supabaseClient';
 import { isOwner } from '../lib/ownerConfig';
 import { useNotifications } from '../hooks/useNotifications';
+
+const LAST_SEEN_BLOG_KEY = 'trafficscope_last_seen_blog';
 export const COMPANY_PANEL_WIDTH = 'clamp(260px, 22vw, 400px)';
 
 interface NavbarProps {
@@ -76,7 +78,27 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const { isMenuOpen, isMenuClosing, closeMenuNow, openMenu, requestCloseDetail } = useCompanyPanel();
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications(user?.id);
+  const { notifications, unreadCount, isLoadingMore, hasMore, loadMore, markAsRead, markAllAsRead } = useNotifications(user?.id);
+
+  // NOVO: badge de "artigo novo" no botão Blog, guardado localmente por navegador
+  const [lastSeenBlog, setLastSeenBlog] = useState<string | null>(() =>
+    typeof window !== 'undefined' ? localStorage.getItem(LAST_SEEN_BLOG_KEY) : null
+  );
+
+  const latestBlogPostAt = notifications
+    .filter(n => n.type === 'new_blog_post')
+    .reduce<string | null>((latest, n) => (!latest || n.created_at > latest ? n.created_at : latest), null);
+
+  const hasNewBlogPost = Boolean(
+    latestBlogPostAt && (!lastSeenBlog || latestBlogPostAt > lastSeenBlog)
+  );
+
+  const handleBlogClick = () => {
+    const now = new Date().toISOString();
+    localStorage.setItem(LAST_SEEN_BLOG_KEY, now);
+    setLastSeenBlog(now);
+    navigate('/blog');
+  };
 
   // Fecha o painel preto e o branco em conjunto, sem desfasamento.
   const closeEverything = React.useCallback(() => {
@@ -171,10 +193,13 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/blog')}
-            className="!text-sidebar-foreground text-base font-semibold rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+            onClick={handleBlogClick}
+            className="relative !text-sidebar-foreground text-base font-semibold rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
           >
             Blog
+            {hasNewBlogPost && (
+              <span className="absolute top-1 right-1.5 h-2 w-2 rounded-full bg-destructive" />
+            )}
           </Button>
 
           <Button
@@ -226,7 +251,15 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
                 )}
               </div>
 
-              <div className="overflow-y-auto flex-1">
+              <div
+                className="overflow-y-auto flex-1"
+                onScroll={(e) => {
+                  const el = e.currentTarget;
+                  if (el.scrollHeight - el.scrollTop - el.clientHeight < 80) {
+                    loadMore();
+                  }
+                }}
+              >
                 {notifications.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-10 text-center text-muted-foreground gap-1.5">
                     <Bell className="h-6 w-6 opacity-30" />
@@ -261,6 +294,16 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
                       </div>
                     </button>
                   ))
+                )}
+                {isLoadingMore && (
+                  <div className="flex items-center justify-center py-3">
+                    <div className="h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                  </div>
+                )}
+                {!hasMore && notifications.length > 0 && (
+                  <p className="text-center text-[11px] text-muted-foreground py-3">
+                    Não há mais notificações.
+                  </p>
                 )}
               </div>
             </div>

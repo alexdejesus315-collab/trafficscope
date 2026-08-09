@@ -12,29 +12,46 @@ export interface AppNotification {
   isRead: boolean;
 }
 
-const LIMIT = 30;
+const PAGE_SIZE = 20;
 
 export function useNotifications(userId: string | undefined) {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const channelsRef = useRef<RealtimeChannel[]>([]);
+
+  // Marca isRead cruzando com notification_reads; devolve a lista já pronta
+  const attachReadStatus = useCallback(async (rows: any[]): Promise<AppNotification[]> => {
+    if (!userId || rows.length === 0) return rows.map(n => ({ ...n, isRead: false }));
+
+    const ids = rows.map(r => r.id);
+    const { data: reads } = await supabase
+      .from('notification_reads')
+      .select('notification_id')
+      .eq('user_id', userId)
+      .in('notification_id', ids);
+
+    const readIds = new Set((reads || []).map(r => r.notification_id));
+    return rows.map(n => ({ ...n, isRead: readIds.has(n.id) }));
+  }, [userId]);
 
   const fetchNotifications = useCallback(async () => {
     if (!userId) {
       setNotifications([]);
       setIsLoading(false);
+      setHasMore(false);
       return;
     }
 
     setIsLoading(true);
 
-    // Notificações pessoais + globais (user_id is null), mais recentes primeiro
     const { data: notifs, error: notifsError } = await supabase
       .from('notifications')
       .select('id, type, title, message, link, created_at')
       .or(`user_id.eq.${userId},user_id.is.null`)
       .order('created_at', { ascending: false })
-      .limit(LIMIT);
+      .limit(PAGE_SIZE);
 
     if (notifsError || !notifs) {
       console.error('Erro ao buscar notificações:', notifsError);
@@ -42,18 +59,37 @@ export function useNotifications(userId: string | undefined) {
       return;
     }
 
-    const { data: reads } = await supabase
-      .from('notification_reads')
-      .select('notification_id')
-      .eq('user_id', userId);
-
-    const readIds = new Set((reads || []).map(r => r.notification_id));
-
-    setNotifications(
-      notifs.map(n => ({ ...n, isRead: readIds.has(n.id) }))
-    );
+    setNotifications(await attachReadStatus(notifs));
+    setHasMore(notifs.length === PAGE_SIZE);
     setIsLoading(false);
-  }, [userId]);
+  }, [userId, attachReadStatus]);
+
+  // NOVO: carrega mais 20, a partir da última data já mostrada (scroll infinito)
+  const loadMore = useCallback(async () => {
+    if (!userId || isLoadingMore || !hasMore || notifications.length === 0) return;
+
+    setIsLoadingMore(true);
+    const oldest = notifications[notifications.length - 1].created_at;
+
+    const { data: notifs, error } = await supabase
+      .from('notifications')
+      .select('id, type, title, message, link, created_at')
+      .or(`user_id.eq.${userId},user_id.is.null`)
+      .lt('created_at', oldest)
+      .order('created_at', { ascending: false })
+      .limit(PAGE_SIZE);
+
+    if (error || !notifs) {
+      console.error('Erro ao carregar mais notificações:', error);
+      setIsLoadingMore(false);
+      return;
+    }
+
+    const withReadStatus = await attachReadStatus(notifs);
+    setNotifications(prev => [...prev, ...withReadStatus]);
+    setHasMore(notifs.length === PAGE_SIZE);
+    setIsLoadingMore(false);
+  }, [userId, isLoadingMore, hasMore, notifications, attachReadStatus]);
 
   useEffect(() => {
     fetchNotifications();
@@ -82,7 +118,7 @@ export function useNotifications(userId: string | undefined) {
             isRead: false,
           },
           ...prev,
-        ].slice(0, LIMIT);
+        ];
       });
     };
 
@@ -152,6 +188,9 @@ export function useNotifications(userId: string | undefined) {
     notifications,
     unreadCount,
     isLoading,
+    isLoadingMore,
+    hasMore,
+    loadMore,
     markAsRead,
     markAllAsRead,
     refetch: fetchNotifications,
