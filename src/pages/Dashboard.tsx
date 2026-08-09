@@ -31,8 +31,7 @@ import { Download, FileText, Sparkles, ExternalLink, FlaskConical, GitCompare } 
 function DashboardSkeleton() {
   return (
     <div className="space-y-6 animate-pulse">
-      <div className="bg-card rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+<div className="bg-card rounded-2xl p-5 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">        <div className="flex items-center gap-3">
           <div className="h-12 w-12 rounded-xl bg-muted shrink-0" />
           <div className="space-y-2">
             <div className="h-5 w-40 rounded bg-muted" />
@@ -308,8 +307,7 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
               </Suspense>
             ) : (
               <>
-                <div className="bg-card rounded-2xl p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
+<div className="bg-card rounded-2xl p-5 shadow-md hover:shadow-lg transition-shadow duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4">                  <div className="flex items-center gap-3">
                     <img
                       src={primaryMetrics.logo}
                       alt={primaryMetrics.name}
@@ -347,7 +345,7 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
                       id="export-pdf-btn"
                       variant="outline"
                       size="sm"
-                      className="gap-1.5"
+                      className="gap-1.5 rounded-full"
                     >
                       <FileText className="h-4 w-4 text-rose-500" />
                       Exportar PDF
@@ -358,7 +356,7 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
                       id="export-excel-btn"
                       variant="outline"
                       size="sm"
-                      className="gap-1.5"
+                      className="gap-1.5 rounded-full"
                     >
                       <Download className="h-4 w-4 text-emerald-600" />
                       Exportar Excel
@@ -369,7 +367,7 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
                       id="compare-mode-toggle-btn"
                       variant={isCompareMode ? 'default' : 'outline'}
                       size="sm"
-                      className="gap-1.5"
+                      className="gap-1.5 rounded-full"
                     >
                       <GitCompare className="h-4 w-4" />
                       Modo Comparar
@@ -392,7 +390,7 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
                       }}
                       id="ai-report-banner-btn"
                       size="sm"
-                      className="gap-1.5"
+                      className="gap-1.5 rounded-full hover:bg-primary/80"
                     >
                       <Sparkles className="h-4 w-4 text-amber-300" />
                       Insights da IA

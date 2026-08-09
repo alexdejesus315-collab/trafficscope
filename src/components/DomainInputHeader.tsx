@@ -73,7 +73,7 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
               <Button
                 type="submit"
                 size="sm"
-                className="absolute right-2.5 gap-1.5"
+                className="absolute right-2.5 gap-1.5 hover:bg-primary/80 transition-colors"
               >
                 Adicionar
                 <Plus className="h-4 w-4" />
@@ -152,11 +152,10 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
                 type="button"
                 onClick={() => onSelectPrimaryDomain?.(d)}
                 title={isActive ? 'Domínio em destaque' : 'Ver este domínio em destaque'}
-                className={cn(
-                  'inline-flex items-center gap-1.5 pl-2.5 pr-1 py-1 rounded-lg font-mono text-xs font-semibold shadow-sm transition-colors cursor-pointer',
-                  isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-primary/8 text-primary hover:bg-primary/15 dark:bg-primary/40 dark:text-primary-foreground'
+className={cn(
+                  'inline-flex items-center gap-4 pl-1 pr-0.2 py-0.1 rounded-full font-mono text-xs font-semibold transition-all duration-200 cursor-pointer',                  isActive
+                    ? 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/80'
+                    : 'text-muted-foreground hover:bg-primary/20 hover:text-primary'
                 )}
               >
                 <span>{d}</span>

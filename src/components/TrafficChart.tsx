@@ -59,7 +59,7 @@ export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
                 onClick={() => setChartType('area')}
                 className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                   chartType === 'area'
-                    ? 'bg-background text-primary shadow-sm'
+                    ? 'bg-background text-primary border border-border'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -69,7 +69,7 @@ export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
                 onClick={() => setChartType('line')}
                 className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                   chartType === 'line'
-                    ? 'bg-background text-primary shadow-2xs border border-border'
+                    ? 'bg-background text-primary border border-border'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >

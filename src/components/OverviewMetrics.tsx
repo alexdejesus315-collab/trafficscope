@@ -14,7 +14,7 @@ export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({ metrics }) => 
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
 
       {/* 1. Tráfego Total */}
-      <Card className="hover:shadow-md transition-shadow duration-200">
+      <Card className="hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
         <CardContent className="flex flex-col justify-between h-full">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Tráfego Total</span>
@@ -32,7 +32,7 @@ export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({ metrics }) => 
       </Card>
 
       {/* 2. Crescimento */}
-      <Card>
+      <Card className="hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
         <CardContent className="flex flex-col justify-between h-full">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Crescimento</span>
@@ -53,7 +53,7 @@ export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({ metrics }) => 
       </Card>
 
       {/* 3. Tempo Médio de Permanência */}
-      <Card className="shadow-2xs">
+      <Card className="hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
         <CardContent className="flex flex-col justify-between h-full">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Tempo Médio</span>
@@ -71,7 +71,7 @@ export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({ metrics }) => 
       </Card>
 
       {/* 4. Bounce Rate (Taxa de Rejeição) */}
-      <Card className="shadow-2xs">
+      <Card className="hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
         <CardContent className="flex flex-col justify-between h-full">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Bounce Rate</span>
