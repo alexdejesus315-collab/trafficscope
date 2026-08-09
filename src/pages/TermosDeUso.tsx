@@ -16,20 +16,21 @@ export default function TermosDeUso() {
       <section>
         <h2 className="text-foreground font-semibold text-sm mb-1.5">2. Natureza dos dados</h2>
         <p>
-          O plano Gratuito apresenta dados sintéticos, gerados apenas para fins de
-          demonstração, sem qualquer correspondência com tráfego real. Os planos Pro
-          e Enterprise apresentam estimativas de tráfego obtidas através de fontes
-          especializadas de terceiros; estes valores são estimativas de mercado e
-          podem não refletir com exatidão o tráfego real de um website.
+          O Modo Teste apresenta dados sintéticos, gerados apenas para fins de
+          demonstração, sem qualquer correspondência com tráfego real. O Modo Real
+          apresenta estimativas de tráfego obtidas através de fontes especializadas de
+          terceiros; estes valores são estimativas de mercado e podem não refletir com
+          exatidão o tráfego real de um website.
         </p>
       </section>
       <section>
-        <h2 className="text-foreground font-semibold text-sm mb-1.5">3. Planos e limites de uso</h2>
+        <h2 className="text-foreground font-semibold text-sm mb-1.5">3. Créditos e utilização</h2>
         <p>
-          Cada plano de subscrição tem limites próprios de utilização (número de
-          domínios analisados por dia, comparação simultânea de websites, exportações
-          e uso de funcionalidades de IA), conforme descrito na página de planos.
-          Reservamo-nos o direito de ajustar estes limites mediante aviso prévio.
+          O acesso ao Modo Real é feito através de créditos comprados de forma avulsa,
+          sem subscrição nem renovação automática. Cada pesquisa em Modo Real consome
+          1 crédito. Os créditos não têm prazo de validade. Sem créditos disponíveis,
+          a plataforma volta automaticamente ao Modo Teste. Reservamo-nos o direito de
+          ajustar o preço ou a quantidade de créditos por compra mediante aviso prévio.
         </p>
       </section>
       <section>
@@ -41,12 +42,12 @@ export default function TermosDeUso() {
         </p>
       </section>
       <section>
-        <h2 className="text-foreground font-semibold text-sm mb-1.5">5. Faturação e cancelamento</h2>
+        <h2 className="text-foreground font-semibold text-sm mb-1.5">5. Pagamentos e reembolsos</h2>
         <p>
-          As subscrições pagas são faturadas de forma recorrente (mensal ou anual,
-          conforme escolhido). Podes cancelar a tua subscrição a qualquer momento;
-          o acesso às funcionalidades pagas mantém-se até ao final do período já
-          pago.
+          As compras de créditos são processamentos únicos, sem caráter de subscrição
+          recorrente. Créditos já utilizados não são reembolsáveis. Para questões
+          sobre uma compra específica, contacta-nos através dos canais disponíveis na
+          plataforma.
         </p>
       </section>
       <section>
