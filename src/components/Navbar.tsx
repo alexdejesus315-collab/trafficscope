@@ -22,6 +22,7 @@ import {
   ShoppingCart,
   Search,
   ArrowRight,
+  History as HistoryIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -146,6 +147,17 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
             className="!text-sidebar-foreground text-base font-semibold rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
           >
             Blog
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => navigate('/history')}
+            className="!text-sidebar-foreground rounded-full hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+            aria-label="Histórico de pesquisas"
+            title="Histórico de pesquisas"
+          >
+            <HistoryIcon className="h-4 w-4" />
           </Button>
 
           {showGenerateButton && (

@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import { BlogPost } from '../types/blog';
 import { useAuth } from '../hooks/useAuth';
 import { isOwner } from '../lib/ownerConfig';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Activity } from 'lucide-react';
 
 export default function Blog() {
   const { user } = useAuth();
@@ -39,7 +39,10 @@ export default function Blog() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10 space-y-6">
-      <h1 className="text-2xl font-bold text-foreground">Blog</h1>
+      <a href="/" className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity">
+        <Activity className="h-5 w-5 text-foreground" />
+        <span className="text-2xl font-bold text-foreground tracking-tight">TrafficScope</span>
+      </a>
       {posts.map(post => (
         <div
           key={post.id}

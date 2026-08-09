@@ -419,6 +419,31 @@ async function injectImagesIntoContent(content: string, imagePrompts: string[]):
   return result;
 }
 
+async function saveSearchHistory(userId: string, domain: string, result: any) {
+  try {
+    await supabaseAdmin.from('search_history').insert({
+      user_id: userId,
+      domain,
+      result,
+      data_source: 'real',
+    });
+
+    // Mantém só as últimas 50 pesquisas por utilizador
+    const { data: rows } = await supabaseAdmin
+      .from('search_history')
+      .select('id')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (rows && rows.length > 50) {
+      const idsToDelete = rows.slice(50).map(r => r.id);
+      await supabaseAdmin.from('search_history').delete().in('id', idsToDelete);
+    }
+  } catch (err) {
+    console.error('Falha ao gravar histórico de pesquisa:', err);
+  }
+}
+
 async function getDomainDataWithCache(requestedDomain: string): Promise<any> {
   const cached = apifyCache.get(requestedDomain);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
@@ -600,7 +625,15 @@ app.post(
 
       try {
         const data = await getDomainDataWithCache(domain);
-        return res.json({ success: true, data: { ...data, dataSource: 'real' } });
+        const finalData = { ...data, dataSource: 'real' };
+
+        // NOVO: grava no histórico (só dados reais, com sessão válida)
+        const user = await getUserFromRequest(req);
+        if (user) {
+          await saveSearchHistory(user.id, domain, finalData);
+        }
+
+        return res.json({ success: true, data: finalData });
       } catch (apifyErr) {
         console.error("Falha na Apify, a usar dados de teste como fallback:", apifyErr);
         const data = { ...getOrGenerateDomainData(domain), dataSource: 'synthetic' };
@@ -609,6 +642,78 @@ app.post(
     } catch (err: any) {
       console.error("Erro ao analisar domínio:", err);
       return res.status(500).json({ error: "Falha interna na análise do domínio" });
+    }
+  });
+
+// ===== NOVO: Histórico de Pesquisas =====
+
+  // Lista o histórico do utilizador autenticado
+  app.get("/api/search-history", async (req, res) => {
+    try {
+      const user = await getUserFromRequest(req);
+      if (!user) {
+        return res.status(401).json({ error: "Sessão inválida." });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from("search_history")
+        .select("id, domain, result, data_source, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      return res.json({ success: true, history: data });
+    } catch (err: any) {
+      console.error("Erro ao buscar histórico de pesquisas:", err);
+      return res.status(500).json({ error: "Falha ao buscar histórico." });
+    }
+  });
+
+  // Apaga um item específico do histórico
+  app.delete("/api/search-history/:id", async (req, res) => {
+    try {
+      const user = await getUserFromRequest(req);
+      if (!user) {
+        return res.status(401).json({ error: "Sessão inválida." });
+      }
+
+      const { id } = req.params;
+
+      const { error } = await supabaseAdmin
+        .from("search_history")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", user.id); // garante que só apaga o que é do próprio utilizador
+
+      if (error) throw error;
+
+      return res.json({ success: true });
+    } catch (err: any) {
+      console.error("Erro ao apagar item do histórico:", err);
+      return res.status(500).json({ error: "Falha ao apagar item." });
+    }
+  });
+
+  // Limpa todo o histórico do utilizador
+  app.delete("/api/search-history", async (req, res) => {
+    try {
+      const user = await getUserFromRequest(req);
+      if (!user) {
+        return res.status(401).json({ error: "Sessão inválida." });
+      }
+
+      const { error } = await supabaseAdmin
+        .from("search_history")
+        .delete()
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      return res.json({ success: true });
+    } catch (err: any) {
+      console.error("Erro ao limpar histórico:", err);
+      return res.status(500).json({ error: "Falha ao limpar histórico." });
     }
   });
 
