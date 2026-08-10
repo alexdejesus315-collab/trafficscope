@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { X, ArrowLeft } from 'lucide-react';
 import { COMPANY_PANEL_WIDTH } from './Navbar';
 import { useCompanyPanel } from '../context/CompanyPanelContext';
+import { useLanguage } from '../context/LanguageContext';
 
 type CloseMode = 'back' | 'close';
 
@@ -11,6 +12,7 @@ interface CompanyPagePanelProps {
 }
 
 export function CompanyPagePanel({ title, children }: CompanyPagePanelProps) {
+  const { t } = useLanguage();
   const { requestCloseDetail, isClosing } = useCompanyPanel();
   const [isVisible, setIsVisible] = useState(false);
   const [isLocalClosing, setIsLocalClosing] = useState(false);
@@ -38,8 +40,8 @@ export function CompanyPagePanel({ title, children }: CompanyPagePanelProps) {
   const handleClose = (mode: CloseMode) => {
     if (closingGuardRef.current) return;
     closingGuardRef.current = true;
-    setIsLocalClosing(true); // estado local, só liga, nunca volta a desligar-se sozinho
-    requestCloseDetail(mode); // trata a navegação + sincronismo com o painel preto
+    setIsLocalClosing(true);
+    requestCloseDetail(mode);
   };
 
   const voltarParaEmpresa = () => handleClose('back');
@@ -53,8 +55,6 @@ export function CompanyPagePanel({ title, children }: CompanyPagePanelProps) {
     return () => document.removeEventListener('keydown', handleEscape);
   }, []);
 
-  // Depende só de estado local — nunca é reposto a "aberto" por causa
-  // do timing da navegação/context, por isso não há como "piscar".
   const show = isVisible && !isLocalClosing;
 
   return (
@@ -69,15 +69,15 @@ export function CompanyPagePanel({ title, children }: CompanyPagePanelProps) {
           <button
             onClick={voltarParaEmpresa}
             className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Voltar"
+            aria-label={t('companyPanel.back')}
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            Voltar
+            {t('companyPanel.back')}
           </button>
           <button
             onClick={fecharTudo}
             className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            aria-label="Fechar"
+            aria-label={t('companyPanel.close')}
           >
             <X className="h-4 w-4" />
           </button>

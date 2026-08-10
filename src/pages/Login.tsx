@@ -2,9 +2,11 @@ import React from 'react';
 import { Activity } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function Login() {
   const { signInWithGoogle } = useAuth();
+  const { t } = useLanguage();
 
   return (
     <div className="min-h-screen bg-muted flex items-center justify-center p-6">
@@ -19,7 +21,7 @@ export default function Login() {
 
           <div className="space-y-4">
             <p className="text-xl font-semibold leading-snug tracking-tight text-sidebar-foreground">
-              Pare de adivinhar o crescimento dos seus concorrentes. Tenha os números.
+              {t('login.tagline')}
             </p>
             <p className="text-xs text-sidebar-foreground/60"></p>
           </div>
@@ -28,9 +30,9 @@ export default function Login() {
         {/* Login Box */}
         <div className="w-full md:w-[50%] min-h-[85vh] px-8 py-10 sm:px-12 sm:py-14 flex flex-col justify-center bg-background border border-border rounded-xl shadow-xl shadow-black/5">
           <div className="max-w-md mx-auto w-full">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground text-center">Bem-vindo ao TrafficScope</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground text-center">{t('login.welcome')}</h1>
             <p className="mt-3 text-sm leading-6 text-muted-foreground text-center">
-              Inicie sessão com a sua conta Google para continuar.
+              {t('login.subtitle')}
             </p>
 
             <div className="mt-8 space-y-4">
@@ -46,11 +48,11 @@ export default function Login() {
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                 </svg>
-                Entrar com Google
+                {t('login.googleButton')}
               </Button>
 
               <p className="text-center text-xs leading-5 text-muted-foreground">
-                Ao continuar, concorda com os nossos <span className="font-semibold text-foreground underline cursor-pointer">Termos de Serviço</span> e <span className="font-semibold text-foreground underline cursor-pointer">Política de Privacidade</span>.
+                {t('login.footer.termsPrefix')} <span className="font-semibold text-foreground underline cursor-pointer">{t('login.footer.terms')}</span> {t('login.footer.and')} <span className="font-semibold text-foreground underline cursor-pointer">{t('login.footer.privacy')}</span>.
               </p>
             </div>
           </div>

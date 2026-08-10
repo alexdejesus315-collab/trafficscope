@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Zap, Check, Sparkles, ArrowRight, CreditCard } from 'lucide-react';
 import { PADDLE_PRICES } from '../lib/paddleConfig';
+import { useLanguage } from '../context/LanguageContext';
 
 interface BuyCreditsModalProps {
   isOpen: boolean;
@@ -17,9 +18,11 @@ export const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
   onClose,
   userId,
 }) => {
-    const handleCheckout = () => {
+  const { t } = useLanguage();
+
+  const handleCheckout = () => {
     if (!userId) {
-      alert('É necessário iniciar sessão antes de comprar créditos.');
+      alert(t('buyCredits.alert.loginRequired'));
       return;
     }
     window.Paddle.Checkout.open({
@@ -38,13 +41,13 @@ export const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
         <div className="text-center space-y-2 max-w-xl mx-auto pt-2 pb-2">
           <Badge variant="secondary" className="gap-1.5">
             <Zap className="h-3.5 w-3.5 text-primary" />
-            Recarga de Créditos
+            {t('buyCredits.badge')}
           </Badge>
           <h2 className="text-2xl font-bold text-foreground">
-            Comprar Pesquisas
+            {t('buyCredits.title')}
           </h2>
           <p className="text-xs text-muted-foreground">
-            Adquire créditos para aceder a dados reais de mercado via Apify/SimilarWeb
+            {t('buyCredits.subtitle')}
           </p>
         </div>
 
@@ -57,7 +60,7 @@ export const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
               </div>
               <div>
                 <span className="text-xs font-bold text-foreground uppercase tracking-wider block">
-                  Pacote de Créditos
+                  {t('buyCredits.package.label')}
                 </span>
                 <div className="text-4xl font-extrabold text-foreground font-mono">
                   $2.00
@@ -66,29 +69,29 @@ export const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
             </div>
 
             <p className="text-xs text-muted-foreground">
-              Ideal para profissionais que precisam de dados reais esporadicamente.
+              {t('buyCredits.package.description')}
             </p>
 
             <ul className="space-y-2.5 text-xs pt-2 border-t">
               <li className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-primary shrink-0" />
-                <span className="font-semibold">10 pesquisas com dados reais</span>
+                <span className="font-semibold">{t('buyCredits.feature.searches')}</span>
               </li>
               <li className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-primary shrink-0" />
-                <span>Dados reais de mercado (Apify/SimilarWeb)</span>
+                <span>{t('buyCredits.feature.realData')}</span>
               </li>
               <li className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-primary shrink-0" />
-                <span>Exportação PDF e Excel ilimitada</span>
+                <span>{t('buyCredits.feature.exports')}</span>
               </li>
               <li className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-primary shrink-0" />
-                <span>Insights com IA ilimitados</span>
+                <span>{t('buyCredits.feature.aiInsights')}</span>
               </li>
               <li className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-primary shrink-0" />
-                <span>Créditos não expiram</span>
+                <span>{t('buyCredits.feature.noExpiry')}</span>
               </li>
             </ul>
           </div>
@@ -100,15 +103,15 @@ export const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
             size="lg"
           >
             <CreditCard className="h-4 w-4" />
-            Comprar Agora
+            {t('buyCredits.buyButton')}
             <ArrowRight className="h-4 w-4" />
           </Button>
         </Card>
 
         {/* Info */}
         <div className="text-center text-[11px] text-muted-foreground space-y-1">
-          <p>💡 Modo Teste continua <strong>gratuito e ilimitado</strong> com dados sintéticos.</p>
-          <p>Os créditos são adicionados automaticamente após o pagamento.</p>
+          <p>{t('buyCredits.footer.testMode')}</p>
+          <p>{t('buyCredits.footer.autoAdd')}</p>
         </div>
       </DialogContent>
     </Dialog>

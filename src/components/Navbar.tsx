@@ -31,10 +31,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { UserProfile, UserMode } from '../types/domain';
 import { useCompanyPanel } from '../context/CompanyPanelContext';
+import { useLanguage } from '../context/LanguageContext';
 import { supabase } from '../lib/supabaseClient';
 import { isOwner } from '../lib/ownerConfig';
 import { useNotifications } from '../hooks/useNotifications';
 import { GenerateArticleModal } from './GenerateArticleModal';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 const LAST_SEEN_BLOG_KEY = 'trafficscope_last_seen_blog';
 export const COMPANY_PANEL_WIDTH = 'clamp(260px, 22vw, 400px)';
@@ -48,14 +50,6 @@ interface NavbarProps {
   onOpenBuyCredits?: () => void;
 }
 
-const COMPANY_LINKS = [
-  { to: '/sobre', icon: Info, label: 'Sobre Nós', desc: 'Conhece a missão do TrafficScope' },
-  { to: '/faq', icon: HelpCircle, label: 'FAQ', desc: 'Respostas às perguntas mais comuns' },
-  { to: '/politica-privacidade', icon: Shield, label: 'Política de Privacidade', desc: 'Como tratamos os teus dados' },
-  { to: '/termos-de-uso', icon: FileText, label: 'Termos de Uso', desc: 'Regras de utilização da plataforma' },
-  { to: '/suporte', icon: Mail, label: 'Suporte', desc: 'Fala com a nossa equipa' },
-];
-
 export const Navbar: React.FC<NavbarProps> = ({
   user,
   onSignOut,
@@ -64,6 +58,16 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleMode,
   onOpenBuyCredits,
 }) => {
+  const { t } = useLanguage();
+
+  const COMPANY_LINKS = [
+    { to: '/sobre', icon: Info, label: t('nav.companyLinks.about.label'), desc: t('nav.companyLinks.about.desc') },
+    { to: '/faq', icon: HelpCircle, label: t('nav.companyLinks.faq.label'), desc: t('nav.companyLinks.faq.desc') },
+    { to: '/politica-privacidade', icon: Shield, label: t('nav.companyLinks.privacy.label'), desc: t('nav.companyLinks.privacy.desc') },
+    { to: '/termos-de-uso', icon: FileText, label: t('nav.companyLinks.terms.label'), desc: t('nav.companyLinks.terms.desc') },
+    { to: '/suporte', icon: Mail, label: t('nav.companyLinks.support.label'), desc: t('nav.companyLinks.support.desc') },
+  ];
+
   const panelRef = useRef<HTMLDivElement>(null);
   const toggleBtnRef = useRef<HTMLButtonElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
@@ -187,10 +191,12 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
               TrafficScope
             </div>
             <p className="text-xs text-sidebar-foreground/60 hidden sm:block mt-0.5">
-              Inteligência Competitiva & Análise de Tráfego Web
+              {t('nav.tagline')}
             </p>
           </div>
         </a>
+
+        <LanguageSwitcher />
 
 <div className="flex items-center gap-3 sm:gap-5 relative">
           <Button
@@ -199,7 +205,7 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
             onClick={handleBlogClick}
             className="relative !text-sidebar-foreground text-base font-semibold rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
           >
-            Blog
+            {t('nav.blog')}
             {hasNewBlogPost && (
               <span className="absolute top-1 right-1.5 h-2 w-2 rounded-full bg-destructive" />
             )}
@@ -210,8 +216,8 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
             size="icon-sm"
             onClick={() => navigate('/history')}
             className="!text-sidebar-foreground rounded-full hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
-            aria-label="Histórico de pesquisas"
-            title="Histórico de pesquisas"
+            aria-label={t('nav.history')}
+            title={t('nav.history')}
           >
             <HistoryIcon className="h-4 w-4" />
           </Button>
@@ -221,8 +227,8 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
               ref={notifToggleRef}
               onClick={() => setIsNotifOpen(!isNotifOpen)}
               className="relative flex items-center justify-center h-8 w-8 rounded-full !text-sidebar-foreground hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
-              aria-label="Notificações"
-              title="Notificações"
+              aria-label={t('nav.notifications.aria')}
+              title={t('nav.notifications.aria')}
             >
               <Bell className="h-4 w-4" />
               {unreadCount > 0 && (
@@ -243,14 +249,14 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
                          flex flex-col"
             >
               <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
-                <p className="text-sm font-semibold text-foreground">Notificações</p>
+                <p className="text-sm font-semibold text-foreground">{t('nav.notifications.title')}</p>
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllAsRead}
                     className="flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                   >
                     <CheckCheck className="h-3.5 w-3.5" />
-                    Marcar tudo
+                    {t('nav.notifications.markAll')}
                   </button>
                 )}
               </div>
@@ -267,7 +273,7 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
                 {notifications.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-10 text-center text-muted-foreground gap-1.5">
                     <Bell className="h-6 w-6 opacity-30" />
-                    <p className="text-xs">Sem notificações por agora.</p>
+                    <p className="text-xs">{t('nav.notifications.empty')}</p>
                   </div>
                 ) : (
                   notifications.map((n) => (
@@ -306,7 +312,7 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
                 )}
                 {!hasMore && notifications.length > 0 && (
                   <p className="text-center text-[11px] text-muted-foreground py-3">
-                    Não há mais notificações.
+                    {t('nav.notifications.noMore')}
                   </p>
                 )}
               </div>
@@ -323,7 +329,7 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
                 className="gap-1.5 !text-sidebar-foreground text-base font-semibold rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
                 onClick={() => setIsGenerateModalOpen((v) => !v)}
               >
-                Gerar Artigo
+                {t('nav.generateArticle')}
               </Button>
               <GenerateArticleModal
                 open={isGenerateModalOpen}
@@ -347,7 +353,7 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
             }}
             aria-expanded={isMenuOpen}
           >
-            <span className="hidden md:inline">Empresa</span>
+            <span className="hidden md:inline">{t('nav.company')}</span>
             <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`} />
           </Button>
 
@@ -363,12 +369,12 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
               {isTest ? (
                 <>
                   <TestTube2 className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Modo Teste</span>
+                  <span className="hidden sm:inline">{t('nav.testMode')}</span>
                 </>
               ) : (
                 <>
                   <BatteryIcon className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">{credits} créditos</span>
+                  <span className="hidden sm:inline">{t('nav.creditsShort', undefined, { count: credits })}</span>
                 </>
               )}
             </button>
@@ -380,7 +386,7 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-sidebar-accent-foreground bg-sidebar-accent hover:bg-sidebar-accent/80 transition-colors"
             >
               <UserCircle className="h-4 w-4" />
-              <span className="hidden md:inline">Perfil</span>
+              <span className="hidden md:inline">{t('nav.profile')}</span>
             </button>
           </div>
 
@@ -398,7 +404,7 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
                 variant="ghost"
                 size="icon-sm"
                 className="text-sidebar-accent-foreground/70 hover:text-destructive hover:bg-destructive/10 transition-colors"
-                aria-label="Terminar sessão"
+                aria-label={t('nav.signOut')}
               >
                 <LogOut className="h-4 w-4" />
               </Button>
@@ -416,13 +422,13 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
             >
               <div className="bg-primary p-4 flex items-center gap-2">
                 <Search className="h-3.5 w-3.5 text-primary-foreground/70" />
-                <p className="text-sm font-semibold text-primary-foreground">{totalSearches} pesquisas realizadas</p>
+                <p className="text-sm font-semibold text-primary-foreground">{t('nav.searchesPerformed', undefined, { count: totalSearches })}</p>
               </div>
 
               <div className="p-5 space-y-5">
                 <div className="space-y-2">
                   <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                    Modo de Pesquisa
+                    {t('nav.searchMode.title')}
                   </label>
                   <div className="grid grid-cols-2 gap-3">
                     <button
@@ -438,8 +444,8 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
                     >
                       <TestTube2 className={`h-4 w-4 shrink-0 mt-0.5 ${isTest ? 'text-amber-500' : 'text-muted-foreground'}`} />
                       <div>
-                        <div className={`text-sm font-semibold ${isTest ? 'text-foreground' : 'text-muted-foreground'}`}>Modo Teste</div>
-                        <div className="text-[11px] text-muted-foreground mt-0.5">Ilimitado • Sintético</div>
+                        <div className={`text-sm font-semibold ${isTest ? 'text-foreground' : 'text-muted-foreground'}`}>{t('nav.searchMode.test.title')}</div>
+                        <div className="text-[11px] text-muted-foreground mt-0.5">{t('nav.searchMode.test.desc')}</div>
                       </div>
                     </button>
 
@@ -459,8 +465,8 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
                     >
                       <Zap className={`h-4 w-4 shrink-0 mt-0.5 ${!isTest ? 'text-emerald-500' : 'text-muted-foreground'}`} />
                       <div>
-                        <div className={`text-sm font-semibold ${!isTest ? 'text-foreground' : 'text-muted-foreground'}`}>Modo Real</div>
-                        <div className="text-[11px] text-muted-foreground mt-0.5">{credits > 0 ? `${credits} créditos` : 'Sem créditos'}</div>
+                        <div className={`text-sm font-semibold ${!isTest ? 'text-foreground' : 'text-muted-foreground'}`}>{t('nav.searchMode.real.title')}</div>
+                        <div className="text-[11px] text-muted-foreground mt-0.5">{credits > 0 ? t('nav.searchMode.real.credits', undefined, { count: credits }) : t('nav.searchMode.real.noCredits')}</div>
                       </div>
                     </button>
                   </div>
@@ -470,9 +476,9 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
                   <div className="flex items-center justify-between">
                     <label className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                       <BatteryIcon className="h-3.5 w-3.5" />
-                      Créditos Disponíveis
+                      {t('nav.creditsAvailable')}
                     </label>
-                    <span className="text-sm font-bold text-foreground">{credits} <span className="text-muted-foreground font-normal text-xs">/ carga</span></span>
+                    <span className="text-sm font-bold text-foreground">{credits} <span className="text-muted-foreground font-normal text-xs">{t('nav.perLoad')}</span></span>
                   </div>
 
                   <div className="relative">
@@ -494,7 +500,7 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
                   {credits === 0 && (
                     <p className="text-xs text-amber-600 font-medium flex items-center gap-1">
                       <BatteryWarning className="h-3 w-3" />
-                      Sem créditos. Compra mais para usar dados reais.
+                      {t('nav.noCreditsWarning')}
                     </p>
                   )}
                 </div>
@@ -503,12 +509,12 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
                   <div className="flex flex-col items-center rounded-xl p-4 border border-border bg-card">
                     <Search className="h-4 w-4 text-primary mb-2" />
                     <div className="text-xl font-bold text-foreground">{totalSearches}</div>
-                    <div className="text-[11px] text-muted-foreground mt-0.5">Pesquisas</div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5">{t('nav.stats.searches')}</div>
                   </div>
                   <div className="flex flex-col items-center rounded-xl p-4 border border-border bg-card">
                     <ShoppingCart className="h-4 w-4 text-primary mb-2" />
                     <div className="text-xl font-bold text-foreground">{totalPurchases * 10}</div>
-                    <div className="text-[11px] text-muted-foreground mt-0.5">Créditos Comprados</div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5">{t('nav.stats.creditsPurchased')}</div>
                   </div>
                 </div>
 
@@ -524,8 +530,8 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
                              transition-all duration-300 active:scale-[0.98] overflow-hidden"
                 >
                   <ShoppingCart className="h-4 w-4" />
-                  <span>Comprar Créditos</span>
-                  <span className="text-xs opacity-90 font-medium">$2 / 10 pesquisas</span>
+                  <span>{t('nav.buyCredits')}</span>
+                  <span className="text-xs opacity-90 font-medium">{t('nav.buyCreditsPrice')}</span>
                   <ArrowRight className="h-4 w-4 ml-auto" />
                 </button>
               </div>
@@ -544,7 +550,7 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
               : ''
           }`}
         >
-          <p className="px-2 pt-1 pb-3 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">Empresa</p>
+          <p className="px-2 pt-1 pb-3 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">{t('nav.companyPanel.title')}</p>
           <div className="flex flex-col gap-1">
             {COMPANY_LINKS.map(({ to, icon: Icon, label, desc }) => (
               <Link key={to} to={to} state={{ backgroundLocation: trueBackgroundLocation }} className="flex flex-col items-start gap-0.5 rounded-lg px-3 py-2.5 hover:bg-sidebar-accent/15 transition-colors">
@@ -557,10 +563,10 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
             ))}
           </div>
           <div className="mt-3 pt-3 border-t border-sidebar-border">
-            <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">Redes Sociais</p>
+            <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">{t('nav.companyPanel.socialMedia')}</p>
             <div className="flex items-center gap-2 px-2">
               {[Instagram, Linkedin, Twitter, Facebook].map((Icon, i) => (
-                <span key={i} title="Em breve" className="flex h-8 w-8 items-center justify-center rounded-lg text-sidebar-foreground/30 cursor-not-allowed">
+                <span key={i} title={t('nav.companyPanel.comingSoon')} className="flex h-8 w-8 items-center justify-center rounded-lg text-sidebar-foreground/30 cursor-not-allowed">
                   <Icon className="h-4 w-4" />
                 </span>
               ))}

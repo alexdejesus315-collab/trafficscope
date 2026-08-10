@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Activity } from 'lucide-react';
 import { useAuth } from './hooks/useAuth';
 import { CompanyPanelProvider } from './context/CompanyPanelContext';
+import { LanguageProvider } from './context/LanguageContext';
 
 const Login = lazy(() => import('./pages/Login'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -42,6 +43,7 @@ export default function App() {
   }
 
   return (
+    <LanguageProvider>
     <CompanyPanelProvider>
     <Suspense fallback={<PageFallback />}>
       {/* Camada de baixo: renderiza sempre a localização "real" de fundo
@@ -87,5 +89,6 @@ export default function App() {
       )}
     </Suspense>
     </CompanyPanelProvider>
+    </LanguageProvider>
   );
 }

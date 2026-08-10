@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sparkles, Loader2, Wand2, PenLine } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
+import { useLanguage } from '../context/LanguageContext';
 
 interface GenerateArticleModalProps {
   open: boolean;
@@ -14,6 +15,7 @@ interface GenerateArticleModalProps {
 type Mode = 'auto' | 'manual';
 
 export function GenerateArticleModal({ open, onOpenChange, onGenerated, anchorRef }: GenerateArticleModalProps) {
+  const { t } = useLanguage();
   const [mode, setMode] = useState<Mode>('auto');
   const [domain, setDomain] = useState('');
   const [theme, setTheme] = useState('');
@@ -72,10 +74,10 @@ export function GenerateArticleModal({ open, onOpenChange, onGenerated, anchorRe
         onOpenChange(false);
         onGenerated(data.post.slug);
       } else {
-        setError(data.error || 'Erro ao gerar artigo.');
+        setError(data.error || t('generateArticle.error.generic'));
       }
     } catch {
-      setError('Falha de rede ao gerar artigo.');
+      setError(t('generateArticle.error.network'));
     } finally {
       setIsLoading(false);
     }
@@ -95,7 +97,7 @@ export function GenerateArticleModal({ open, onOpenChange, onGenerated, anchorRe
     >
       <div className="flex items-center gap-2 mb-3">
         <Sparkles className="h-4 w-4 text-primary" />
-        <p className="text-sm font-semibold text-foreground">Gerar Artigo</p>
+        <p className="text-sm font-semibold text-foreground">{t('generateArticle.title')}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-2 rounded-xl bg-muted p-1 mb-3">
@@ -107,7 +109,7 @@ export function GenerateArticleModal({ open, onOpenChange, onGenerated, anchorRe
           }`}
         >
           <Wand2 className="h-3.5 w-3.5" />
-          Automático
+          {t('generateArticle.mode.auto')}
         </button>
         <button
           type="button"
@@ -117,28 +119,28 @@ export function GenerateArticleModal({ open, onOpenChange, onGenerated, anchorRe
           }`}
         >
           <PenLine className="h-3.5 w-3.5" />
-          Manual
+          {t('generateArticle.mode.manual')}
         </button>
       </div>
 
       <div className="min-h-[190px]">
         {mode === 'auto' ? (
           <p className="text-sm text-muted-foreground">
-            Escolhe um tema automaticamente (comparação de tráfego ou notícia de contexto), evitando repetir os últimos artigos.
+            {t('generateArticle.autoDesc')}
           </p>
         ) : (
           <div className="space-y-3">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Domínio</label>
-              <Input placeholder="ex: netflix.com, hulu.com" value={domain} onChange={(e) => setDomain(e.target.value)} disabled={isLoading} />
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('generateArticle.label.domain')}</label>
+              <Input placeholder={t('generateArticle.placeholder.domain')} value={domain} onChange={(e) => setDomain(e.target.value)} disabled={isLoading} />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Temática</label>
-              <Input placeholder="ex: nova série a dominar buscas" value={theme} onChange={(e) => setTheme(e.target.value)} disabled={isLoading} />
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('generateArticle.label.theme')}</label>
+              <Input placeholder={t('generateArticle.placeholder.theme')} value={theme} onChange={(e) => setTheme(e.target.value)} disabled={isLoading} />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Link de afiliado (opcional)</label>
-              <Input placeholder="https://..." value={affiliateLink} onChange={(e) => setAffiliateLink(e.target.value)} disabled={isLoading} />
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('generateArticle.label.affiliate')}</label>
+              <Input placeholder={t('generateArticle.placeholder.affiliate')} value={affiliateLink} onChange={(e) => setAffiliateLink(e.target.value)} disabled={isLoading} />
             </div>
           </div>
         )}
@@ -147,7 +149,7 @@ export function GenerateArticleModal({ open, onOpenChange, onGenerated, anchorRe
       {error && <p className="text-xs text-destructive mt-2">{error}</p>}
 
       <Button className="w-full mt-3" disabled={isLoading || !canSubmit} onClick={handleGenerate}>
-        {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : mode === 'auto' ? 'Gerar Automático' : 'Gerar Manual'}
+        {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : mode === 'auto' ? t('generateArticle.button.auto') : t('generateArticle.button.manual')}
       </Button>
     </div>
   );

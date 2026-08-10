@@ -3,6 +3,7 @@ import { Search, Plus, X, Layers, Activity } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '../context/LanguageContext';
 
 interface DomainInputHeaderProps {
   selectedDomains: string[];
@@ -25,6 +26,7 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
   onExportPdf,
   onExportExcel
 }) => {
+  const { t } = useLanguage();
   const [inputValue, setInputValue] = useState('');
   const isEmpty = selectedDomains.length === 0;
 
@@ -53,10 +55,10 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
-            Comece por adicionar um domínio
+            {t('domainInput.hero.title')}
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground mt-3">
-            Introduza um ou mais websites para comparar estimativas de tráfego, SEO e tecnologia.
+            {t('domainInput.hero.subtitle')}
           </p>
 
           <form onSubmit={handleSearchSubmit} className="relative mt-8">
@@ -66,7 +68,7 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Digite um ou mais domínios..."
+                placeholder={t('domainInput.placeholder')}
                 className="pl-12 pr-28 py-3 h-auto text-sm sm:text-base rounded-xl border-0 shadow-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
                 autoFocus
               />
@@ -75,14 +77,14 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
                 size="sm"
                 className="absolute right-2.5 gap-1.5 hover:bg-primary/80 transition-colors"
               >
-                Adicionar
+                {t('domainInput.addButton')}
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
           </form>
 
           <div className="flex flex-wrap items-center justify-center gap-2 mt-5">
-            <span className="text-xs text-muted-foreground">Experimenta:</span>
+            <span className="text-xs text-muted-foreground">{t('domainInput.hero.suggestedLabel')}</span>
             {suggestedDomains.map((d) => (
               <button
                 key={d}
@@ -107,10 +109,10 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
         {/* Title */}
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-            Análise de Tráfego & Inteligência de Mercado
+            {t('domainInput.bar.title')}
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-            Introduza um ou vários websites para comparar estimativas de tráfego, SEO e tecnologia.
+            {t('domainInput.hero.subtitle')}
           </p>
         </div>
 
@@ -122,7 +124,7 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Digite um ou mais domínios..."
+              placeholder={t('domainInput.placeholder')}
               className="pl-12 pr-28 py-3 h-auto text-sm sm:text-base rounded-xl border-0 shadow-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
             />
             <Button
@@ -130,7 +132,7 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
               size="sm"
               className="absolute right-2.5 gap-1.5"
             >
-              Adicionar
+              {t('domainInput.addButton')}
               <Plus className="h-4 w-4" />
             </Button>
           </div>
@@ -140,7 +142,7 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
         <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
           <span className="text-muted-foreground font-semibold flex items-center gap-1">
             <Layers className="h-3.5 w-3.5 text-primary" />
-            Domínios ativos:
+            {t('domainInput.bar.activeDomainsLabel')}
           </span>
 
           {/* ALTERADO: chip clicável — clicar troca qual domínio fica em destaque no painel principal */}
@@ -151,9 +153,10 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
                 key={d}
                 type="button"
                 onClick={() => onSelectPrimaryDomain?.(d)}
-                title={isActive ? 'Domínio em destaque' : 'Ver este domínio em destaque'}
-className={cn(
-                  'inline-flex items-center gap-4 pl-1 pr-0.2 py-0.1 rounded-full font-mono text-xs font-semibold transition-all duration-200 cursor-pointer',                  isActive
+                title={isActive ? t('domainInput.bar.activeDomainTooltip') : t('domainInput.bar.inactiveDomainTooltip')}
+                className={cn(
+                  'inline-flex items-center gap-4 pl-1 pr-0.2 py-0.1 rounded-full font-mono text-xs font-semibold transition-all duration-200 cursor-pointer',
+                  isActive
                     ? 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/80'
                     : 'text-muted-foreground hover:bg-primary/20 hover:text-primary'
                 )}
@@ -170,7 +173,7 @@ className={cn(
                     'hover:bg-transparent',
                     isActive ? 'text-primary-foreground/70 hover:text-primary-foreground' : 'text-destructive/50 hover:text-destructive'
                   )}
-                  title="Remover domínio"
+                  title={t('domainInput.bar.removeDomainTooltip')}
                 >
                   <X className="h-3 w-3" />
                 </Button>
@@ -182,7 +185,7 @@ className={cn(
             onClick={onClearAllDomains}
             className="text-xs text-muted-foreground hover:text-destructive underline ml-1 cursor-pointer"
           >
-            Limpar todos
+            {t('domainInput.bar.clearAll')}
           </button>
         </div>
 

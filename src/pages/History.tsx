@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { DomainMetrics } from '../types/domain';
 import { exportToPdf, exportToExcel } from '../utils/exportUtils';
 import { FileText, Download, Trash2, Search, Loader2, Inbox } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface HistoryItem {
   id: string;
@@ -17,9 +18,12 @@ interface HistoryItem {
 
 export default function History({ isOverlayActive }: { isOverlayActive: boolean }) {
   const { user, signOut } = useAuth();
+  const { t, language } = useLanguage();
   const [items, setItems] = useState<HistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const numberLocale = language === 'pt' ? 'pt-PT' : language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : 'fr-FR';
 
   const loadHistory = async () => {
     setIsLoading(true);
@@ -60,7 +64,7 @@ export default function History({ isOverlayActive }: { isOverlayActive: boolean 
   };
 
   const handleClearAll = async () => {
-    if (!confirm('Apagar todo o histórico de pesquisas? Esta ação não pode ser desfeita.')) return;
+    if (!confirm(t('history.confirm.clearAll'))) return;
     try {
       const { data: { session } } = await supabase.auth.getSession();
       await fetch('/api/search-history', {
@@ -84,15 +88,15 @@ export default function History({ isOverlayActive }: { isOverlayActive: boolean 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Histórico de Pesquisas</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t('history.title')}</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              As tuas últimas {items.length > 0 ? items.length : ''} pesquisas com dados reais (máx. 50).
+              {t('history.subtitle', undefined, { count: items.length })}
             </p>
           </div>
           {items.length > 0 && (
             <Button variant="outline" size="sm" onClick={handleClearAll} className="gap-1.5 text-destructive hover:bg-destructive/10">
               <Trash2 className="h-4 w-4" />
-              Limpar tudo
+              {t('history.clearAll')}
             </Button>
           )}
         </div>
@@ -104,8 +108,8 @@ export default function History({ isOverlayActive }: { isOverlayActive: boolean 
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground gap-2">
             <Inbox className="h-10 w-10 opacity-40" />
-            <p className="text-sm">Ainda não tens pesquisas guardadas.</p>
-            <p className="text-xs">Pesquisas em Modo Real ficam aqui automaticamente.</p>
+            <p className="text-sm">{t('history.empty.title')}</p>
+            <p className="text-xs">{t('history.empty.subtitle')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -120,14 +124,14 @@ export default function History({ isOverlayActive }: { isOverlayActive: boolean 
                   <div className="min-w-0">
                     <p className="font-mono font-bold text-sm text-foreground truncate">{item.domain}</p>
                     <p className="text-[11px] text-muted-foreground">
-                      {new Date(item.created_at).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      {new Date(item.created_at).toLocaleDateString(numberLocale, { day: '2-digit', month: 'short', year: 'numeric' })}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Search className="h-3 w-3" />
-                  {item.result.monthlyVisits?.toLocaleString('pt-PT')} visitas/mês
+                  {t('history.visitsPerMonth', undefined, { count: item.result.monthlyVisits ?? 0 })}
                 </div>
 
                 <div className="flex items-center gap-2 pt-1">
@@ -138,7 +142,7 @@ export default function History({ isOverlayActive }: { isOverlayActive: boolean 
                     onClick={() => exportToPdf(item.result)}
                   >
                     <FileText className="h-3.5 w-3.5 text-rose-500" />
-                    PDF
+                    {t('history.export.pdf')}
                   </Button>
                   <Button
                     variant="outline"
@@ -147,7 +151,7 @@ export default function History({ isOverlayActive }: { isOverlayActive: boolean 
                     onClick={() => exportToExcel([item.result])}
                   >
                     <Download className="h-3.5 w-3.5 text-emerald-600" />
-                    Excel
+                    {t('history.export.excel')}
                   </Button>
                   <Button
                     variant="ghost"
@@ -155,7 +159,7 @@ export default function History({ isOverlayActive }: { isOverlayActive: boolean 
                     className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                     onClick={() => handleDeleteOne(item.id)}
                     disabled={deletingId === item.id}
-                    aria-label="Apagar"
+                    aria-label={t('history.delete.aria')}
                   >
                     {deletingId === item.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                   </Button>

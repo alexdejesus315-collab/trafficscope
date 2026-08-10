@@ -3,6 +3,7 @@ import { AiAnalysisReport, DomainMetrics } from '../types/domain';
 import { RefreshCw, ArrowUp, X, Activity, FlaskConical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '../context/LanguageContext';
 
 interface AiInsightsModalProps {
   domain: string;
@@ -22,8 +23,6 @@ type ChatMsg =
 const MAX_LINE_CHARS = 90;
 const MAX_REPLY_CHARS = 600;
 
-// Remove markdown (**negrito**, *itálico*, `código`, #títulos, listas, tabelas) —
-// o chat mostra texto simples, não deve renderizar símbolos crus.
 function cleanText(text: string): string {
   if (!text) return '';
   return text
@@ -34,9 +33,7 @@ function cleanText(text: string): string {
     .replace(/`{1,3}([^`]*)`{1,3}/g, '$1')
     .replace(/^#{1,6}\s*/gm, '')
     .replace(/^[-*]\s+/gm, '')
-    // Linhas separadoras de tabela markdown, ex: |---|---|--- ou ---|---
     .replace(/^\s*\|?[\s:-]+\|[\s:|-]+$/gm, ' ')
-    // Pipes de tabela → vírgula, para o conteúdo ficar legível em texto corrido
     .replace(/\s*\|\s*/g, ', ')
     .replace(/\n{2,}/g, ' ')
     .replace(/\n/g, ' ')
@@ -46,9 +43,6 @@ function cleanText(text: string): string {
     .trim();
 }
 
-// Corta por nº de caracteres, mas tenta primeiro terminar num fim de frase
-// (. ! ?) para não deixar a ideia a meio; só cai para corte por palavra
-// se não houver nenhum fim de frase perto do limite.
 function truncate(text: string, max = MAX_LINE_CHARS): string {
   const clean = cleanText(text);
   if (clean.length <= max) return clean;
@@ -61,8 +55,6 @@ function truncate(text: string, max = MAX_LINE_CHARS): string {
     slice.endsWith('.') || slice.endsWith('!') || slice.endsWith('?') ? slice.length - 1 : -1
   );
 
-  // Só usa o corte por frase se não perder demasiado conteúdo (pelo menos
-  // 50% do limite); caso contrário, mantém o corte por palavra com reticências.
   if (lastSentenceEnd >= max * 0.5) {
     return slice.slice(0, lastSentenceEnd + 1).trim();
   }
@@ -76,7 +68,6 @@ const DOT = {
   risk: 'bg-rose-500'
 } as const;
 
-// Avatar do bot no chat — identidade do TrafficScope, igual ao ícone do Navbar.
 function BotAvatar() {
   return (
     <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border bg-background">
@@ -85,8 +76,6 @@ function BotAvatar() {
   );
 }
 
-// Avatar da marca analisada — só aparece na primeira mensagem (o relatório),
-// para destacar de quem é a análise dentro da conversa.
 function SiteAvatar({ domain }: { domain: string }) {
   return (
     <img
@@ -97,9 +86,7 @@ function SiteAvatar({ domain }: { domain: string }) {
   );
 }
 
-// ALTERADO: badge reutilizável "Dados de teste" — aparece sempre que
-// metrics.dataSource === 'synthetic' (plano Free ou fallback da Apify).
-function SyntheticBadge({ className }: { className?: string }) {
+function SyntheticBadge({ className, t }: { className?: string; t: (key: string) => string }) {
   return (
     <span
       className={cn(
@@ -108,24 +95,24 @@ function SyntheticBadge({ className }: { className?: string }) {
       )}
     >
       <FlaskConical className="h-3 w-3" />
-      Dados de teste
+      {t('aiInsights.badge.testData')}
     </span>
   );
 }
 
-function ReportBubble({ domain, metrics, report }: { domain: string; metrics: DomainMetrics; report: AiAnalysisReport }) {
+function ReportBubble({ domain, metrics, report, t }: { domain: string; metrics: DomainMetrics; report: AiAnalysisReport; t: (key: string, fallback?: string, params?: Record<string, any>) => string }) {
   const isSynthetic = metrics?.dataSource === 'synthetic';
 
   return (
     <div className="max-w-full space-y-2 text-sm text-foreground">
       {isSynthetic && (
         <p className="text-xs text-amber-600">
-          Esta análise é baseada em dados de teste (plano gratuito), não em tráfego real.
+          {t('aiInsights.report.syntheticWarning')}
         </p>
       )}
       <p className="leading-6">
-        <span className="font-semibold">{domain}</span>: {metrics.monthlyVisits.toLocaleString()} visitas/mês,{' '}
-        {metrics.growthRate.toFixed(1)}% crescimento. {truncate(report.summary, 140)}
+        <span className="font-semibold">{domain}</span>: {metrics.monthlyVisits.toLocaleString()} {t('aiInsights.report.visitsPerMonth')},{' '}
+        {metrics.growthRate.toFixed(1)}% {t('aiInsights.report.growth')}. {truncate(report.summary, 140)}
       </p>
 
       {report.strategicActions?.[0] && (
@@ -159,6 +146,7 @@ export const AiInsightsModal: React.FC<AiInsightsModalProps> = ({
   onReanalyze,
   isAiLoading
 }) => {
+  const { t, language } = useLanguage();
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([]);
   const [inputQuestion, setInputQuestion] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -181,6 +169,10 @@ export const AiInsightsModal: React.FC<AiInsightsModalProps> = ({
   }, [chatMessages, isSending]);
 
   useEffect(() => {
+    setChatMessages([]);
+    lastReportKey.current = '';
+  }, [language]);
+  useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 160)}px`;
@@ -202,6 +194,7 @@ export const AiInsightsModal: React.FC<AiInsightsModalProps> = ({
         body: JSON.stringify({
           domain,
           metrics,
+          language,
           messages: [{ role: 'user', content: userText }]
         })
       });
@@ -209,17 +202,17 @@ export const AiInsightsModal: React.FC<AiInsightsModalProps> = ({
       const data = await res.json();
 
       if (!res.ok) {
-        const errorText = data?.error || 'Não foi possível processar o pedido agora.';
+        const errorText = data?.error || t('aiInsights.error.processing');
         setChatMessages((prev) => [...prev, { sender: 'ai', kind: 'text', text: errorText }]);
         return;
       }
 
-      const reply = truncate(data.reply || 'Sem resposta no momento.', MAX_REPLY_CHARS);
+      const reply = truncate(data.reply || t('aiInsights.error.noReply'), MAX_REPLY_CHARS);
       setChatMessages((prev) => [...prev, { sender: 'ai', kind: 'text', text: reply }]);
     } catch (err) {
       setChatMessages((prev) => [
         ...prev,
-        { sender: 'ai', kind: 'text', text: 'Erro ao conectar ao serviço de IA.' }
+        { sender: 'ai', kind: 'text', text: t('aiInsights.error.connection') }
       ]);
     } finally {
       setIsSending(false);
@@ -245,16 +238,16 @@ export const AiInsightsModal: React.FC<AiInsightsModalProps> = ({
   return (
     <div
       className={cn(
-'fixed inset-y-0 right-0 z-[70] flex w-full flex-col border-l border-border bg-background shadow-2xl transition-transform duration-300 ease-out sm:w-1/2',        isOpen ? 'translate-x-0' : 'translate-x-full pointer-events-none'
+        'fixed inset-y-0 right-0 z-[70] flex w-full flex-col border-l border-border bg-background shadow-2xl transition-transform duration-300 ease-out sm:w-1/2',
+        isOpen ? 'translate-x-0' : 'translate-x-full pointer-events-none'
       )}
     >
-      {/* Header — identidade fixa do TrafficScope, não depende do domínio analisado */}
+      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 shrink-0">
         <div className="flex items-center gap-2 min-w-0">
           <Activity className="h-4 w-4 text-foreground shrink-0" />
           <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-foreground truncate">TrafficScope</h2>
-          {/* ALTERADO: badge de dados de teste no cabeçalho do painel */}
-          {isSynthetic && <SyntheticBadge className="ml-1" />}
+          {isSynthetic && <SyntheticBadge className="ml-1" t={t} />}
         </div>
         <div className="flex items-center gap-1">
           <Button
@@ -263,11 +256,11 @@ export const AiInsightsModal: React.FC<AiInsightsModalProps> = ({
             variant="ghost"
             size="icon"
             className="h-8 w-8"
-            title="Atualizar análise"
+            title={t('aiInsights.header.refresh')}
           >
             <RefreshCw className={cn('h-4 w-4', isAiLoading && 'animate-spin')} />
           </Button>
-          <Button onClick={onClose} variant="ghost" size="icon" className="h-8 w-8" title="Fechar">
+          <Button onClick={onClose} variant="ghost" size="icon" className="h-8 w-8" title={t('aiInsights.header.close')}>
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -281,7 +274,7 @@ export const AiInsightsModal: React.FC<AiInsightsModalProps> = ({
               return (
                 <div key={index} className="flex items-start gap-2">
                   <SiteAvatar domain={msg.domain} />
-                  <ReportBubble domain={msg.domain} metrics={msg.metrics} report={msg.report} />
+                  <ReportBubble domain={msg.domain} metrics={msg.metrics} report={msg.report} t={t} />
                 </div>
               );
             }
@@ -302,7 +295,7 @@ export const AiInsightsModal: React.FC<AiInsightsModalProps> = ({
           {isSending && (
             <div className="flex items-start gap-2">
               <BotAvatar />
-              <div className="text-sm text-muted-foreground">A escrever…</div>
+              <div className="text-sm text-muted-foreground">{t('aiInsights.typing')}</div>
             </div>
           )}
         </div>
@@ -310,16 +303,17 @@ export const AiInsightsModal: React.FC<AiInsightsModalProps> = ({
 
       {/* Input */}
       <div className="px-4 pb-4 pt-2 shrink-0">
-<div className="mx-auto flex max-w-2xl items-end gap-2 rounded-3xl bg-background px-4 py-2.5 shadow-sm focus-within:ring-1 focus-within:ring-ring">          <textarea
-  ref={textareaRef}
-  rows={1}
-  value={inputQuestion}
-  onChange={(e) => setInputQuestion(e.target.value)}
-  onKeyDown={handleKeyDown}
-  placeholder="Pergunte sobre este domínio…"
-  spellCheck={false}
-  className="flex-1 resize-none bg-transparent text-sm leading-6 outline-none placeholder:text-muted-foreground max-h-40"
-/>
+        <div className="mx-auto flex max-w-2xl items-end gap-2 rounded-3xl bg-background px-4 py-2.5 shadow-sm focus-within:ring-1 focus-within:ring-ring">
+          <textarea
+            ref={textareaRef}
+            rows={1}
+            value={inputQuestion}
+            onChange={(e) => setInputQuestion(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={t('aiInsights.placeholder')}
+            spellCheck={false}
+            className="flex-1 resize-none bg-transparent text-sm leading-6 outline-none placeholder:text-muted-foreground max-h-40"
+          />
           <Button
             onClick={sendMessage}
             disabled={isSending || !inputQuestion.trim()}

@@ -3,13 +3,18 @@ import { DomainMetrics } from '../types/domain';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, Legend, LineChart, Line } from 'recharts';
 import { BarChart2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { useLanguage } from '../context/LanguageContext';
 
 interface TrafficChartProps {
   metricsList: DomainMetrics[];
 }
 
 export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
+  const { t, language } = useLanguage();
   const [chartType, setChartType] = useState<'area' | 'line'>('area');
+
+  // Locale para formatação de números conforme idioma
+  const numberLocale = language === 'pt' ? 'pt-PT' : language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : 'fr-FR';
 
   if (!metricsList || metricsList.length === 0) return null;
 
@@ -45,10 +50,15 @@ export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
           <div>
             <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
               <BarChart2 className="h-5 w-5 text-primary" />
-              <span>Evolução do Tráfego Estimado</span>
+              <span>{t('trafficChart.title')}</span>
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Visitas totais mensais • histórico completo disponível ({historyData.length} {historyData.length === 1 ? 'mês' : 'meses'})
+              {t('trafficChart.subtitle', undefined, {
+                count: historyData.length,
+                unit: historyData.length === 1
+                  ? t('trafficChart.monthSingular')
+                  : t('trafficChart.monthPlural')
+              })}
             </p>
           </div>
 
@@ -63,7 +73,7 @@ export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                Área
+                {t('trafficChart.area')}
               </button>
               <button
                 onClick={() => setChartType('line')}
@@ -73,7 +83,7 @@ export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                Linhas
+                {t('trafficChart.lines')}
               </button>
             </div>
           </div>
@@ -97,7 +107,7 @@ export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
                 <YAxis stroke="var(--muted-foreground)" fontSize={11} tickFormatter={formatNumberShort} tickLine={false} />
                 <Tooltip
                   contentStyle={{ backgroundColor: 'var(--popover)', borderColor: 'var(--border)', borderRadius: '0.75rem', color: 'var(--popover-foreground)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                  formatter={(val: any) => [typeof val === 'number' ? val.toLocaleString('pt-BR') : val, 'Visitas']}
+                  formatter={(val: any) => [typeof val === 'number' ? val.toLocaleString(numberLocale) : val, t('trafficChart.visits')]}
                 />
                 <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }} />
                 {metricsList.map((m, idx) => (
@@ -120,7 +130,7 @@ export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
                 <YAxis stroke="var(--muted-foreground)" fontSize={11} tickFormatter={formatNumberShort} tickLine={false} />
                 <Tooltip
                   contentStyle={{ backgroundColor: 'var(--popover)', borderColor: 'var(--border)', borderRadius: '0.75rem', color: 'var(--popover-foreground)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                  formatter={(val: any) => [typeof val === 'number' ? val.toLocaleString('pt-BR') : val, 'Visitas']}
+                  formatter={(val: any) => [typeof val === 'number' ? val.toLocaleString(numberLocale) : val, t('trafficChart.visits')]}
                 />
                 <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }} />
                 {metricsList.map((m, idx) => (

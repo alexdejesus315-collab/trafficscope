@@ -12,6 +12,41 @@ import { PADDLE_PRICES } from './src/lib/paddleConfig';
 import googleTrends from 'google-trends-api';
 const paddle = new Paddle(process.env.PADDLE_API_KEY!);
 
+const LANGUAGE_NAMES: Record<string, string> = {
+  pt: 'Português',
+  en: 'English',
+  es: 'Español',
+  fr: 'Français',
+};
+
+function getLanguageName(lang?: string): string {
+  return LANGUAGE_NAMES[lang || 'pt'] || LANGUAGE_NAMES.pt;
+}
+
+// Executa uma chamada à Groq com retry automático quando bate rate limit (429),
+// respeitando o "retry-after" que a própria Groq devolve.
+async function groqCallWithRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> {
+  let lastErr: any;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (err: any) {
+      lastErr = err;
+      const isRateLimit = err?.status === 429;
+      if (!isRateLimit || attempt === maxRetries) throw err;
+
+      const retryAfterHeader = err?.headers?.get?.('retry-after');
+      const waitMs = retryAfterHeader
+        ? Math.ceil(Number(retryAfterHeader) * 1000)
+        : 1500 * (attempt + 1);
+
+      console.warn(`Rate limit da Groq, tentativa ${attempt + 1}/${maxRetries}, aguardando ${waitMs}ms...`);
+      await new Promise((resolve) => setTimeout(resolve, waitMs));
+    }
+  }
+  throw lastErr;
+}
+
 async function getUserFromRequest(req: express.Request) {
   const authHeader = req.headers['authorization'];
   if (!authHeader?.startsWith('Bearer ')) return null;
@@ -770,11 +805,13 @@ app.post(
   // ===== ALTERADO: AI Analysis Endpoint (Groq) — Free deixa de ser bloqueado =====
   app.post("/api/ai/analyze", async (req, res) => {
     try {
-      const { domain, metrics } = req.body;
+      const { domain, metrics, language } = req.body;
 
       if (!domain || !metrics) {
         return res.status(400).json({ error: "Métricas do domínio são necessárias para análise" });
       }
+
+      const languageName = getLanguageName(language);
 
       const user = await getUserFromRequest(req);
       const plan = await resolveUserPlan(user);
@@ -829,8 +866,7 @@ Analise os seguintes dados do website "${domain}":
 - Top Países: ${JSON.stringify(metrics.countryTraffic)}
 ${dataNotice}
 
-Forneça uma análise estratégica completa em Português, respondendo APENAS com um objeto JSON válido no seguinte formato exato, sem texto antes ou depois:
-{
+Forneça uma análise estratégica completa em ${languageName}, respondendo APENAS com um objeto JSON válido no seguinte formato exato, sem texto antes ou depois:{
   "summary": "resumo executivo de 2 a 3 frases com principais conclusões de tráfego e comportamento",
   "growthDrivers": ["impulsionador 1", "impulsionador 2", "impulsionador 3"],
   "threatsAndRisks": ["risco 1", "risco 2"],
@@ -852,8 +888,7 @@ Forneça uma análise estratégica completa em Português, respondendo APENAS co
         messages: [
           {
             role: "system",
-            content: `Você é o assistente executivo de Inteligência Competitiva da plataforma TrafficScope. Responda em Português com tom profissional, preciso e acionável. Responda SEMPRE apenas com JSON válido, sem texto adicional, sem markdown dentro dos valores de texto (nada de tabelas, pipes, asteriscos ou cabeçalhos dentro das strings).${isSynthetic ? ' Os dados fornecidos são sintéticos/de demonstração — nunca os apresentes como dados reais de mercado.' : ''}`
-          },
+content: `Você é o assistente executivo de Inteligência Competitiva da plataforma TrafficScope. Responda em ${languageName} com tom profissional, preciso e acionável. Responda SEMPRE apenas com JSON válido, sem texto adicional, sem markdown dentro dos valores de texto (nada de tabelas, pipes, asteriscos ou cabeçalhos dentro das strings).${isSynthetic ? ' Os dados fornecidos são sintéticos/de demonstração — nunca os apresentes como dados reais de mercado.' : ''}`          },
           { role: "user", content: prompt }
         ]
       });
@@ -871,8 +906,9 @@ Forneça uma análise estratégica completa em Português, respondendo APENAS co
   // AI Chat Copilot Endpoint using Groq (openai/gpt-oss-120b)
   app.post("/api/ai/chat", async (req, res) => {
     try {
-      const { domain, metrics, messages } = req.body;
+      const { domain, metrics, messages, language } = req.body;
       const isSynthetic = metrics?.dataSource === 'synthetic';
+      const languageName = getLanguageName(language);
 
       if (!process.env.GROQ_API_KEY) {
         return res.json({
@@ -901,8 +937,7 @@ Pergunta do usuário: "${lastUserMessage}"
         messages: [
           {
             role: "system",
-            content: `Você é o Copilot de Inteligência Competitiva da TrafficScope. Responda em texto corrido, natural, como numa conversa de chat — nem telegráfico nem um ensaio. Como referência, entre 3 a 6 frases costuma ser o ponto certo, mas ajuste ao que a pergunta pede: uma dúvida simples merece resposta curta, um pedido que peça mais detalhe ou passos merece uma resposta um pouco mais desenvolvida. Nunca recuse ou diga que não consegue responder só por causa do tamanho pedido — nesse caso, dê a versão mais completa e útil que conseguir dentro de um chat, sem se preocupar em bater um número exato de linhas. Termine sempre as frases por completo, nunca corte uma ideia a meio. NUNCA use tabelas markdown, símbolos de pipe (|), cabeçalhos (#), listas numeradas ou com marcadores, nem asteriscos para negrito.${isSynthetic ? ' Os dados fornecidos são sintéticos/de demonstração — nunca os apresentes como dados reais de mercado.' : ''}`
-          },
+content: `Responda sempre em ${languageName}. Você é o Copilot de Inteligência Competitiva da TrafficScope. Responda em texto corrido, natural, como numa conversa de chat — nem telegráfico nem um ensaio. Como referência, entre 3 a 6 frases costuma ser o ponto certo, mas ajuste ao que a pergunta pede: uma dúvida simples merece resposta curta, um pedido que peça mais detalhe ou passos merece uma resposta um pouco mais desenvolvida. Nunca recuse ou diga que não consegue responder só por causa do tamanho pedido — nesse caso, dê a versão mais completa e útil que conseguir dentro de um chat, sem se preocupar em bater um número exato de linhas. Termine sempre as frases por completo, nunca corte uma ideia a meio. NUNCA use tabelas markdown, símbolos de pipe (|), cabeçalhos (#), listas numeradas ou com marcadores, nem asteriscos para negrito.${isSynthetic ? ' Os dados fornecidos são sintéticos/de demonstração — nunca os apresentes como dados reais de mercado.' : ''}`          },
           { role: "user", content: chatPrompt }
         ]
       });
@@ -1139,6 +1174,163 @@ if (topic.type === "manual") {
         return res.status(500).json({ error: "Falha ao eliminar artigo." });
       }
     });
+
+  // ===== NOVO: Tradução sob demanda dos artigos do Blog (com cache) =====
+  // full=false (padrão): traduz só título+excerto, para a LISTAGEM (barato, um pouco por post).
+  // full=true: traduz também o corpo completo, para a PÁGINA DO ARTIGO (mais caro, um post de cada vez).
+  app.post("/api/blog/translate", async (req, res) => {
+    try {
+      const { slugs, language, full } = req.body as { slugs: string[]; language: string; full?: boolean };
+
+      if (!slugs || !Array.isArray(slugs) || slugs.length === 0) {
+        return res.status(400).json({ error: "slugs é obrigatório." });
+      }
+
+      // PT é o idioma original dos artigos — nunca precisa de tradução
+      if (!language || language === 'pt') {
+        return res.json({ success: true, translations: {} });
+      }
+
+      if (!LANGUAGE_NAMES[language]) {
+        return res.status(400).json({ error: "Idioma não suportado." });
+      }
+
+      const { data: posts, error: postsErr } = await supabaseAdmin
+        .from("blog_posts")
+        .select("id, slug, title, excerpt, content")
+        .in("slug", slugs);
+
+      if (postsErr) throw postsErr;
+      if (!posts || posts.length === 0) {
+        return res.json({ success: true, translations: {} });
+      }
+
+      const postIds = posts.map((p: any) => p.id);
+
+      const { data: cached, error: cacheErr } = await supabaseAdmin
+        .from("blog_post_translations")
+        .select("post_id, title, excerpt, content")
+        .eq("language", language)
+        .in("post_id", postIds);
+
+      if (cacheErr) throw cacheErr;
+
+      const cachedByPostId = new Map((cached || []).map((c) => [c.post_id, c]));
+      const translations: Record<string, { title: string; excerpt: string; content?: string }> = {};
+
+      // Um post só é considerado "já traduzido" para este pedido se:
+      // - pedido leve (listagem): já existe qualquer cache (title/excerpt bastam)
+      // - pedido completo (artigo): já existe cache E esse cache já tem content preenchido
+      const toTranslate = posts.filter((p: any) => {
+        const hit = cachedByPostId.get(p.id);
+        if (hit && (!full || hit.content)) {
+          translations[p.slug] = full
+            ? { title: hit.title, excerpt: hit.excerpt, content: hit.content }
+            : { title: hit.title, excerpt: hit.excerpt };
+          return false;
+        }
+        return true;
+      });
+
+      if (toTranslate.length > 0 && process.env.GROQ_API_KEY) {
+        const languageName = getLanguageName(language);
+
+        // Processa em série (não em paralelo) para não estourar o limite de tokens/minuto da Groq
+        for (const post of toTranslate) {
+          try {
+            const prompt = full
+              ? `Traduza o seguinte artigo de blog do Português para ${languageName}.
+
+REGRAS CRÍTICAS:
+- Preserve TODA a formatação markdown exatamente como está (títulos com #, listas, negrito, links, imagens ![alt](url) e créditos de fotos).
+- NUNCA traduza URLs, nomes de domínios (ex: amazon.com) ou nomes próprios de marcas.
+- Traduza o texto legível (título, excerto, corpo, incluindo o texto alternativo das imagens), mantendo os nomes próprios de fotógrafos e fontes como estão.
+- Mantenha o mesmo tom analítico e a mesma estrutura de parágrafos.
+
+TÍTULO ORIGINAL:
+${post.title}
+
+EXCERTO ORIGINAL:
+${post.excerpt}
+
+CONTEÚDO ORIGINAL (markdown):
+${post.content}
+
+Responda APENAS com um objeto JSON válido, sem texto antes ou depois, neste formato exato:
+{
+  "title": "título traduzido",
+  "excerpt": "excerto traduzido",
+  "content": "conteúdo traduzido em markdown, preservando toda a formatação"
+}`
+              : `Traduza o TÍTULO e o EXCERTO do seguinte artigo de blog do Português para ${languageName}.
+
+REGRAS CRÍTICAS:
+- NUNCA traduza URLs, nomes de domínios (ex: amazon.com) ou nomes próprios de marcas.
+- Mantenha o mesmo tom analítico e o mesmo gancho de curiosidade do original.
+
+TÍTULO ORIGINAL:
+${post.title}
+
+EXCERTO ORIGINAL:
+${post.excerpt}
+
+Responda APENAS com um objeto JSON válido, sem texto antes ou depois, neste formato exato:
+{
+  "title": "título traduzido",
+  "excerpt": "excerto traduzido"
+}`;
+
+            const response = await groqCallWithRetry(() =>
+              groq.chat.completions.create({
+                model: "openai/gpt-oss-120b",
+                response_format: { type: "json_object" },
+                reasoning_effort: "low",
+                messages: [
+                  {
+                    role: "system",
+                    content: `Você é um tradutor profissional especializado em conteúdo de marketing digital. Traduza fielmente para ${languageName}, preservando markdown, links e nomes próprios. Responda SEMPRE apenas com JSON válido.`,
+                  },
+                  { role: "user", content: prompt },
+                ],
+              })
+            );
+
+            const raw = response.choices[0]?.message?.content || "{}";
+            const parsedTranslation = JSON.parse(raw);
+
+            const isValid = full
+              ? parsedTranslation.title && parsedTranslation.excerpt && parsedTranslation.content
+              : parsedTranslation.title && parsedTranslation.excerpt;
+
+            if (isValid) {
+              translations[post.slug] = full
+                ? { title: parsedTranslation.title, excerpt: parsedTranslation.excerpt, content: parsedTranslation.content }
+                : { title: parsedTranslation.title, excerpt: parsedTranslation.excerpt };
+
+              await supabaseAdmin.from("blog_post_translations").upsert(
+                {
+                  post_id: post.id,
+                  language,
+                  title: parsedTranslation.title,
+                  excerpt: parsedTranslation.excerpt,
+                  content: full ? parsedTranslation.content : null,
+                },
+                { onConflict: "post_id,language" }
+              );
+            }
+          } catch (translateErr) {
+            console.error(`Falha ao traduzir post ${post.slug} para ${language}:`, translateErr);
+            // Se falhar, o front simplesmente recebe o original em PT como fallback
+          }
+        }
+      }
+
+      return res.json({ success: true, translations });
+    } catch (err: any) {
+      console.error("Erro ao traduzir artigos do blog:", err);
+      return res.status(500).json({ error: "Falha ao traduzir artigos." });
+    }
+  });
 
   // Vite middleware integration for Development vs Production
   if (process.env.NODE_ENV !== "production") {

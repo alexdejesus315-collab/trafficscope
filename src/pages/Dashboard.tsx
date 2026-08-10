@@ -7,6 +7,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useCredits } from '../hooks/useCredits';
 import { supabase } from '../lib/supabaseClient';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '../context/LanguageContext';
 
 // Components
 import { Navbar, COMPANY_PANEL_WIDTH } from '../components/Navbar';
@@ -31,7 +32,8 @@ import { Download, FileText, Sparkles, ExternalLink, FlaskConical, GitCompare } 
 function DashboardSkeleton() {
   return (
     <div className="space-y-6 animate-pulse">
-<div className="bg-card rounded-2xl p-5 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">        <div className="flex items-center gap-3">
+      <div className="bg-card rounded-2xl p-5 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
           <div className="h-12 w-12 rounded-xl bg-muted shrink-0" />
           <div className="space-y-2">
             <div className="h-5 w-40 rounded bg-muted" />
@@ -75,8 +77,12 @@ function DashboardSkeleton() {
 }
 
 export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolean }) {
+  const { t, language } = useLanguage();
   const { user, signOut } = useAuth();
   const { isMenuOpen } = useCompanyPanel();
+
+  // Locale para formatação de números conforme idioma
+  const numberLocale = language === 'pt' ? 'pt-PT' : language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : 'fr-FR';
 
   // NOVO: hook de créditos substitui useSubscription
   const {
@@ -102,6 +108,18 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
   // Modais
   const [isBuyCreditsOpen, setIsBuyCreditsOpen] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+
+  // Invalida relatórios de IA já gerados quando o idioma muda, forçando nova geração no idioma certo
+  useEffect(() => {
+    setMetricsMap(prev => {
+      const next: typeof prev = {};
+      for (const [d, m] of Object.entries(prev)) {
+        const { aiReport, ...rest } = m;
+        next[d] = rest as DomainMetrics;
+      }
+      return next;
+    });
+  }, [language]);
 
   // Load domain data — consome crédito se modo real
   useEffect(() => {
@@ -175,7 +193,7 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
     if (mode === 'real' && !isTestMode) {
       const consumed = await consumeCredit();
       if (!consumed) {
-        alert('Sem créditos disponíveis. Compre créditos para usar dados reais, ou mude para o Modo Teste.');
+        alert(t('dashboard.alert.noCredits'));
         setIsBuyCreditsOpen(true);
         return;
       }
@@ -210,7 +228,7 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
 
     if (!res.ok) {
       const data = await res.json();
-      alert(data.error || 'Não foi possível exportar.');
+      alert(data.error || t('dashboard.alert.exportError'));
       return;
     }
 
@@ -236,7 +254,8 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
         },
         body: JSON.stringify({
           domain: primaryDomain,
-          metrics: primaryMetrics
+          metrics: primaryMetrics,
+          language
         })
       });
       const data = await res.json();
@@ -265,6 +284,41 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
     mode,
     totalSearches,
     totalPurchases,
+  };
+
+  // Traduz categoria do domínio
+  const getCategoryName = (category?: string): string => {
+    if (!category) return t('domain.category.other');
+    const map: Record<string, string> = {
+      'negócios online & serviços': 'domain.category.business',
+      'tecnologia': 'domain.category.technology',
+      'e-commerce': 'domain.category.ecommerce',
+      'notícias & media': 'domain.category.news',
+      'redes sociais': 'domain.category.social',
+      'finanças': 'domain.category.finance',
+      'saúde & bem-estar': 'domain.category.health',
+      'educação': 'domain.category.education',
+      'entretenimento': 'domain.category.entertainment',
+      'viagens & turismo': 'domain.category.travel',
+    };
+    const key = map[category.toLowerCase().trim()];
+    return key ? t(key) : category;
+  };
+
+  // Traduz data relativa do domínio
+  const getLastUpdated = (lastUpdated?: string): string => {
+    if (!lastUpdated) return '';
+    const normalized = lastUpdated.toLowerCase().trim();
+    if (normalized.includes('agora') || normalized.includes('now')) {
+      return t('domain.lastUpdated.now');
+    }
+    if (normalized.includes('hoje') || normalized.includes('today')) {
+      return t('domain.lastUpdated.today');
+    }
+    if (normalized.includes('recente') || normalized.includes('recently')) {
+      return t('domain.lastUpdated.recent');
+    }
+    return lastUpdated;
   };
 
   return (
@@ -307,7 +361,8 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
               </Suspense>
             ) : (
               <>
-<div className="bg-card rounded-2xl p-5 shadow-md hover:shadow-lg transition-shadow duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4">                  <div className="flex items-center gap-3">
+                <div className="bg-card rounded-2xl p-5 shadow-md hover:shadow-lg transition-shadow duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
                     <img
                       src={primaryMetrics.logo}
                       alt={primaryMetrics.name}
@@ -327,14 +382,14 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
                         {isSyntheticData && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold px-2 py-0.5">
                             <FlaskConical className="h-3 w-3" />
-                            Dados de teste
+                            {t('dashboard.badge.testData')}
                           </span>
                         )}
                       </div>
                       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                        <span className="font-semibold text-primary">{primaryMetrics.category}</span>
+                        <span className="font-semibold text-primary">{getCategoryName(primaryMetrics.category)}</span>
                         <span>•</span>
-                        <span>{primaryMetrics.lastUpdated}</span>
+                        <span>{getLastUpdated(primaryMetrics.lastUpdated)}</span>
                       </div>
                     </div>
                   </div>
@@ -348,7 +403,7 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
                       className="gap-1.5 rounded-full"
                     >
                       <FileText className="h-4 w-4 text-rose-500" />
-                      Exportar PDF
+                      {t('dashboard.export.pdf')}
                     </Button>
 
                     <Button
@@ -359,7 +414,7 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
                       className="gap-1.5 rounded-full"
                     >
                       <Download className="h-4 w-4 text-emerald-600" />
-                      Exportar Excel
+                      {t('dashboard.export.excel')}
                     </Button>
 
                     <Button
@@ -370,7 +425,7 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
                       className="gap-1.5 rounded-full"
                     >
                       <GitCompare className="h-4 w-4" />
-                      Modo Comparar
+                      {t('dashboard.compareMode')}
                       {selectedDomains.length > 1 && (
                         <span className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
                           isCompareMode ? 'bg-background text-foreground' : 'bg-muted text-foreground'
@@ -393,7 +448,7 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
                       className="gap-1.5 rounded-full hover:bg-primary/80"
                     >
                       <Sparkles className="h-4 w-4 text-amber-300" />
-                      Insights da IA
+                      {t('dashboard.aiInsights')}
                     </Button>
                   </div>
                 </div>

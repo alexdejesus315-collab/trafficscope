@@ -4,6 +4,7 @@ import { GitCompare, Crown, TrendingUp, TrendingDown, X } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '../context/LanguageContext';
 
 interface CompareDomainsViewProps {
   metricsList: DomainMetrics[];
@@ -16,43 +17,44 @@ export const CompareDomainsView: React.FC<CompareDomainsViewProps> = ({
   onRemoveFromCompare,
   onExitCompareMode
 }) => {
+  const { t } = useLanguage();
+
   if (!metricsList || metricsList.length === 0) return null;
 
-  // Find overall traffic leader
   const sortedByVisits = [...metricsList].sort((a, b) => b.monthlyVisits - a.monthlyVisits);
   const leaderDomain = sortedByVisits[0]?.domain;
 
-  // Prepare Comparative Bar Chart Data
   const chartData = metricsList.map((m) => ({
     name: m.domain,
-    'Visitas Mensais (M)': Number((m.monthlyVisits / 1000000).toFixed(1))
+    value: Number((m.monthlyVisits / 1000000).toFixed(1))
   }));
 
   return (
     <div className="space-y-6">
 
       {/* Compare Header */}
-<Card className="p-5 hover:shadow-md transition-shadow duration-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">        <div>
+      <Card className="p-5 hover:shadow-md transition-shadow duration-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
           <div className="flex items-center gap-2">
             <GitCompare className="h-5 w-5 text-foreground" />
             <h2 className="text-lg font-bold text-foreground">
-              Comparação de Domínios ({metricsList.length} de 5)
+              {t('compare.title').replace('{{count}}', String(metricsList.length))}
             </h2>
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Benchmarking lado a lado de tráfego, crescimento, SEO e infraestrutura
+            {t('compare.subtitle')}
           </p>
         </div>
 
         <Button onClick={onExitCompareMode} variant="outline" size="sm">
-          Sair do Modo Comparativo
+          {t('compare.exitButton')}
         </Button>
       </Card>
 
       {/* Comparative Bar Chart */}
       <Card className="p-5 space-y-3 hover:shadow-md transition-shadow duration-200">
         <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-          Volume de Tráfego Estimado (Milhões de Visitas / Mês)
+          {t('compare.chartTitle')}
         </h3>
 
         <div className="h-64 w-full pt-2">
@@ -64,7 +66,7 @@ export const CompareDomainsView: React.FC<CompareDomainsViewProps> = ({
               <Tooltip
                 contentStyle={{ backgroundColor: 'var(--popover)', borderColor: 'var(--border)', borderRadius: '0.75rem', color: 'var(--popover-foreground)' }}
               />
-              <Bar dataKey="Visitas Mensais (M)" fill="var(--primary)" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="value" name={t('compare.chartLabel')} fill="var(--primary)" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -75,7 +77,7 @@ export const CompareDomainsView: React.FC<CompareDomainsViewProps> = ({
         <table className="w-full text-left text-xs text-muted-foreground">
           <thead className="bg-muted/60 text-muted-foreground">
             <tr>
-              <th className="py-4 px-4 font-bold text-muted-foreground w-48">Métrica Benchmark</th>
+              <th className="py-4 px-4 font-bold text-muted-foreground w-48">{t('compare.metricHeader')}</th>
               {metricsList.map((m) => (
                 <th key={m.domain} className="py-4 px-4 min-w-[200px]">
                   <div className="flex items-center justify-between">
@@ -94,7 +96,7 @@ export const CompareDomainsView: React.FC<CompareDomainsViewProps> = ({
                         variant="ghost"
                         size="icon-xs"
                         className="text-muted-foreground hover:text-rose-500"
-                        title="Remover da comparação"
+                        title={t('compare.removeTitle')}
                       >
                         <X className="h-3.5 w-3.5" />
                       </Button>
@@ -102,7 +104,7 @@ export const CompareDomainsView: React.FC<CompareDomainsViewProps> = ({
                   </div>
                   {m.domain === leaderDomain && (
                     <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 mt-1">
-                      <Crown className="h-3 w-3" /> Líder de Tráfego
+                      <Crown className="h-3 w-3" /> {t('compare.trafficLeader')}
                     </span>
                   )}
                 </th>
@@ -111,9 +113,9 @@ export const CompareDomainsView: React.FC<CompareDomainsViewProps> = ({
           </thead>
 
           <tbody className="divide-y divide-border font-mono">
-            {/* Tráfego Mensal */}
+            {/* Monthly Traffic */}
             <tr className="hover:bg-muted/40 transition-colors">
-              <td className="py-3 px-4 font-sans font-semibold text-muted-foreground">Tráfego Mensal</td>
+              <td className="py-3 px-4 font-sans font-semibold text-muted-foreground">{t('compare.monthlyTraffic')}</td>
               {metricsList.map((m) => (
                 <td key={m.domain} className="py-3 px-4 text-base font-extrabold text-foreground">
                   {m.monthlyVisits.toLocaleString('pt-BR')}
@@ -121,9 +123,9 @@ export const CompareDomainsView: React.FC<CompareDomainsViewProps> = ({
               ))}
             </tr>
 
-            {/* Crescimento % */}
+            {/* Growth % */}
             <tr className="hover:bg-muted/40 transition-colors">
-              <td className="py-3 px-4 font-sans font-semibold text-muted-foreground">Crescimento (%)</td>
+              <td className="py-3 px-4 font-sans font-semibold text-muted-foreground">{t('compare.growth')}</td>
               {metricsList.map((m) => (
                 <td key={m.domain} className="py-3 px-4">
                   <span className={`font-bold flex items-center gap-0.5 ${
@@ -136,19 +138,19 @@ export const CompareDomainsView: React.FC<CompareDomainsViewProps> = ({
               ))}
             </tr>
 
-            {/* Tempo Média e Páginas */}
+            {/* Duration & Pages */}
             <tr className="hover:bg-muted/40 transition-colors">
-              <td className="py-3 px-4 font-sans font-semibold text-muted-foreground">Duração / Páginas</td>
+              <td className="py-3 px-4 font-sans font-semibold text-muted-foreground">{t('compare.durationPages')}</td>
               {metricsList.map((m) => (
                 <td key={m.domain} className="py-3 px-4 text-foreground">
-                  {m.avgVisitDuration} • {m.pagesPerVisit} págs.
+                  {m.avgVisitDuration} • {m.pagesPerVisit} {t('compare.pagesAbbr')}
                 </td>
               ))}
             </tr>
 
             {/* Bounce Rate */}
             <tr className="hover:bg-muted/40 transition-colors">
-              <td className="py-3 px-4 font-sans font-semibold text-muted-foreground">Bounce Rate</td>
+              <td className="py-3 px-4 font-sans font-semibold text-muted-foreground">{t('compare.bounceRate')}</td>
               {metricsList.map((m) => (
                 <td key={m.domain} className="py-3 px-4 text-foreground">
                   {m.bounceRate}%
@@ -156,9 +158,9 @@ export const CompareDomainsView: React.FC<CompareDomainsViewProps> = ({
               ))}
             </tr>
 
-            {/* Principal Canal */}
+            {/* Primary Channel */}
             <tr className="hover:bg-muted/40 transition-colors">
-              <td className="py-3 px-4 font-sans font-semibold text-muted-foreground">Canal Primário</td>
+              <td className="py-3 px-4 font-sans font-semibold text-muted-foreground">{t('compare.primaryChannel')}</td>
               {metricsList.map((m) => (
                 <td key={m.domain} className="py-3 px-4 text-foreground font-sans font-medium">
                   {m.trafficSources[0]?.name} ({m.trafficSources[0]?.percentage}%)
@@ -166,9 +168,9 @@ export const CompareDomainsView: React.FC<CompareDomainsViewProps> = ({
               ))}
             </tr>
 
-            {/* Principais Países */}
+            {/* Top Country */}
             <tr className="hover:bg-muted/40 transition-colors">
-              <td className="py-3 px-4 font-sans font-semibold text-muted-foreground">Top País</td>
+              <td className="py-3 px-4 font-sans font-semibold text-muted-foreground">{t('compare.topCountry')}</td>
               {metricsList.map((m) => (
                 <td key={m.domain} className="py-3 px-4 font-sans text-foreground">
                   {m.countryTraffic[0]?.flag} {m.countryTraffic[0]?.name} ({m.countryTraffic[0]?.percentage}%)
