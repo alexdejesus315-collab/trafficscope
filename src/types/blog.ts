@@ -11,4 +11,5 @@ export interface BlogPost {
   sources: { title: string; url: string }[] | null;
   created_at: string;
   published: boolean;
+  affiliate_link?: string | null;
 }

@@ -128,7 +128,9 @@ const NEWS_TOPICS: { category: string; query: string; instruction: string }[] = 
 
 type ComparisonTopic = { type: "comparison"; niche: typeof NICHE_POOLS[0]; angle: typeof NARRATIVE_ANGLES[0]; topicKey: string };
 type NewsTopic = { type: "news"; news: typeof NEWS_TOPICS[0]; topicKey: string };
-type Topic = ComparisonTopic | NewsTopic;
+type ManualTopic = { type: "manual"; domain: string; theme: string; affiliateLink?: string; topicKey: string };
+type Topic = ComparisonTopic | NewsTopic | ManualTopic;
+
 
 // Evita repetir a mesma combinação nicho+ângulo (ou tema de notícia) dos últimos artigos
 async function pickUnusedTopic(): Promise<Topic> {
@@ -406,7 +408,10 @@ async function injectImagesIntoContent(content: string, imagePrompts: string[]):
     const marker = `{{IMG_${i + 1}}}`;
     if (!result.includes(marker)) continue;
 
-    const image = await fetchUnsplashImage(imagePrompts[i]);
+    let image = await fetchUnsplashImage(imagePrompts[i]);
+    if (!image) {
+      image = await fetchUnsplashImage('technology business'); // fallback genérico se a busca específica falhar
+    }
     if (image) {
       const block = `\n\n![${image.alt}](${image.url})\n*Foto: [${image.photographer}](${image.photographerUrl}) via Unsplash*\n\n`;
       result = result.replace(marker, block);
@@ -926,9 +931,13 @@ Pergunta do usuário: "${lastUserMessage}"
           return res.status(500).json({ error: "GROQ_API_KEY não configurada no servidor." });
         }
 
-        // NOVO: escolhe entre tópico de comparação de tráfego ou tópico de notícia/contexto,
-        // evitando repetir os últimos artigos
-        const topic = await pickUnusedTopic();
+        const { domain: manualDomain, theme: manualTheme, affiliateLink } = req.body;
+
+        // NOVO: se o Admin indicou domínio + temática, usa modo manual;
+        // caso contrário, escolhe automaticamente (comparação de tráfego ou notícia/contexto)
+        const topic: Topic = manualDomain && manualTheme
+          ? { type: "manual", domain: manualDomain, theme: manualTheme, affiliateLink, topicKey: `manual::${manualDomain}::${Date.now()}` }
+          : await pickUnusedTopic();
 
         let chartData: { name: string; value: number }[] | null = null;
         let statsQuery: string;
@@ -951,11 +960,20 @@ Pergunta do usuário: "${lastUserMessage}"
           }
           statsQuery = `estatísticas ${topic.niche.category} tendências globais 2026`;
           category = topic.niche.category;
-        } else {
+        } else if (topic.type === "news") {
           statsQuery = topic.news.query;
           category = topic.news.category;
           // Sem comparação de domínios fixa; gráfico fica ausente a menos que a IA
           // identifique um domínio claramente relevante na notícia (tratado no prompt).
+        } else {
+          const domainList = topic.domain
+            .split(/[,\s]+/)
+            .map((d) => d.trim())
+            .filter(Boolean)
+            .slice(0, 5);
+          chartData = domainList.map((d) => ({ name: d, value: getOrGenerateDomainData(d).monthlyVisits }));
+          statsQuery = `${topic.theme} ${topic.domain}`;
+          category = "Manual";
         }
 
         let statsContext: { snippets: string[]; sources: { title: string; url: string }[] } = { snippets: [], sources: [] };
@@ -965,11 +983,16 @@ Pergunta do usuário: "${lastUserMessage}"
           console.error("Falha na pesquisa Tavily, artigo seguirá sem estatísticas externas:", searchErr);
         }
 
-        const angleInstruction = topic.type === "comparison" ? topic.angle.instruction : topic.news.instruction;
+        const angleInstruction =
+          topic.type === "comparison" ? topic.angle.instruction :
+          topic.type === "news" ? topic.news.instruction :
+          `Escreva o artigo com foco no domínio "${topic.domain}" e na temática indicada pelo Admin: "${topic.theme}". Use os factos e estatísticas fornecidos para fundamentar o texto de forma natural.`;
 
         const chartSection =
           topic.type === "comparison"
             ? `Dados reais de popularidade de pesquisa (Google Trends, últimos 90 dias, escala 0-100): ${JSON.stringify(chartData)}`
+            : topic.type === "manual"
+            ? `Não inclua "chart_data" nem "chart_type" próprios — devolva ambos como null; o sistema já trata a exibição do domínio "${topic.domain}" automaticamente.`
             : `Não há dados de comparação de domínios pré-definidos para este artigo — é um artigo de notícia/contexto, não de comparação de tráfego. Só inclua "chart_data" e "chart_type" no JSON de resposta se a notícia mencionar claramente 1-5 domínios/marcas cujo tráfego/popularidade faça sentido ilustrar; caso contrário, devolva "chart_data": null e "chart_type": null.`;
 
         const prompt = `
@@ -984,8 +1007,7 @@ ${statsContext.snippets.map((s, i) => `[Fonte ${i + 1}] ${s}`).join("\n")}
 
 ÂNGULO/TEMA OBRIGATÓRIO PARA ESTE ARTIGO:
 ${angleInstruction}
-${topic.type === "news" ? "\nMesmo sendo um artigo de notícia/contexto (tecnologia, mercados, geopolítica, startups, cripto, moda/arte, etc.), o artigo tem de terminar ligando o assunto a uma implicação concreta para tráfego web, popularidade de busca ou comportamento digital — esse é o nicho da TrafficScope e não pode ficar de fora." : ""}
-${topic.type === "comparison" ? "\nAVISO SOBRE ESCALA: antes de escolher o par de domínios em foco no artigo, avalie se ambos operam numa escala de mercado comparável (ambos globais, ou ambos regionais/de nicho semelhante). Se os dados mostrarem um player claramente global ao lado de um player claramente regional/de nicho menor, NÃO apresente isso como 'quem domina' ou uma disputa direta — em vez disso, explique a diferença de escala como contexto (ex: alcance geográfico diferente), e escolha um par mais equilibrado dentro do dataset para o confronto principal do artigo, se existir." : ""}
+${topic.type === "manual" && topic.affiliateLink ? `\nEste artigo tem componente comercial. No corpo do texto, de forma natural e não forçada, integre uma recomendação relacionada ao tema (sem inserir links, URLs ou nomes de marcas patrocinadas no texto — isso é tratado à parte pelo sistema).` : ""}${topic.type === "comparison" ? "\nAVISO SOBRE ESCALA: antes de escolher o par de domínios em foco no artigo, avalie se ambos operam numa escala de mercado comparável (ambos globais, ou ambos regionais/de nicho semelhante). Se os dados mostrarem um player claramente global ao lado de um player claramente regional/de nicho menor, NÃO apresente isso como 'quem domina' ou uma disputa direta — em vez disso, explique a diferença de escala como contexto (ex: alcance geográfico diferente), e escolha um par mais equilibrado dentro do dataset para o confronto principal do artigo, se existir." : ""}
 
 REGRAS PARA O TÍTULO (crítico para gerar cliques):
 - ${topic.type === "comparison" ? 'Use um dos formatos: número + surpresa ("X cresceu 31% enquanto Y estagnou"), pergunta direta que o leitor quer responder, ou contraste chocante entre dois dados reais do dataset.' : "Use um gancho de curiosidade baseado no facto mais forte encontrado nas fontes: uma pergunta direta, um número concreto, ou uma afirmação que gere tensão."}
@@ -1047,6 +1069,10 @@ Responda APENAS com um objeto JSON válido, sem texto antes ou depois, neste for
           console.error('Falha ao injetar imagens Unsplash, artigo segue sem fotos:', imgErr);
           article.content = article.content.replace(/\{\{IMG_\d+\}\}/g, '');
         }
+if (topic.type === "manual") {
+          article.chart_data = chartData; // favicon do domínio escolhido pelo Admin
+          article.chart_type = null;
+        }
 
         const slugBase = article.title
           .toLowerCase()
@@ -1068,6 +1094,7 @@ Responda APENAS com um objeto JSON válido, sem texto antes ou depois, neste for
             chart_data: article.chart_data || null,
             sources: statsContext.sources.length > 0 ? statsContext.sources : null,
             topic_key: topic.topicKey,
+            affiliate_link: topic.type === "manual" ? (topic.affiliateLink || null) : null,
           })
           .select()
           .single();

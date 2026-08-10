@@ -34,6 +34,7 @@ import { useCompanyPanel } from '../context/CompanyPanelContext';
 import { supabase } from '../lib/supabaseClient';
 import { isOwner } from '../lib/ownerConfig';
 import { useNotifications } from '../hooks/useNotifications';
+import { GenerateArticleModal } from './GenerateArticleModal';
 
 const LAST_SEEN_BLOG_KEY = 'trafficscope_last_seen_blog';
 export const COMPANY_PANEL_WIDTH = 'clamp(260px, 22vw, 400px)';
@@ -69,6 +70,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const profileToggleRef = useRef<HTMLDivElement>(null);
   const notifDropdownRef = useRef<HTMLDivElement>(null);
   const notifToggleRef = useRef<HTMLButtonElement>(null);
+  const generateBtnRef = useRef<HTMLButtonElement>(null);
 const location = useLocation();
   const navigate = useNavigate();
   const showGenerateButton = isOwner(user?.id);  // Garante que o "fundo" nunca é outra página de overlay (Sobre/Faq/etc.),
@@ -77,6 +79,7 @@ const state = location.state as { backgroundLocation?: Location } | undefined;
 const trueBackgroundLocation = state?.backgroundLocation ?? location;
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
   const { isMenuOpen, isMenuClosing, closeMenuNow, openMenu, requestCloseDetail } = useCompanyPanel();
   const { notifications, unreadCount, isLoadingMore, hasMore, loadMore, markAsRead, markAllAsRead } = useNotifications(user?.id);
 
@@ -312,27 +315,23 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
           </div>
 
           {showGenerateButton && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-1.5 !text-sidebar-foreground text-base font-semibold rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
-              onClick={async () => {
-                const { data: { session } } = await supabase.auth.getSession();
-                const res = await fetch('/api/blog/generate', {
-                  method: 'POST',
-                  headers: { Authorization: `Bearer ${session?.access_token}` },
-                });
-                const data = await res.json();
-                if (data.success) {
-                  alert('Artigo gerado com sucesso!');
-                  navigate(`/blog/${data.post.slug}`);
-                } else {
-                  alert(data.error || 'Erro ao gerar artigo.');
-                }
-              }}
-            >
-              Gerar Artigo
-            </Button>
+            <div className="relative">
+              <Button
+                ref={generateBtnRef}
+                variant="ghost"
+                size="sm"
+                className="gap-1.5 !text-sidebar-foreground text-base font-semibold rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+                onClick={() => setIsGenerateModalOpen((v) => !v)}
+              >
+                Gerar Artigo
+              </Button>
+              <GenerateArticleModal
+                open={isGenerateModalOpen}
+                onOpenChange={setIsGenerateModalOpen}
+                onGenerated={(slug) => navigate(`/blog/${slug}`)}
+                anchorRef={generateBtnRef}
+              />
+            </div>
           )}
 
           <Button
@@ -569,6 +568,7 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
           </div>
         </div>
       )}
-    </header>
+
+      </header>
   );
 };

@@ -72,7 +72,7 @@ export default function BlogPostDetail() {
         </div>
       )}
 
-      {post.chart_data && <BlogChart data={post.chart_data} type={post.chart_type as any} />}
+      {post.chart_data && post.chart_type && <BlogChart data={post.chart_data} type={post.chart_type as any} />}
 
       <div className="prose prose-sm max-w-none text-foreground prose-headings:text-foreground prose-strong:text-foreground prose-table:text-xs prose-th:bg-muted">
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
@@ -91,6 +91,31 @@ export default function BlogPostDetail() {
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
+
+      {post.affiliate_link && (
+        <div className="mt-8 p-5 rounded-2xl bg-primary/5 border border-primary/20 flex items-center gap-4">
+          {post.chart_data?.[0]?.name && (
+            <img
+              src={`https://www.google.com/s2/favicons?domain=${post.chart_data[0].name}&sz=64`}
+              alt={post.chart_data[0].name}
+              className="h-10 w-10 rounded-full border border-border bg-background object-contain shrink-0"
+            />
+          )}
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-foreground">Recomendação relacionada</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Vale a pena conferir mais sobre {post.chart_data?.[0]?.name || 'o tema'}.</p>
+          </div>
+          <a
+            href={post.affiliate_link}
+            target="_blank"
+            rel="noopener noreferrer sponsored"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline shrink-0"
+          >
+            Saber mais
+            <ArrowRight className="h-3.5 w-3.5" />
+          </a>
+        </div>
+      )}
 
       {post.sources && post.sources.length > 0 && (
         <div className="mt-8 pt-4 border-t border-border">
