@@ -23,27 +23,31 @@ export function CompanyPagePanel({ title, children }: CompanyPagePanelProps) {
         isVisible ? 'opacity-100' : 'opacity-0'
       }`}
     >
-      <div className="max-w-3xl mx-auto px-4 py-10">
-        <div className="flex items-center gap-4 mb-8">
+      {/* Header igual ao Blog */}
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
+        <div className="max-w-3xl mx-auto px-4 h-16 flex items-center gap-3">
           <Link
             to="/"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             aria-label={t('companyPanel.back', 'Voltar')}
           >
             <ArrowLeft className="h-4 w-4" />
           </Link>
-          <a href="/" className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <Activity className="h-5 w-5 text-foreground" />
-            <span className="text-2xl font-bold text-foreground tracking-tight">TrafficScope</span>
+          <a href="/" className="text-xl font-bold tracking-tight text-foreground">
+            TrafficScope
           </a>
         </div>
+      </header>
 
-        <h1 className="text-2xl font-bold text-foreground mb-8">{title}</h1>
+      <main className="max-w-3xl mx-auto px-4 py-10 md:py-14">
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-8">
+          {title}
+        </h1>
 
-        <div className="space-y-8">
+        <div className="prose prose-sm max-w-none text-muted-foreground prose-headings:text-foreground prose-headings:font-semibold prose-h2:text-lg prose-strong:text-foreground">
           {children}
         </div>
-      </div>
+      </main>
     </div>
   );
 }
