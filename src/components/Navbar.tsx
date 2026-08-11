@@ -145,13 +145,13 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="sticky top-0 z-[60] bg-sidebar/95 backdrop-blur-md text-sidebar-foreground shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-        <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+        <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity shrink-0">
           <div>
             <div className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.3em] text-sidebar-foreground">
               <Activity className="h-4 w-4 text-sidebar-foreground" />
               TrafficScope
             </div>
-            <p className="text-xs text-sidebar-foreground/60 hidden sm:block mt-0.5">
+            <p className="text-[11px] text-sidebar-foreground/60 hidden sm:block mt-0.5 leading-tight">
               {t('nav.tagline')}
             </p>
           </div>
@@ -159,12 +159,12 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         <LanguageSwitcher />
 
-        <div className="flex items-center gap-3 sm:gap-5 relative">
+        <div className="flex items-center gap-1 sm:gap-2 relative">
           <Button
             variant="ghost"
             size="sm"
             onClick={handleBlogClick}
-            className="relative !text-sidebar-foreground text-base font-semibold rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+            className="relative !text-sidebar-foreground text-sm font-semibold rounded-full px-3 py-1.5 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
           >
             {t('nav.blog')}
             {hasNewBlogPost && (
@@ -176,9 +176,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             variant="ghost"
             size="sm"
             onClick={() => navigate('/history')}
-            className="!text-sidebar-foreground text-base font-semibold rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+            className="!text-sidebar-foreground text-sm font-semibold rounded-full px-3 py-1.5 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
           >
-            {t('nav.history')}
+            <span className="hidden lg:inline">{t('nav.history')}</span>
+            <span className="lg:hidden">{t('nav.historyShort', 'Histórico')}</span>
           </Button>
 
           <div className="relative">
@@ -187,9 +188,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               variant="ghost"
               size="sm"
               onClick={() => setIsNotifOpen(!isNotifOpen)}
-              className="relative !text-sidebar-foreground text-base font-semibold rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+              className="relative !text-sidebar-foreground text-sm font-semibold rounded-full px-3 py-1.5 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
             >
-              {t('nav.notifications.title')}
+              <span className="hidden lg:inline">{t('nav.notifications.title')}</span>
+              <span className="lg:hidden">{t('nav.notifications.short', 'Alertas')}</span>
               {unreadCount > 0 && (
                 <span className="ml-1.5 flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold">
                   {unreadCount > 9 ? '9+' : unreadCount}
@@ -285,10 +287,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 ref={generateBtnRef}
                 variant="ghost"
                 size="sm"
-                className="gap-1.5 !text-sidebar-foreground text-base font-semibold rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+                className="gap-1.5 !text-sidebar-foreground text-sm font-semibold rounded-full px-3 py-1.5 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
                 onClick={() => setIsGenerateModalOpen((v) => !v)}
               >
-                {t('nav.generateArticle')}
+                <span className="hidden lg:inline">{t('nav.generateArticle')}</span>
+                <span className="lg:hidden">{t('nav.generateArticleShort', 'Artigo')}</span>
               </Button>
               <GenerateArticleModal
                 open={isGenerateModalOpen}
@@ -304,7 +307,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               ref={companyToggleRef}
               variant="ghost"
               size="sm"
-              className="gap-1.5 !text-sidebar-foreground text-base font-semibold rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+              className="gap-1.5 !text-sidebar-foreground text-sm font-semibold rounded-full px-3 py-1.5 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
               onClick={() => setIsCompanyOpen((v) => !v)}
               aria-expanded={isCompanyOpen}
             >
@@ -356,10 +359,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </div>
 
-          <div ref={profileToggleRef} className="flex items-center rounded-full border border-sidebar-border overflow-hidden shadow-2xs">
+          <div ref={profileToggleRef} className="flex items-center rounded-full border border-sidebar-border overflow-hidden shadow-2xs shrink-0">
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold transition-all hover:brightness-95 ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all hover:brightness-95 ${
                 isTest
                   ? 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300'
                   : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300'
@@ -382,7 +385,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-sidebar-accent-foreground bg-sidebar-accent hover:bg-sidebar-accent/80 transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-sidebar-accent-foreground bg-sidebar-accent hover:bg-sidebar-accent/80 transition-colors"
             >
               <UserCircle className="h-4 w-4" />
               <span className="hidden md:inline">{t('nav.profile')}</span>
@@ -390,11 +393,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {user && onSignOut && (
-            <div className="flex items-center gap-2 rounded-xl border border-sidebar-border bg-sidebar-accent px-2 py-1.5 shadow-2xs">
+            <div className="flex items-center gap-1.5 rounded-xl border border-sidebar-border bg-sidebar-accent px-2 py-1.5 shadow-2xs shrink-0">
               {user.user_metadata?.avatar_url ? (
-                <img src={user.user_metadata.avatar_url} alt={user.email ?? 'Avatar'} className="h-8 w-8 rounded-full" />
+                <img src={user.user_metadata.avatar_url} alt={user.email ?? 'Avatar'} className="h-7 w-7 rounded-full" />
               ) : (
-                <div className="h-8 w-8 rounded-full bg-sidebar-accent-foreground/10 flex items-center justify-center text-sm font-semibold text-sidebar-accent-foreground">
+                <div className="h-7 w-7 rounded-full bg-sidebar-accent-foreground/10 flex items-center justify-center text-xs font-semibold text-sidebar-accent-foreground">
                   {user.email?.[0]?.toUpperCase() ?? 'U'}
                 </div>
               )}
@@ -402,10 +405,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => void onSignOut()}
                 variant="ghost"
                 size="icon-sm"
-                className="text-sidebar-accent-foreground/70 hover:text-destructive hover:bg-destructive/10 transition-colors"
+                className="text-sidebar-accent-foreground/70 hover:text-destructive hover:bg-destructive/10 transition-colors h-7 w-7"
                 aria-label={t('nav.signOut')}
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className="h-3.5 w-3.5" />
               </Button>
             </div>
           )}
