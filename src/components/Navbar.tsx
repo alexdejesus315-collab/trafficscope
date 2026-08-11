@@ -5,7 +5,7 @@ import {
   Activity, LogOut, ChevronDown, Info, HelpCircle, Shield, FileText, Mail,
   Instagram, Linkedin, Twitter, Facebook, Zap, Battery, BatteryWarning,
   BatteryCharging, UserCircle, TestTube2, ShoppingCart, Search, ArrowRight,
-  History as HistoryIcon, Bell, CheckCheck,
+  Bell, CheckCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserProfile, UserMode } from '../types/domain';
@@ -174,30 +174,28 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <Button
             variant="ghost"
-            size="icon-sm"
+            size="sm"
             onClick={() => navigate('/history')}
-            className="!text-sidebar-foreground rounded-full hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
-            aria-label={t('nav.history')}
-            title={t('nav.history')}
+            className="!text-sidebar-foreground text-base font-semibold rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
           >
-            <HistoryIcon className="h-4 w-4" />
+            {t('nav.history')}
           </Button>
 
           <div className="relative">
-            <button
+            <Button
               ref={notifToggleRef}
+              variant="ghost"
+              size="sm"
               onClick={() => setIsNotifOpen(!isNotifOpen)}
-              className="relative flex items-center justify-center h-8 w-8 rounded-full !text-sidebar-foreground hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
-              aria-label={t('nav.notifications.aria')}
-              title={t('nav.notifications.aria')}
+              className="relative !text-sidebar-foreground text-base font-semibold rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
             >
-              <Bell className="h-4 w-4" />
+              {t('nav.notifications.title')}
               {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold">
+                <span className="ml-1.5 flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
-            </button>
+            </Button>
 
             {isNotifOpen && (
               <div
@@ -328,19 +326,19 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </p>
                 <div className="flex flex-col gap-1">
                   {COMPANY_LINKS.map(({ to, icon: Icon, label, desc }) => (
-  <Link
-    key={to}
-    to={to}
-    onClick={() => setIsCompanyOpen(false)}
-    className="flex flex-col items-start gap-0.5 rounded-lg px-3 py-2.5 hover:bg-accent/50 transition-colors"
-  >
-    <span className="flex items-center gap-2 font-semibold text-foreground text-sm">
-      <Icon className="h-4 w-4 text-foreground" />
-      {label}
-    </span>
-    <span className="text-xs text-muted-foreground pl-6">{desc}</span>
-  </Link>
-))}
+                    <Link
+                      key={to}
+                      to={to}
+                      onClick={() => setIsCompanyOpen(false)}
+                      className="flex flex-col items-start gap-0.5 rounded-lg px-3 py-2.5 hover:bg-accent/50 transition-colors"
+                    >
+                      <span className="flex items-center gap-2 font-semibold text-foreground text-sm">
+                        <Icon className="h-4 w-4 text-foreground" />
+                        {label}
+                      </span>
+                      <span className="text-xs text-muted-foreground pl-6">{desc}</span>
+                    </Link>
+                  ))}
                 </div>
                 <div className="mt-2 pt-2 border-t border-border">
                   <p className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
