@@ -1,5 +1,4 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { useCompanyPanel } from '../context/CompanyPanelContext';
 import { DomainMetrics, UserProfile } from '../types/domain';
 import { getOrGenerateDomainData } from '../data/mockDomains';
 import { exportToPdf, exportToExcel } from '../utils/exportUtils';
@@ -10,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useLanguage } from '../context/LanguageContext';
 
 // Components
-import { Navbar, COMPANY_PANEL_WIDTH } from '../components/Navbar';
+import { Navbar } from '../components/Navbar';
 import { DomainInputHeader } from '../components/DomainInputHeader';
 import { OverviewMetrics } from '../components/OverviewMetrics';
 import { TrafficChart } from '../components/TrafficChart';
@@ -76,15 +75,12 @@ function DashboardSkeleton() {
   );
 }
 
-export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolean }) {
+export default function Dashboard() {
   const { t, language } = useLanguage();
   const { user, signOut } = useAuth();
-  const { isMenuOpen } = useCompanyPanel();
 
-  // Locale para formatação de números conforme idioma
   const numberLocale = language === 'pt' ? 'pt-PT' : language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : 'fr-FR';
 
-  // NOVO: hook de créditos substitui useSubscription
   const {
     credits,
     mode,
@@ -105,11 +101,9 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [primaryDomainOverride, setPrimaryDomainOverride] = useState<string | null>(null);
 
-  // Modais
   const [isBuyCreditsOpen, setIsBuyCreditsOpen] = useState(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
-  // Invalida relatórios de IA já gerados quando o idioma muda, forçando nova geração no idioma certo
   useEffect(() => {
     setMetricsMap(prev => {
       const next: typeof prev = {};
@@ -121,7 +115,6 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
     });
   }, [language]);
 
-  // Load domain data — consome crédito se modo real
   useEffect(() => {
     async function loadData() {
       const updatedMap: Record<string, DomainMetrics> = { ...metricsMap };
@@ -131,7 +124,6 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
         if (!updatedMap[d]) {
           setLoadingDomains(prev => new Set(prev).add(d));
           try {
-            // Define se usa dados reais baseado no modo atual
             const useRealData = mode === 'real' && !isTestMode;
 
             const res = await fetch('/api/analyze-domain', {
@@ -180,16 +172,13 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
     .map(d => metricsMap[d])
     .filter((m): m is DomainMetrics => Boolean(m));
 
-  // Dados sintéticos = teste ou quando a API retorna mock
   const isSyntheticData =
     primaryMetrics?.dataSource === 'synthetic' || isTestMode;
 
-  // ALTERADO: consome crédito no momento da adição, não no useEffect
   const handleAddDomain = async (domain: string) => {
     const cleanDomain = domain.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/.*$/, '').trim();
     if (!cleanDomain) return;
 
-    // Se modo real, consome 1 crédito ANTES de adicionar
     if (mode === 'real' && !isTestMode) {
       const consumed = await consumeCredit();
       if (!consumed) {
@@ -278,7 +267,6 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
     }
   };
 
-  // Profile object para passar aos componentes
   const profile: UserProfile = {
     credits,
     mode,
@@ -286,7 +274,6 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
     totalPurchases,
   };
 
-  // Traduz categoria do domínio
   const getCategoryName = (category?: string): string => {
     if (!category) return t('domain.category.other');
     const map: Record<string, string> = {
@@ -305,7 +292,6 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
     return key ? t(key) : category;
   };
 
-  // Traduz data relativa do domínio
   const getLastUpdated = (lastUpdated?: string): string => {
     if (!lastUpdated) return '';
     const normalized = lastUpdated.toLowerCase().trim();
@@ -326,145 +312,139 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
       <Navbar
         user={user}
         onSignOut={() => void signOut()}
-        isOverlayActive={isOverlayActive}
         profile={profile}
         onToggleMode={setMode}
         onOpenBuyCredits={() => setIsBuyCreditsOpen(true)}
       />
 
-      <div
-        className="transition-[margin] duration-300 ease-in-out"
-        style={{ marginLeft: isMenuOpen ? COMPANY_PANEL_WIDTH : 0 }}
-      >
-        <DomainInputHeader
-          selectedDomains={selectedDomains}
-          primaryDomain={primaryDomain}
-          onSelectPrimaryDomain={setPrimaryDomainOverride}
-          onAddDomain={handleAddDomain}
-          onRemoveDomain={handleRemoveDomain}
-          onClearAllDomains={handleClearAllDomains}
-          onExportPdf={() => primaryMetrics && exportToPdf(primaryMetrics)}
-          onExportExcel={() => exportToExcel(activeMetricsList)}
-        />
+      <DomainInputHeader
+        selectedDomains={selectedDomains}
+        primaryDomain={primaryDomain}
+        onSelectPrimaryDomain={setPrimaryDomainOverride}
+        onAddDomain={handleAddDomain}
+        onRemoveDomain={handleRemoveDomain}
+        onClearAllDomains={handleClearAllDomains}
+        onExportPdf={() => primaryMetrics && exportToPdf(primaryMetrics)}
+        onExportExcel={() => exportToExcel(activeMetricsList)}
+      />
 
-        {selectedDomains.length > 0 && (
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
-            {isPrimaryLoading || !primaryMetrics ? (
-              <DashboardSkeleton />
-            ) : isCompareMode && selectedDomains.length > 1 ? (
-              <Suspense fallback={<DashboardSkeleton />}>
-                <CompareDomainsView
-                  metricsList={activeMetricsList}
-                  onRemoveFromCompare={handleRemoveDomain}
-                  onExitCompareMode={() => setIsCompareMode(false)}
-                />
-              </Suspense>
-            ) : (
-              <>
-                <div className="bg-card rounded-2xl p-5 shadow-md hover:shadow-lg transition-shadow duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={primaryMetrics.logo}
-                      alt={primaryMetrics.name}
-                      className="h-12 w-12 rounded-xl bg-muted p-1 border border-border shrink-0"
-                    />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h2 className="text-xl font-bold text-foreground font-mono">{primaryMetrics.domain}</h2>
-                        <a
-                          href={`https://${primaryMetrics.domain}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-muted-foreground hover:text-primary transition-colors"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                        {isSyntheticData && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold px-2 py-0.5">
-                            <FlaskConical className="h-3 w-3" />
-                            {t('dashboard.badge.testData')}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                        <span className="font-semibold text-primary">{getCategoryName(primaryMetrics.category)}</span>
-                        <span>•</span>
-                        <span>{getLastUpdated(primaryMetrics.lastUpdated)}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Button
-                      onClick={() => handleExport('pdf')}
-                      id="export-pdf-btn"
-                      variant="outline"
-                      size="sm"
-                      className="gap-1.5 rounded-full"
-                    >
-                      <FileText className="h-4 w-4 text-rose-500" />
-                      {t('dashboard.export.pdf')}
-                    </Button>
-
-                    <Button
-                      onClick={() => handleExport('excel')}
-                      id="export-excel-btn"
-                      variant="outline"
-                      size="sm"
-                      className="gap-1.5 rounded-full"
-                    >
-                      <Download className="h-4 w-4 text-emerald-600" />
-                      {t('dashboard.export.excel')}
-                    </Button>
-
-                    <Button
-                      onClick={() => setIsCompareMode(!isCompareMode)}
-                      id="compare-mode-toggle-btn"
-                      variant={isCompareMode ? 'default' : 'outline'}
-                      size="sm"
-                      className="gap-1.5 rounded-full"
-                    >
-                      <GitCompare className="h-4 w-4" />
-                      {t('dashboard.compareMode')}
-                      {selectedDomains.length > 1 && (
-                        <span className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
-                          isCompareMode ? 'bg-background text-foreground' : 'bg-muted text-foreground'
-                        }`}>
-                          {selectedDomains.length}
+      {selectedDomains.length > 0 && (
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+          {isPrimaryLoading || !primaryMetrics ? (
+            <DashboardSkeleton />
+          ) : isCompareMode && selectedDomains.length > 1 ? (
+            <Suspense fallback={<DashboardSkeleton />}>
+              <CompareDomainsView
+                metricsList={activeMetricsList}
+                onRemoveFromCompare={handleRemoveDomain}
+                onExitCompareMode={() => setIsCompareMode(false)}
+              />
+            </Suspense>
+          ) : (
+            <>
+              <div className="bg-card rounded-2xl p-5 shadow-md hover:shadow-lg transition-shadow duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <img
+                    src={primaryMetrics.logo}
+                    alt={primaryMetrics.name}
+                    className="h-12 w-12 rounded-xl bg-muted p-1 border border-border shrink-0"
+                  />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-xl font-bold text-foreground font-mono">{primaryMetrics.domain}</h2>
+                      <a
+                        href={`https://${primaryMetrics.domain}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                      {isSyntheticData && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold px-2 py-0.5">
+                          <FlaskConical className="h-3 w-3" />
+                          {t('dashboard.badge.testData')}
                         </span>
                       )}
-                    </Button>
-
-                    <Button
-                      onClick={() => {
-                        if (primaryMetrics?.aiReport) {
-                          setIsAiModalOpen(true);
-                        } else {
-                          handleTriggerAiAnalysis();
-                        }
-                      }}
-                      id="ai-report-banner-btn"
-                      size="sm"
-                      className="gap-1.5 rounded-full hover:bg-primary/80"
-                    >
-                      <Sparkles className="h-4 w-4 text-amber-300" />
-                      {t('dashboard.aiInsights')}
-                    </Button>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                      <span className="font-semibold text-primary">{getCategoryName(primaryMetrics.category)}</span>
+                      <span>•</span>
+                      <span>{getLastUpdated(primaryMetrics.lastUpdated)}</span>
+                    </div>
                   </div>
                 </div>
 
-                <OverviewMetrics metrics={primaryMetrics} />
-                <TrafficChart metricsList={activeMetricsList} />
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Button
+                    onClick={() => handleExport('pdf')}
+                    id="export-pdf-btn"
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5 rounded-full"
+                  >
+                    <FileText className="h-4 w-4 text-rose-500" />
+                    {t('dashboard.export.pdf')}
+                  </Button>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <TrafficSources metrics={primaryMetrics} />
-                  <GeoMapSection metrics={primaryMetrics} />
+                  <Button
+                    onClick={() => handleExport('excel')}
+                    id="export-excel-btn"
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5 rounded-full"
+                  >
+                    <Download className="h-4 w-4 text-emerald-600" />
+                    {t('dashboard.export.excel')}
+                  </Button>
+
+                  <Button
+                    onClick={() => setIsCompareMode(!isCompareMode)}
+                    id="compare-mode-toggle-btn"
+                    variant={isCompareMode ? 'default' : 'outline'}
+                    size="sm"
+                    className="gap-1.5 rounded-full"
+                  >
+                    <GitCompare className="h-4 w-4" />
+                    {t('dashboard.compareMode')}
+                    {selectedDomains.length > 1 && (
+                      <span className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
+                        isCompareMode ? 'bg-background text-foreground' : 'bg-muted text-foreground'
+                      }`}>
+                        {selectedDomains.length}
+                      </span>
+                    )}
+                  </Button>
+
+                  <Button
+                    onClick={() => {
+                      if (primaryMetrics?.aiReport) {
+                        setIsAiModalOpen(true);
+                      } else {
+                        handleTriggerAiAnalysis();
+                      }
+                    }}
+                    id="ai-report-banner-btn"
+                    size="sm"
+                    className="gap-1.5 rounded-full hover:bg-primary/80"
+                  >
+                    <Sparkles className="h-4 w-4 text-amber-300" />
+                    {t('dashboard.aiInsights')}
+                  </Button>
                 </div>
-              </>
-            )}
-          </main>
-        )}
-      </div>
+              </div>
+
+              <OverviewMetrics metrics={primaryMetrics} />
+              <TrafficChart metricsList={activeMetricsList} />
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <TrafficSources metrics={primaryMetrics} />
+                <GeoMapSection metrics={primaryMetrics} />
+              </div>
+            </>
+          )}
+        </main>
+      )}
 
       {primaryMetrics && (
         <Suspense fallback={null}>
@@ -480,8 +460,6 @@ export default function Dashboard({ isOverlayActive }: { isOverlayActive: boolea
         </Suspense>
       )}
 
-      {/* NOVOS Modais */}
-      
       <BuyCreditsModal
         isOpen={isBuyCreditsOpen}
         onClose={() => setIsBuyCreditsOpen(false)}

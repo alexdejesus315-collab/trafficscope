@@ -1,8 +1,7 @@
 import React, { lazy, Suspense } from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Activity } from 'lucide-react';
 import { useAuth } from './hooks/useAuth';
-import { CompanyPanelProvider } from './context/CompanyPanelContext';
 import { LanguageProvider } from './context/LanguageContext';
 
 const Login = lazy(() => import('./pages/Login'));
@@ -31,12 +30,6 @@ function PageFallback() {
 
 export default function App() {
   const { user, isLoading } = useAuth();
-  const location = useLocation();
-
-  // Se veio de um link "overlay" (ver Navbar), a rota real de fundo
-  // fica guardada aqui — as rotas de baixo continuam a renderizar essa.
-  const state = location.state as { backgroundLocation?: Location } | null;
-  const backgroundLocation = state?.backgroundLocation;
 
   if (isLoading) {
     return <PageFallback />;
@@ -44,51 +37,20 @@ export default function App() {
 
   return (
     <LanguageProvider>
-    <CompanyPanelProvider>
-    <Suspense fallback={<PageFallback />}>
-      {/* Camada de baixo: renderiza sempre a localização "real" de fundo
-          quando existe, para o Dashboard nunca desmontar por causa de um overlay. */}
-      <Routes location={backgroundLocation || location}>
-        <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
-        <Route
-          path="/"
-          element={
-            user
-              ? <Dashboard isOverlayActive={Boolean(backgroundLocation)} />
-              : <Navigate to="/login" replace />
-          }
-        />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/blog/:slug" element={<BlogPostDetail />} />
-        <Route
-          path="/history"
-          element={
-            user
-              ? <History isOverlayActive={Boolean(backgroundLocation)} />
-              : <Navigate to="/login" replace />
-          }
-        />
-        {/* Acesso direto/refresh sem overlay ativo: renderiza a página standalone (pública, sem exigir login) */}
-        <Route path="/sobre" element={<Sobre />} />
-        <Route path="/faq" element={<Faq />} />
-        <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
-        <Route path="/termos-de-uso" element={<TermosDeUso />} />
-        <Route path="/suporte" element={<Suporte />} />
-      </Routes>
-
-      {/* Camada de cima: só existe quando se navegou a partir de um link
-          com state.backgroundLocation — renderiza por cima, sem desmontar o de baixo. */}
-      {backgroundLocation && (
+      <Suspense fallback={<PageFallback />}>
         <Routes>
+          <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
+          <Route path="/" element={user ? <Dashboard /> : <Navigate to="/login" replace />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogPostDetail />} />
+          <Route path="/history" element={user ? <History /> : <Navigate to="/login" replace />} />
           <Route path="/sobre" element={<Sobre />} />
           <Route path="/faq" element={<Faq />} />
           <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
           <Route path="/termos-de-uso" element={<TermosDeUso />} />
           <Route path="/suporte" element={<Suporte />} />
         </Routes>
-      )}
-    </Suspense>
-    </CompanyPanelProvider>
+      </Suspense>
     </LanguageProvider>
   );
 }

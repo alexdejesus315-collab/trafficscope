@@ -16,7 +16,7 @@ interface HistoryItem {
   created_at: string;
 }
 
-export default function History({ isOverlayActive }: { isOverlayActive: boolean }) {
+export default function History() {
   const { user, signOut } = useAuth();
   const { t, language } = useLanguage();
   const [items, setItems] = useState<HistoryItem[]>([]);
@@ -82,7 +82,6 @@ export default function History({ isOverlayActive }: { isOverlayActive: boolean 
       <Navbar
         user={user}
         onSignOut={() => void signOut()}
-        isOverlayActive={isOverlayActive}
       />
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-6">

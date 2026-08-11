@@ -1,50 +1,25 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';import { User } from '@supabase/supabase-js';
+import { Link, useNavigate } from 'react-router-dom';
+import { User } from '@supabase/supabase-js';
 import {
-  Activity,
-  LogOut,
-  ChevronDown,
-  Info,
-  HelpCircle,
-  Shield,
-  FileText,
-  Mail,
-  Instagram,
-  Linkedin,
-  Twitter,
-  Facebook,
-  Zap,
-  Battery,
-  BatteryWarning,
-  BatteryCharging,
-  UserCircle,
-  TestTube2,
-  ShoppingCart,
-  Search,
-  ArrowRight,
-  History as HistoryIcon,
-  Bell,
-  Check,
-  CheckCheck,
+  Activity, LogOut, ChevronDown, Info, HelpCircle, Shield, FileText, Mail,
+  Instagram, Linkedin, Twitter, Facebook, Zap, Battery, BatteryWarning,
+  BatteryCharging, UserCircle, TestTube2, ShoppingCart, Search, ArrowRight,
+  History as HistoryIcon, Bell, CheckCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { UserProfile, UserMode } from '../types/domain';
-import { useCompanyPanel } from '../context/CompanyPanelContext';
 import { useLanguage } from '../context/LanguageContext';
-import { supabase } from '../lib/supabaseClient';
 import { isOwner } from '../lib/ownerConfig';
 import { useNotifications } from '../hooks/useNotifications';
 import { GenerateArticleModal } from './GenerateArticleModal';
 import { LanguageSwitcher } from './LanguageSwitcher';
 
 const LAST_SEEN_BLOG_KEY = 'trafficscope_last_seen_blog';
-export const COMPANY_PANEL_WIDTH = 'clamp(260px, 22vw, 400px)';
 
 interface NavbarProps {
   user?: User | null;
   onSignOut?: () => void;
-  isOverlayActive: boolean;
   profile?: UserProfile;
   onToggleMode?: (mode: UserMode) => void;
   onOpenBuyCredits?: () => void;
@@ -53,7 +28,6 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({
   user,
   onSignOut,
-  isOverlayActive,
   profile,
   onToggleMode,
   onOpenBuyCredits,
@@ -68,26 +42,23 @@ export const Navbar: React.FC<NavbarProps> = ({
     { to: '/suporte', icon: Mail, label: t('nav.companyLinks.support.label'), desc: t('nav.companyLinks.support.desc') },
   ];
 
-  const panelRef = useRef<HTMLDivElement>(null);
-  const toggleBtnRef = useRef<HTMLButtonElement>(null);
+  const companyToggleRef = useRef<HTMLButtonElement>(null);
+  const companyDropdownRef = useRef<HTMLDivElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const profileToggleRef = useRef<HTMLDivElement>(null);
   const notifDropdownRef = useRef<HTMLDivElement>(null);
   const notifToggleRef = useRef<HTMLButtonElement>(null);
   const generateBtnRef = useRef<HTMLButtonElement>(null);
-const location = useLocation();
+
   const navigate = useNavigate();
-  const showGenerateButton = isOwner(user?.id);  // Garante que o "fundo" nunca é outra página de overlay (Sobre/Faq/etc.),
-// só o Dashboard real. Evita empilhar overlays uns sobre os outros.
-const state = location.state as { backgroundLocation?: Location } | undefined;
-const trueBackgroundLocation = state?.backgroundLocation ?? location;
+  const showGenerateButton = isOwner(user?.id);
+
+  const [isCompanyOpen, setIsCompanyOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
-  const { isMenuOpen, isMenuClosing, closeMenuNow, openMenu, requestCloseDetail } = useCompanyPanel();
   const { notifications, unreadCount, isLoadingMore, hasMore, loadMore, markAsRead, markAllAsRead } = useNotifications(user?.id);
 
-  // NOVO: badge de "artigo novo" no botão Blog, guardado localmente por navegador
   const [lastSeenBlog, setLastSeenBlog] = useState<string | null>(() =>
     typeof window !== 'undefined' ? localStorage.getItem(LAST_SEEN_BLOG_KEY) : null
   );
@@ -107,25 +78,16 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
     navigate('/blog');
   };
 
-  // Fecha o painel preto e o branco em conjunto, sem desfasamento.
-  const closeEverything = React.useCallback(() => {
-    if (isOverlayActive) {
-      requestCloseDetail('close');
-    } else {
-      closeMenuNow();
-    }
-  }, [closeMenuNow, isOverlayActive, requestCloseDetail]);
-
   useEffect(() => {
-    if (!isMenuOpen || isOverlayActive) return;
+    if (!isCompanyOpen) return;
     function handleClickOutside(e: MouseEvent) {
-      if (toggleBtnRef.current?.contains(e.target as Node)) return;
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        closeEverything();
+      if (companyToggleRef.current?.contains(e.target as Node)) return;
+      if (companyDropdownRef.current && !companyDropdownRef.current.contains(e.target as Node)) {
+        setIsCompanyOpen(false);
       }
     }
     function handleEscape(e: KeyboardEvent) {
-      if (e.key === 'Escape') closeEverything();
+      if (e.key === 'Escape') setIsCompanyOpen(false);
     }
     document.addEventListener('mousedown', handleClickOutside);
     document.addEventListener('keydown', handleEscape);
@@ -133,7 +95,7 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscape);
     };
-  }, [isMenuOpen, isOverlayActive, closeEverything]);
+  }, [isCompanyOpen]);
 
   useEffect(() => {
     if (!isProfileOpen) return;
@@ -153,7 +115,6 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
       document.removeEventListener('keydown', handleEscape);
     };
   }, [isProfileOpen]);
-
 
   useEffect(() => {
     if (!isNotifOpen) return;
@@ -182,7 +143,7 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
   const BatteryIcon = credits === 0 ? BatteryWarning : credits <= 3 ? Battery : BatteryCharging;
 
   return (
-<header className="sticky top-0 z-[60] bg-sidebar/95 backdrop-blur-md text-sidebar-foreground shadow-md">
+    <header className="sticky top-0 z-[60] bg-sidebar/95 backdrop-blur-md text-sidebar-foreground shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <div>
@@ -198,7 +159,7 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
 
         <LanguageSwitcher />
 
-<div className="flex items-center gap-3 sm:gap-5 relative">
+        <div className="flex items-center gap-3 sm:gap-5 relative">
           <Button
             variant="ghost"
             size="sm"
@@ -247,76 +208,76 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
                          shadow-[0_8px_30px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)]
                          overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150
                          flex flex-col"
-            >
-              <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
-                <p className="text-sm font-semibold text-foreground">{t('nav.notifications.title')}</p>
-                {unreadCount > 0 && (
-                  <button
-                    onClick={markAllAsRead}
-                    className="flex items-center gap-1 text-xs font-medium text-primary hover:underline"
-                  >
-                    <CheckCheck className="h-3.5 w-3.5" />
-                    {t('nav.notifications.markAll')}
-                  </button>
-                )}
-              </div>
-
-              <div
-                className="overflow-y-auto flex-1"
-                onScroll={(e) => {
-                  const el = e.currentTarget;
-                  if (el.scrollHeight - el.scrollTop - el.clientHeight < 80) {
-                    loadMore();
-                  }
-                }}
               >
-                {notifications.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-10 text-center text-muted-foreground gap-1.5">
-                    <Bell className="h-6 w-6 opacity-30" />
-                    <p className="text-xs">{t('nav.notifications.empty')}</p>
-                  </div>
-                ) : (
-                  notifications.map((n) => (
+                <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
+                  <p className="text-sm font-semibold text-foreground">{t('nav.notifications.title')}</p>
+                  {unreadCount > 0 && (
                     <button
-                      key={n.id}
-                      onClick={() => {
-                        if (!n.isRead) markAsRead(n.id);
-                        if (n.link) {
-                          setIsNotifOpen(false);
-                          navigate(n.link);
-                        }
-                      }}
-                      className={`w-full text-left px-4 py-3 border-b border-border/60 last:border-0 transition-colors hover:bg-accent/50 ${
-                        n.isRead ? '' : 'bg-primary/5'
-                      }`}
+                      onClick={markAllAsRead}
+                      className="flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                     >
-                      <div className="flex items-start gap-2">
-                        {!n.isRead && (
-                          <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
-                        )}
-                        <div className={`min-w-0 ${n.isRead ? 'pl-3.5' : ''}`}>
-                          <p className="text-sm font-semibold text-foreground truncate">{n.title}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
-                          <p className="text-[10px] text-muted-foreground/70 mt-1">
-                            {new Date(n.created_at).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                          </p>
-                        </div>
-                      </div>
+                      <CheckCheck className="h-3.5 w-3.5" />
+                      {t('nav.notifications.markAll')}
                     </button>
-                  ))
-                )}
-                {isLoadingMore && (
-                  <div className="flex items-center justify-center py-3">
-                    <div className="h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-                  </div>
-                )}
-                {!hasMore && notifications.length > 0 && (
-                  <p className="text-center text-[11px] text-muted-foreground py-3">
-                    {t('nav.notifications.noMore')}
-                  </p>
-                )}
+                  )}
+                </div>
+
+                <div
+                  className="overflow-y-auto flex-1"
+                  onScroll={(e) => {
+                    const el = e.currentTarget;
+                    if (el.scrollHeight - el.scrollTop - el.clientHeight < 80) {
+                      loadMore();
+                    }
+                  }}
+                >
+                  {notifications.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-10 text-center text-muted-foreground gap-1.5">
+                      <Bell className="h-6 w-6 opacity-30" />
+                      <p className="text-xs">{t('nav.notifications.empty')}</p>
+                    </div>
+                  ) : (
+                    notifications.map((n) => (
+                      <button
+                        key={n.id}
+                        onClick={() => {
+                          if (!n.isRead) markAsRead(n.id);
+                          if (n.link) {
+                            setIsNotifOpen(false);
+                            navigate(n.link);
+                          }
+                        }}
+                        className={`w-full text-left px-4 py-3 border-b border-border/60 last:border-0 transition-colors hover:bg-accent/50 ${
+                          n.isRead ? '' : 'bg-primary/5'
+                        }`}
+                      >
+                        <div className="flex items-start gap-2">
+                          {!n.isRead && (
+                            <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                          )}
+                          <div className={`min-w-0 ${n.isRead ? 'pl-3.5' : ''}`}>
+                            <p className="text-sm font-semibold text-foreground truncate">{n.title}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
+                            <p className="text-[10px] text-muted-foreground/70 mt-1">
+                              {new Date(n.created_at).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+                    ))
+                  )}
+                  {isLoadingMore && (
+                    <div className="flex items-center justify-center py-3">
+                      <div className="h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                    </div>
+                  )}
+                  {!hasMore && notifications.length > 0 && (
+                    <p className="text-center text-[11px] text-muted-foreground py-3">
+                      {t('nav.notifications.noMore')}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
             )}
           </div>
 
@@ -340,22 +301,62 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
             </div>
           )}
 
-          <Button
-            ref={toggleBtnRef}            variant="ghost"
-            size="sm"
-            className="gap-1.5 !text-sidebar-foreground text-base font-semibold rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
-            onClick={() => {
-              if (isMenuOpen) {
-                closeEverything();
-              } else {
-                openMenu();
-              }
-            }}
-            aria-expanded={isMenuOpen}
-          >
-            <span className="hidden md:inline">{t('nav.company')}</span>
-            <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`} />
-          </Button>
+          <div className="relative w-fit">
+            <Button
+              ref={companyToggleRef}
+              variant="ghost"
+              size="sm"
+              className="gap-1.5 !text-sidebar-foreground text-base font-semibold rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+              onClick={() => setIsCompanyOpen((v) => !v)}
+              aria-expanded={isCompanyOpen}
+            >
+              <span className="hidden md:inline">{t('nav.company')}</span>
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isCompanyOpen ? 'rotate-180' : ''}`} />
+            </Button>
+
+            {isCompanyOpen && (
+              <div
+                ref={companyDropdownRef}
+                className="absolute top-[calc(100%+10px)] left-1/2 -translate-x-1/2 w-[300px]
+                         bg-popover rounded-2xl
+                         border border-border
+                         shadow-[0_8px_30px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)]
+                         overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150 p-2"
+              >
+                <p className="px-2 pt-1 pb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t('nav.companyPanel.title')}
+                </p>
+                <div className="flex flex-col gap-1">
+                  {COMPANY_LINKS.map(({ to, icon: Icon, label, desc }) => (
+                    <Link
+                      key={to}
+                      to={to}
+                      onClick={() => setIsCompanyOpen(false)}
+                      className="flex flex-col items-start gap-0.5 rounded-lg px-3 py-2.5 hover:bg-accent/50 transition-colors"
+                    >
+                      <span className="flex items-center gap-2 font-semibold text-foreground text-sm">
+                        <Icon className="h-4 w-4 text-primary" />
+                        {label}
+                      </span>
+                      <span className="text-xs text-muted-foreground pl-6">{desc}</span>
+                    </Link>
+                  ))}
+                </div>
+                <div className="mt-2 pt-2 border-t border-border">
+                  <p className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t('nav.companyPanel.socialMedia')}
+                  </p>
+                  <div className="flex items-center gap-2 px-2">
+                    {[Instagram, Linkedin, Twitter, Facebook].map((Icon, i) => (
+                      <span key={i} title={t('nav.companyPanel.comingSoon')} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground/40 cursor-not-allowed">
+                        <Icon className="h-4 w-4" />
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
 
           <div ref={profileToggleRef} className="flex items-center rounded-full border border-sidebar-border overflow-hidden shadow-2xs">
             <button
@@ -539,42 +540,6 @@ const trueBackgroundLocation = state?.backgroundLocation ?? location;
           )}
         </div>
       </div>
-
-      {isMenuOpen && (
-        <div
-          ref={panelRef}
-          style={{ width: COMPANY_PANEL_WIDTH }}
-          className={`fixed top-20 left-0 z-50 h-[calc(100vh-5rem)] bg-sidebar border-r border-sidebar-border shadow-2xl overflow-y-auto p-3 duration-200 ${
-            isMenuClosing
-              ? 'animate-out fade-out slide-out-to-left-4'
-              : ''
-          }`}
-        >
-          <p className="px-2 pt-1 pb-3 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">{t('nav.companyPanel.title')}</p>
-          <div className="flex flex-col gap-1">
-            {COMPANY_LINKS.map(({ to, icon: Icon, label, desc }) => (
-              <Link key={to} to={to} state={{ backgroundLocation: trueBackgroundLocation }} className="flex flex-col items-start gap-0.5 rounded-lg px-3 py-2.5 hover:bg-sidebar-accent/15 transition-colors">
-                <span className="flex items-center gap-2 font-semibold text-sidebar-foreground">
-                  <Icon className="h-4 w-4 text-sidebar-foreground" />
-                  {label}
-                </span>
-                <span className="text-xs text-sidebar-foreground/60 pl-6">{desc}</span>
-              </Link>
-            ))}
-          </div>
-          <div className="mt-3 pt-3 border-t border-sidebar-border">
-            <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">{t('nav.companyPanel.socialMedia')}</p>
-            <div className="flex items-center gap-2 px-2">
-              {[Instagram, Linkedin, Twitter, Facebook].map((Icon, i) => (
-                <span key={i} title={t('nav.companyPanel.comingSoon')} className="flex h-8 w-8 items-center justify-center rounded-lg text-sidebar-foreground/30 cursor-not-allowed">
-                  <Icon className="h-4 w-4" />
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      </header>
+    </header>
   );
 };

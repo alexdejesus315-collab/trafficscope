@@ -7,15 +7,15 @@ export default function Sobre() {
 
   return (
     <CompanyPagePanel title={t('about.title')}>
-      <p>
-        {t('about.p1')}
-      </p>
-      <p>
-        {t('about.p2')}
-      </p>
-      <p>
-        {t('about.p3')}
-      </p>
+      <section className="space-y-3">
+        <p className="text-sm text-muted-foreground leading-relaxed">{t('about.p1')}</p>
+      </section>
+      <section className="space-y-3">
+        <p className="text-sm text-muted-foreground leading-relaxed">{t('about.p2')}</p>
+      </section>
+      <section className="space-y-3">
+        <p className="text-sm text-muted-foreground leading-relaxed">{t('about.p3')}</p>
+      </section>
     </CompanyPagePanel>
   );
 }
