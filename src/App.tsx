@@ -68,12 +68,12 @@ export default function App() {
               : <Navigate to="/login" replace />
           }
         />
-        {/* Acesso direto/refresh sem overlay ativo: nunca mostra a página sozinha, volta ao Dashboard */}
-        <Route path="/sobre" element={<Navigate to="/" replace />} />
-        <Route path="/faq" element={<Navigate to="/" replace />} />
-        <Route path="/politica-privacidade" element={<Navigate to="/" replace />} />
-        <Route path="/termos-de-uso" element={<Navigate to="/" replace />} />
-        <Route path="/suporte" element={<Navigate to="/" replace />} />
+        {/* Acesso direto/refresh sem overlay ativo: renderiza a página standalone (pública, sem exigir login) */}
+        <Route path="/sobre" element={<Sobre />} />
+        <Route path="/faq" element={<Faq />} />
+        <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
+        <Route path="/termos-de-uso" element={<TermosDeUso />} />
+        <Route path="/suporte" element={<Suporte />} />
       </Routes>
 
       {/* Camada de cima: só existe quando se navegou a partir de um link
