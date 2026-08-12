@@ -1332,6 +1332,59 @@ Responda APENAS com um objeto JSON válido, sem texto antes ou depois, neste for
     }
   });
 
+const SITE_URL = "https://trafficscope.onrender.com";
+
+app.get("/sitemap.xml", async (req, res) => {
+  try {
+    const staticUrls: { loc: string; changefreq: string; priority: string; lastmod?: string }[] = [
+      { loc: "/", changefreq: "weekly", priority: "1.0" },
+      { loc: "/blog", changefreq: "weekly", priority: "0.8" },
+      { loc: "/sobre", changefreq: "monthly", priority: "0.6" },
+      { loc: "/faq", changefreq: "monthly", priority: "0.6" },
+      { loc: "/politica-privacidade", changefreq: "yearly", priority: "0.3" },
+      { loc: "/termos-de-uso", changefreq: "yearly", priority: "0.3" },
+      { loc: "/suporte", changefreq: "monthly", priority: "0.5" },
+    ];
+
+    const { data: posts, error } = await supabaseAdmin
+      .from("blog_posts")
+      .select("slug, created_at")
+      .eq("published", true)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    const postUrls = (posts || []).map((p) => ({
+      loc: `/blog/${p.slug}`,
+      changefreq: "monthly",
+      priority: "0.7",
+      lastmod: new Date(p.created_at).toISOString().split("T")[0],
+    }));
+
+    const allUrls = [...staticUrls, ...postUrls];
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${allUrls
+  .map(
+    (u) => `  <url>
+    <loc>${SITE_URL}${u.loc}</loc>${u.lastmod ? `\n    <lastmod>${u.lastmod}</lastmod>` : ""}
+    <changefreq>${u.changefreq}</changefreq>
+    <priority>${u.priority}</priority>
+  </url>`
+  )
+  .join("\n")}
+</urlset>`;
+
+    res.set("Content-Type", "application/xml");
+    return res.send(xml);
+  } catch (err) {
+    console.error("Erro ao gerar sitemap.xml:", err);
+    return res.status(500).send("Erro ao gerar sitemap.");
+  }
+});
+
+
   // Vite middleware integration for Development vs Production
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
