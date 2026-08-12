@@ -14,6 +14,7 @@ const TermosDeUso = lazy(() => import('./pages/TermosDeUso'));
 const Suporte = lazy(() => import('./pages/Suporte'));
 const Blog = lazy(() => import('./pages/Blog'));
 const BlogPostDetail = lazy(() => import('./pages/BlogPostDetail'));
+const Noticias = lazy(() => import('./pages/Noticias'));
 
 function PageFallback() {
   return (
@@ -43,6 +44,7 @@ export default function App() {
           <Route path="/" element={user ? <Dashboard /> : <Navigate to="/login" replace />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPostDetail />} />
+          <Route path="/noticias" element={<Noticias />} />
           <Route path="/history" element={user ? <History /> : <Navigate to="/login" replace />} />
           <Route path="/sobre" element={<Sobre />} />
           <Route path="/faq" element={<Faq />} />

@@ -13,6 +13,8 @@ import { useLanguage } from '../context/LanguageContext';
 import { isOwner } from '../lib/ownerConfig';
 import { useNotifications } from '../hooks/useNotifications';
 import { GenerateArticleModal } from './GenerateArticleModal';
+import { Newspaper } from 'lucide-react';
+import { supabase } from '../lib/supabaseClient';
 import { LanguageSwitcher } from './LanguageSwitcher';
 
 const LAST_SEEN_BLOG_KEY = 'trafficscope_last_seen_blog';
@@ -57,6 +59,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
+  const [isGeneratingNews, setIsGeneratingNews] = useState(false);
   const { notifications, unreadCount, isLoadingMore, hasMore, loadMore, markAsRead, markAllAsRead } = useNotifications(user?.id);
 
   const [lastSeenBlog, setLastSeenBlog] = useState<string | null>(() =>
@@ -76,6 +79,27 @@ export const Navbar: React.FC<NavbarProps> = ({
     localStorage.setItem(LAST_SEEN_BLOG_KEY, now);
     setLastSeenBlog(now);
     navigate('/blog');
+  };
+
+  const handleGenerateNews = async () => {
+    setIsGeneratingNews(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch('/api/news/fetch', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        navigate('/noticias');
+      } else {
+        alert(data.error || 'Falha ao gerar notícias.');
+      }
+    } catch {
+      alert('Falha ao gerar notícias.');
+    } finally {
+      setIsGeneratingNews(false);
+    }
   };
 
   useEffect(() => {
@@ -300,6 +324,20 @@ export const Navbar: React.FC<NavbarProps> = ({
                 anchorRef={generateBtnRef}
               />
             </div>
+          )}
+
+
+{showGenerateButton && (
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={isGeneratingNews}
+              onClick={handleGenerateNews}
+              className="gap-1.5 !text-sidebar-foreground text-sm font-semibold rounded-full px-3 py-1.5 hover:!bg-primary/20 hover:!text-primary transition-all duration-200 disabled:opacity-50"
+            >
+              <Newspaper className="h-3.5 w-3.5" />
+              <span className="hidden lg:inline">{isGeneratingNews ? 'A gerar...' : 'Gerar Notícias'}</span>
+            </Button>
           )}
 
           <div className="relative w-fit">

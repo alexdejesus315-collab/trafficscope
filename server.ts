@@ -161,6 +161,85 @@ const NEWS_TOPICS: { category: string; query: string; instruction: string }[] = 
   },
 ];
 
+// ===== NOVO: Categorias para a área de Notícias (feed de manchetes + vídeo) =====
+const NEWS_CATEGORIES: { key: string; label: string; query: string }[] = [
+  {
+    key: "tech-ia",
+    label: "Tecnologia & IA",
+    query: "\"inteligência artificial\" OR ChatGPT OR \"tecnologia digital\"",
+  },
+  {
+    key: "big-tech",
+    label: "Big Tech & Plataformas",
+    query: "Google OR Meta OR \"Amazon Web Services\" OR TikTok",
+  },
+  {
+    key: "seo-marketing",
+    label: "SEO & Marketing Digital",
+    query: "SEO OR \"marketing digital\" OR \"algoritmo do Google\"",
+  },
+  {
+    key: "ecommerce",
+    label: "E-commerce & Retalho Online",
+    query: "ecommerce OR \"comércio eletrónico\" OR \"vendas online\"",
+  },
+  {
+    key: "mercados-cripto",
+    label: "Mercados Financeiros & Cripto",
+    query: "bitcoin OR criptomoedas OR \"mercado financeiro\"",
+  },
+  {
+    key: "startups-africa",
+    label: "Startups & Inovação em África",
+    query: "\"startup africana\" OR \"tecnologia em África\"",
+  },
+  {
+    key: "geopolitica-comercio",
+    label: "Geopolítica & Comércio Global",
+    query: "tarifas OR \"comércio internacional\" OR sanções",
+  },
+  {
+    key: "privacidade-regulacao",
+    label: "Privacidade & Regulação Digital",
+    query: "\"proteção de dados\" OR \"regulação da IA\"",
+  },
+];
+
+// ===== NOVO: Busca de notícias reais (GNews) + vídeo associado (YouTube) =====
+
+async function fetchGNewsForCategory(query: string): Promise<any[]> {
+  const apiKey = process.env.GNEWS_API_KEY;
+  if (!apiKey) throw new Error("GNEWS_API_KEY não configurada");
+
+  const url = `https://gnews.io/api/v4/search?q=${encodeURIComponent(query)}&lang=pt&in=title&max=3&apikey=${apiKey}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    const errBody = await res.text();
+    throw new Error(`GNews respondeu com status ${res.status}: ${errBody}`);
+  }
+
+  const data = await res.json();
+  return data.articles || [];
+}
+
+async function findYoutubeVideoId(searchQuery: string): Promise<string | null> {
+  const apiKey = process.env.YOUTUBE_API_KEY;
+  if (!apiKey) return null;
+
+  try {
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&relevanceLanguage=pt&q=${encodeURIComponent(searchQuery)}&key=${apiKey}`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    return data.items?.[0]?.id?.videoId || null;
+  } catch (err) {
+    console.error("Falha ao buscar vídeo no YouTube:", err);
+    return null;
+  }
+}
+
+
 type ComparisonTopic = { type: "comparison"; niche: typeof NICHE_POOLS[0]; angle: typeof NARRATIVE_ANGLES[0]; topicKey: string };
 type NewsTopic = { type: "news"; news: typeof NEWS_TOPICS[0]; topicKey: string };
 type ManualTopic = { type: "manual"; domain: string; theme: string; affiliateLink?: string; topicKey: string };
@@ -1152,6 +1231,8 @@ if (topic.type === "manual") {
       }
     });
 
+
+
     // ===== NOVO: Eliminar artigo do Blog (só o dono) =====
     app.delete("/api/blog/:slug", async (req, res) => {
       try {
@@ -1174,6 +1255,120 @@ if (topic.type === "manual") {
         return res.status(500).json({ error: "Falha ao eliminar artigo." });
       }
     });
+    
+    // ===== NOVO: Endpoint de busca de notícias (só o dono) =====
+app.post("/api/news/fetch", async (req, res) => {
+  try {
+    const user = await getUserFromRequest(req);
+    if (!user || user.id !== OWNER_USER_ID) {
+      return res.status(403).json({ error: "Acesso negado." });
+    }
+
+    const results: { headline: string; summary: string; sourceName: string; sourceUrl: string; youtubeVideoId: string | null; coverImage: string | null; category: string; publishedAt: string }[] = [];
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: existingNews } = await supabaseAdmin
+      .from("news_items")
+      .select("headline")
+      .gte("published_at", threeDaysAgo);
+    const existingHeadlines = new Set((existingNews || []).map((n) => n.headline.trim().toLowerCase()));
+
+    for (const cat of NEWS_CATEGORIES) {
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 1200)); // evita 429 (limite de pedidos/seg da GNews)
+        const articles = await fetchGNewsForCategory(cat.query);
+
+        for (const article of articles.slice(0, 2)) {
+          const isDuplicate =
+            results.some((r) => r.headline.trim().toLowerCase() === article.title.trim().toLowerCase()) ||
+            existingHeadlines.has(article.title.trim().toLowerCase());
+          if (isDuplicate) continue;
+
+          const videoId = await findYoutubeVideoId(article.title);
+
+          results.push({
+            headline: article.title,
+            summary: article.description || "",
+            sourceName: article.source?.name || "Fonte desconhecida",
+            sourceUrl: article.url,
+            youtubeVideoId: videoId,
+            coverImage: article.image || null,
+            category: cat.label,
+            publishedAt: article.publishedAt,
+          });
+        }
+      } catch (catErr) {
+        console.error(`Falha ao buscar notícias para categoria ${cat.label}:`, catErr);
+      }
+    }
+
+    if (results.length === 0) {
+      return res.status(500).json({ error: "Nenhuma notícia foi obtida." });
+    }
+
+    const { data: inserted, error } = await supabaseAdmin
+      .from("news_items")
+      .insert(
+        results.map((r) => ({
+          headline: r.headline,
+          summary: r.summary,
+          source_name: r.sourceName,
+          source_url: r.sourceUrl,
+          youtube_video_id: r.youtubeVideoId,
+          cover_image: r.coverImage,
+          category: r.category,
+          published_at: r.publishedAt,
+        }))
+      )
+      .select();
+
+    if (error) throw error;
+
+    return res.json({ success: true, count: inserted.length, items: inserted });
+  } catch (err: any) {
+    console.error("Erro ao buscar notícias:", err);
+    return res.status(500).json({ error: "Falha ao buscar notícias." });
+  }
+});
+
+// ===== NOVO: Listagem pública de notícias =====
+app.get("/api/news", async (req, res) => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("news_items")
+      .select("*")
+      .order("published_at", { ascending: false })
+      .limit(50);
+
+    if (error) throw error;
+
+    return res.json({ success: true, items: data });
+  } catch (err: any) {
+    console.error("Erro ao listar notícias:", err);
+    return res.status(500).json({ error: "Falha ao listar notícias." });
+  }
+});
+
+// ===== NOVO: Eliminar item de notícia (só o dono) =====
+app.delete("/api/news/:id", async (req, res) => {
+  try {
+    const user = await getUserFromRequest(req);
+    if (!user || user.id !== OWNER_USER_ID) {
+      return res.status(403).json({ error: "Acesso negado." });
+    }
+
+    const { id } = req.params;
+    const { error } = await supabaseAdmin.from("news_items").delete().eq("id", id);
+    if (error) throw error;
+
+    return res.json({ success: true });
+  } catch (err: any) {
+    console.error("Erro ao eliminar item de notícia:", err);
+    return res.status(500).json({ error: "Falha ao eliminar item." });
+  }
+});
+
+
+
 
   // ===== NOVO: Tradução sob demanda dos artigos do Blog (com cache) =====
   // full=false (padrão): traduz só título+excerto, para a LISTAGEM (barato, um pouco por post).
