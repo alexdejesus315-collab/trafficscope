@@ -199,6 +199,15 @@ export const Navbar: React.FC<NavbarProps> = ({
           <Button
             variant="ghost"
             size="sm"
+            onClick={() => navigate('/noticias')}
+            className="!text-sidebar-foreground text-sm font-semibold rounded-full px-3 py-1.5 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+          >
+            Notícias
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => navigate('/history')}
             className="!text-sidebar-foreground text-sm font-semibold rounded-full px-3 py-1.5 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
           >
