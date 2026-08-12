@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import { NewsItem } from '../types/news';
 import { useAuth } from '../hooks/useAuth';
 import { isOwner } from '../lib/ownerConfig';
-import { Trash2, ArrowLeft, ExternalLink, ImageOff } from 'lucide-react';
+import { Trash2, ArrowLeft, Calendar, ImageOff, PlayCircle } from 'lucide-react';
 
 export default function Noticias() {
   const { user } = useAuth();
@@ -101,60 +101,51 @@ function NewsCard({
 }) {
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl bg-card border border-border hover:shadow-md transition-all duration-300">
-      <div className="relative aspect-video overflow-hidden bg-muted">
-        {item.youtube_video_id ? (
-          <iframe
-            src={`https://www.youtube.com/embed/${item.youtube_video_id}`}
-            title={item.headline}
-            className="h-full w-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        ) : item.cover_image ? (
-          <img src={item.cover_image} alt={item.headline} className="h-full w-full object-cover" />
-        ) : (
-          <div className="h-full w-full bg-gradient-to-br from-primary/5 to-primary/10 flex flex-col items-center justify-center gap-2">
-            <ImageOff className="h-8 w-8 text-primary/20" />
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Sem imagem</span>
-          </div>
-        )}
-
-        {showDelete && (
-          <button
-            onClick={() => onDelete(item.id)}
-            className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors z-10"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
-        )}
-      </div>
-
-      <div className="p-5 flex flex-col flex-1">
-        <div className="flex items-center gap-2 text-[11px] text-muted-foreground mb-2">
-          <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary">
-            {item.category}
-          </span>
-          <span>{formatDate(item.published_at)}</span>
+      <Link to={`/noticias/${item.slug}`} className="block">
+        <div className="relative aspect-video overflow-hidden bg-muted">
+          {item.cover_image ? (
+            <img src={item.cover_image} alt={item.headline} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          ) : (
+            <div className="h-full w-full bg-gradient-to-br from-primary/5 to-primary/10 flex flex-col items-center justify-center gap-2">
+              <ImageOff className="h-8 w-8 text-primary/20" />
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Sem imagem</span>
+            </div>
+          )}
+          {item.youtube_video_id && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+              <PlayCircle className="h-10 w-10 text-white drop-shadow-lg" />
+            </div>
+          )}
+          {showDelete && (
+            <button
+              onClick={(e) => { e.preventDefault(); onDelete(item.id); }}
+              className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors z-10"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
 
-        <h3 className="text-base font-bold text-foreground leading-snug line-clamp-2">
-          {item.headline}
-        </h3>
+        <div className="p-5">
+          <div className="flex items-center gap-2 text-[11px] text-muted-foreground mb-2">
+            <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary">
+              {item.category}
+            </span>
+            <span className="flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              {formatDate(item.published_at)}
+            </span>
+          </div>
 
-        <p className="mt-2 text-sm text-muted-foreground line-clamp-3 leading-relaxed flex-1">
-          {item.summary}
-        </p>
+          <h3 className="text-base font-bold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+            {item.headline}
+          </h3>
 
-        <a
-          href={item.source_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-4 flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
-        >
-          {item.source_name}
-          <ExternalLink className="h-3 w-3" />
-        </a>
-      </div>
+          <p className="mt-2 text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+            {item.summary}
+          </p>
+        </div>
+      </Link>
     </article>
   );
 }

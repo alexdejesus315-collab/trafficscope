@@ -166,42 +166,42 @@ const NEWS_CATEGORIES: { key: string; label: string; query: string }[] = [
   {
     key: "tech-ia",
     label: "Tecnologia & IA",
-    query: "\"inteligência artificial\" OR ChatGPT OR \"tecnologia digital\"",
+    query: "\"artificial intelligence\" OR ChatGPT OR \"AI regulation\"",
   },
   {
     key: "big-tech",
     label: "Big Tech & Plataformas",
-    query: "Google OR Meta OR \"Amazon Web Services\" OR TikTok",
+    query: "Google OR Meta OR \"Amazon Web Services\" OR TikTok OR Microsoft",
   },
   {
     key: "seo-marketing",
     label: "SEO & Marketing Digital",
-    query: "SEO OR \"marketing digital\" OR \"algoritmo do Google\"",
+    query: "SEO OR \"digital marketing\" OR \"Google algorithm\"",
   },
   {
     key: "ecommerce",
     label: "E-commerce & Retalho Online",
-    query: "ecommerce OR \"comércio eletrónico\" OR \"vendas online\"",
+    query: "ecommerce OR \"online retail\" OR \"online shopping trends\"",
   },
   {
     key: "mercados-cripto",
     label: "Mercados Financeiros & Cripto",
-    query: "bitcoin OR criptomoedas OR \"mercado financeiro\"",
+    query: "bitcoin OR cryptocurrency OR \"stock market\"",
   },
   {
     key: "startups-africa",
     label: "Startups & Inovação em África",
-    query: "\"startup africana\" OR \"tecnologia em África\"",
+    query: "\"African startup\" OR \"Africa tech\" OR \"African fintech\"",
   },
   {
     key: "geopolitica-comercio",
     label: "Geopolítica & Comércio Global",
-    query: "tarifas OR \"comércio internacional\" OR sanções",
+    query: "tariffs OR \"global trade\" OR sanctions OR \"trade war\"",
   },
   {
     key: "privacidade-regulacao",
     label: "Privacidade & Regulação Digital",
-    query: "\"proteção de dados\" OR \"regulação da IA\"",
+    query: "\"data privacy\" OR \"AI regulation\" OR GDPR",
   },
 ];
 
@@ -211,7 +211,7 @@ async function fetchGNewsForCategory(query: string): Promise<any[]> {
   const apiKey = process.env.GNEWS_API_KEY;
   if (!apiKey) throw new Error("GNEWS_API_KEY não configurada");
 
-  const url = `https://gnews.io/api/v4/search?q=${encodeURIComponent(query)}&lang=pt&in=title&max=3&apikey=${apiKey}`;
+  const url = `https://gnews.io/api/v4/search?q=${encodeURIComponent(query)}&lang=en&in=title&max=3&apikey=${apiKey}`;
   const res = await fetch(url);
   if (!res.ok) {
     const errBody = await res.text();
@@ -222,19 +222,59 @@ async function fetchGNewsForCategory(query: string): Promise<any[]> {
   return data.articles || [];
 }
 
-async function findYoutubeVideoId(searchQuery: string): Promise<string | null> {
+async function findYoutubeCandidates(searchQuery: string): Promise<{ videoId: string; title: string }[]> {
   const apiKey = process.env.YOUTUBE_API_KEY;
-  if (!apiKey) return null;
+  if (!apiKey) return [];
 
   try {
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&relevanceLanguage=pt&q=${encodeURIComponent(searchQuery)}&key=${apiKey}`;
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&relevanceLanguage=pt&videoCategoryId=25&order=relevance&q=${encodeURIComponent(searchQuery)}&key=${apiKey}`;
     const res = await fetch(url);
-    if (!res.ok) return null;
+    if (!res.ok) return [];
 
     const data = await res.json();
-    return data.items?.[0]?.id?.videoId || null;
+    return (data.items || [])
+      .filter((item: any) => item?.id?.videoId)
+      .map((item: any) => ({ videoId: item.id.videoId, title: item.snippet?.title || "" }));
   } catch (err) {
     console.error("Falha ao buscar vídeo no YouTube:", err);
+    return [];
+  }
+}
+
+// Entre vários candidatos do YouTube, pede à IA para escolher o mais relevante (ou nenhum)
+async function pickRelevantVideo(
+  groq: Groq,
+  candidates: { videoId: string; title: string }[],
+  articleTitle: string,
+  articleDescription?: string
+): Promise<string | null> {
+  if (candidates.length === 0) return null;
+
+  try {
+    const list = candidates.map((c, i) => `${i + 1}. ${c.title}`).join("\n");
+    const response = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 100,
+      messages: [
+        {
+          role: "system",
+          content: "Escolha o vídeo cujo TEMA GERAL se sobrepõe ao da notícia — não precisa de ser o mesmo evento, empresa ou pessoa exatos, basta tratar da mesma área/assunto. Exemplo: para a notícia 'CEOs de bancos apontam IA como motor de transformação', o vídeo 'Does AI Mean the End of Banks?' É RELEVANTE, porque ambos tratam de IA no setor bancário. Só responda 0 se NENHUM vídeo tiver qualquer ligação temática — isso deve ser raro. Pense brevemente sobre cada candidato num único parágrafo curto (máximo 2 frases) e depois, OBRIGATORIAMENTE, termine com uma última linha isolada e exata no formato: RESPOSTA: <número> — sem mais nada depois dessa linha.",
+        },
+        {
+          role: "user",
+          content: `Notícia: "${articleTitle}"${articleDescription ? ` — ${articleDescription}` : ""}\n\nVídeos encontrados no YouTube:\n${list}\n\nQual destes vídeos tem mais sobreposição temática com a notícia acima? Responda 0 apenas se realmente nenhum tiver relação com o assunto.`,
+        },
+      ],
+    });
+
+    const answer = response.choices[0]?.message?.content?.trim() || "0";
+    const respostaMatch = answer.match(/RESPOSTA:\s*(\d+)/i);
+    const fallbackMatch = answer.match(/\d+/);
+    const chosenNumber = respostaMatch ? respostaMatch[1] : (fallbackMatch ? fallbackMatch[0] : "0");
+    const index = parseInt(chosenNumber, 10) - 1;
+    return candidates[index]?.videoId || null;
+  } catch (err) {
+    console.error("Falha ao validar relevância do vídeo:", err);
     return null;
   }
 }
@@ -1256,15 +1296,28 @@ if (topic.type === "manual") {
       }
     });
     
-    // ===== NOVO: Endpoint de busca de notícias (só o dono) =====
-app.post("/api/news/fetch", async (req, res) => {
+    // ===== NOVO: Geração individual de notícia (busca 1 + reescreve com IA) =====
+app.post("/api/news/generate", async (req, res) => {
   try {
     const user = await getUserFromRequest(req);
     if (!user || user.id !== OWNER_USER_ID) {
       return res.status(403).json({ error: "Acesso negado." });
     }
 
-    const results: { headline: string; summary: string; sourceName: string; sourceUrl: string; youtubeVideoId: string | null; coverImage: string | null; category: string; publishedAt: string }[] = [];
+    if (!process.env.GROQ_API_KEY) {
+      return res.status(500).json({ error: "GROQ_API_KEY não configurada no servidor." });
+    }
+
+    const { categoryKey } = req.body as { categoryKey?: string };
+    const category = categoryKey
+      ? NEWS_CATEGORIES.find((c) => c.key === categoryKey)
+      : NEWS_CATEGORIES[Math.floor(Math.random() * NEWS_CATEGORIES.length)];
+
+    if (!category) {
+      return res.status(400).json({ error: "Categoria inválida." });
+    }
+
+    // Busca notícias recentes já usadas (para evitar repetir)
     const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
     const { data: existingNews } = await supabaseAdmin
       .from("news_items")
@@ -1272,61 +1325,100 @@ app.post("/api/news/fetch", async (req, res) => {
       .gte("published_at", threeDaysAgo);
     const existingHeadlines = new Set((existingNews || []).map((n) => n.headline.trim().toLowerCase()));
 
-    for (const cat of NEWS_CATEGORIES) {
-      try {
-        await new Promise((resolve) => setTimeout(resolve, 1200)); // evita 429 (limite de pedidos/seg da GNews)
-        const articles = await fetchGNewsForCategory(cat.query);
+    const articles = await fetchGNewsForCategory(category.query);
+    const article = articles.find((a) => !existingHeadlines.has(a.title.trim().toLowerCase()));
 
-        for (const article of articles.slice(0, 2)) {
-          const isDuplicate =
-            results.some((r) => r.headline.trim().toLowerCase() === article.title.trim().toLowerCase()) ||
-            existingHeadlines.has(article.title.trim().toLowerCase());
-          if (isDuplicate) continue;
-
-          const videoId = await findYoutubeVideoId(article.title);
-
-          results.push({
-            headline: article.title,
-            summary: article.description || "",
-            sourceName: article.source?.name || "Fonte desconhecida",
-            sourceUrl: article.url,
-            youtubeVideoId: videoId,
-            coverImage: article.image || null,
-            category: cat.label,
-            publishedAt: article.publishedAt,
-          });
-        }
-      } catch (catErr) {
-        console.error(`Falha ao buscar notícias para categoria ${cat.label}:`, catErr);
-      }
+    if (!article) {
+      return res.status(404).json({ error: "Nenhuma notícia nova encontrada para esta categoria. Tenta novamente mais tarde ou escolhe outra categoria." });
     }
 
-    if (results.length === 0) {
-      return res.status(500).json({ error: "Nenhuma notícia foi obtida." });
+    const candidates = await findYoutubeCandidates(article.title);
+    const videoId = await pickRelevantVideo(groq, candidates, article.title, article.description);
+
+    // Reescreve a notícia com a IA — texto curto, factual, sem inventar dados
+    const prompt = `
+Você é um jornalista digital da TrafficScope, especializado em ligar notícias reais a impacto no tráfego web e comportamento digital.
+
+Reescreva a notícia abaixo em Português, de forma curta e clara (150-250 palavras), parafraseando o conteúdo original (NUNCA copiando texto literal).
+
+TÍTULO ORIGINAL: ${article.title}
+DESCRIÇÃO ORIGINAL: ${article.description || ""}
+CONTEÚDO DISPONÍVEL: ${article.content || ""}
+
+Regras:
+- Só reescreva esta notícia se ela tiver relevância internacional/global real (afeta múltiplos países, mercados globais, big tech, ou tendências mundiais). Se a notícia for essencialmente sobre política ou economia doméstica de um único país sem impacto internacional claro, responda APENAS com {"skip": true} e mais nada.
+- Mantenha os factos exatamente como estão na fonte — não invente números, declarações ou detalhes que não estejam no material fornecido.
+- Tom jornalístico, direto, sem sensacionalismo.
+- Pode incluir, no máximo em uma frase, uma observação sobre a relevância desta notícia para tráfego/comportamento digital — só se fizer sentido natural, sem forçar.
+- Não repita o título dentro do corpo do texto.
+
+Responda APENAS com um objeto JSON válido, sem texto antes ou depois, neste formato exato:
+{
+  "title": "título curto e claro (pode ajustar o original para maior clareza, mas mantendo os factos)",
+  "summary": "1 frase de resumo/isca para a listagem",
+  "content": "corpo do texto em markdown, 150-250 palavras"
+}`;
+
+    const response = await groq.chat.completions.create({
+      model: "openai/gpt-oss-120b",
+      response_format: { type: "json_object" },
+      reasoning_effort: "low",
+      messages: [
+        {
+          role: "system",
+          content: "Você reescreve notícias reais para a TrafficScope de forma curta e factual. Responda SEMPRE apenas com JSON válido, sem texto adicional.",
+        },
+        { role: "user", content: prompt },
+      ],
+    });
+
+    const raw = response.choices[0]?.message?.content || "{}";
+    const rewritten = JSON.parse(raw);
+
+    if (rewritten.skip) {
+      console.log("⏭️ Notícia descartada por falta de relevância global:", article.title);
+      return res.status(404).json({ error: "A notícia encontrada não tinha relevância global suficiente. Tenta novamente ou escolhe outra categoria." });
     }
+
+    const slugBase = rewritten.title
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+    const slug = `${slugBase}-${Date.now()}`;
 
     const { data: inserted, error } = await supabaseAdmin
       .from("news_items")
-      .insert(
-        results.map((r) => ({
-          headline: r.headline,
-          summary: r.summary,
-          source_name: r.sourceName,
-          source_url: r.sourceUrl,
-          youtube_video_id: r.youtubeVideoId,
-          cover_image: r.coverImage,
-          category: r.category,
-          published_at: r.publishedAt,
-        }))
-      )
-      .select();
+      .insert({
+        slug,
+        headline: rewritten.title,
+        summary: rewritten.summary,
+        content: rewritten.content,
+        source_name: article.source?.name || "Fonte desconhecida",
+        source_url: article.url,
+        youtube_video_id: videoId,
+        cover_image: article.image || null,
+        category: category.label,
+        published_at: article.publishedAt,
+      })
+      .select()
+      .single();
 
     if (error) throw error;
 
-    return res.json({ success: true, count: inserted.length, items: inserted });
+    await createNotification(
+      null,
+      'new_blog_post',
+      'Nova notícia publicada',
+      rewritten.title,
+      `/noticias/${slug}`
+    );
+
+    return res.json({ success: true, item: inserted });
   } catch (err: any) {
-    console.error("Erro ao buscar notícias:", err);
-    return res.status(500).json({ error: "Falha ao buscar notícias." });
+    console.error("Erro ao gerar notícia:", err);
+    return res.status(500).json({ error: "Falha ao gerar notícia." });
   }
 });
 
@@ -1336,6 +1428,7 @@ app.get("/api/news", async (req, res) => {
     const { data, error } = await supabaseAdmin
       .from("news_items")
       .select("*")
+      .not("slug", "is", null)
       .order("published_at", { ascending: false })
       .limit(50);
 
@@ -1345,6 +1438,25 @@ app.get("/api/news", async (req, res) => {
   } catch (err: any) {
     console.error("Erro ao listar notícias:", err);
     return res.status(500).json({ error: "Falha ao listar notícias." });
+  }
+});
+
+// ===== NOVO: Detalhe público de uma notícia =====
+app.get("/api/news/:slug", async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const { data, error } = await supabaseAdmin
+      .from("news_items")
+      .select("*")
+      .eq("slug", slug)
+      .single();
+
+    if (error) throw error;
+
+    return res.json({ success: true, item: data });
+  } catch (err: any) {
+    console.error("Erro ao buscar notícia:", err);
+    return res.status(404).json({ error: "Notícia não encontrada." });
   }
 });
 
