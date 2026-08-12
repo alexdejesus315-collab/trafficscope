@@ -227,7 +227,7 @@ async function findYoutubeCandidates(searchQuery: string): Promise<{ videoId: st
   if (!apiKey) return [];
 
   try {
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&relevanceLanguage=pt&videoCategoryId=25&order=relevance&q=${encodeURIComponent(searchQuery)}&key=${apiKey}`;
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&relevanceLanguage=en&videoCategoryId=25&order=relevance&videoEmbeddable=true&q=${encodeURIComponent(searchQuery)}&key=${apiKey}`;
     const res = await fetch(url);
     if (!res.ok) return [];
 
@@ -1418,7 +1418,11 @@ Responda APENAS com um objeto JSON válido, sem texto antes ou depois, neste for
     return res.json({ success: true, item: inserted });
   } catch (err: any) {
     console.error("Erro ao gerar notícia:", err);
-    return res.status(500).json({ error: "Falha ao gerar notícia." });
+    const isGNewsQuota = err?.message?.includes("GNews") && err?.message?.includes("403");
+    const errorMessage = isGNewsQuota
+      ? "Limite diário da GNews API atingido. Tenta novamente após as 00:00 UTC ou faz upgrade do plano."
+      : "Falha ao gerar notícia.";
+    return res.status(isGNewsQuota ? 429 : 500).json({ error: errorMessage });
   }
 });
 

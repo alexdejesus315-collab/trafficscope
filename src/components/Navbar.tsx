@@ -5,7 +5,7 @@ import {
   Activity, LogOut, ChevronDown, Info, HelpCircle, Shield, FileText, Mail,
   Instagram, Linkedin, Twitter, Facebook, Zap, Battery, BatteryWarning,
   BatteryCharging, UserCircle, TestTube2, ShoppingCart, Search, ArrowRight,
-  Bell, CheckCheck,
+  Bell, CheckCheck, History, PenSquare,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserProfile, UserMode } from '../types/domain';
@@ -52,7 +52,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const notifDropdownRef = useRef<HTMLDivElement>(null);
   const notifToggleRef = useRef<HTMLButtonElement>(null);
   const generateBtnRef = useRef<HTMLButtonElement>(null);
-  const generateNewsBtnRef = useRef<HTMLButtonElement>(null);
+  const generateMenuRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
   const showGenerateButton = isOwner(user?.id);
@@ -62,6 +62,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
   const [isGenerateNewsModalOpen, setIsGenerateNewsModalOpen] = useState(false);
+  const [isGenerateMenuOpen, setIsGenerateMenuOpen] = useState(false);
   const { notifications, unreadCount, isLoadingMore, hasMore, loadMore, markAsRead, markAllAsRead } = useNotifications(user?.id);
 
   const [lastSeenBlog, setLastSeenBlog] = useState<string | null>(() =>
@@ -141,6 +142,25 @@ export const Navbar: React.FC<NavbarProps> = ({
     };
   }, [isNotifOpen]);
 
+  useEffect(() => {
+    if (!isGenerateMenuOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (generateBtnRef.current?.contains(e.target as Node)) return;
+      if (generateMenuRef.current && !generateMenuRef.current.contains(e.target as Node)) {
+        setIsGenerateMenuOpen(false);
+      }
+    }
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === 'Escape') setIsGenerateMenuOpen(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isGenerateMenuOpen]);
+
   const credits = profile?.credits ?? 0;
   const mode = profile?.mode ?? 'test';
   const totalSearches = profile?.totalSearches ?? 0;
@@ -163,9 +183,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </a>
 
-        <LanguageSwitcher />
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+          <LanguageSwitcher />
 
-        <div className="flex items-center gap-1 sm:gap-2 relative">
+          <div className="flex items-center gap-1 sm:gap-2 relative min-w-0">
           <Button
             variant="ghost"
             size="sm"
@@ -189,26 +210,26 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <Button
             variant="ghost"
-            size="sm"
+            size="icon-sm"
             onClick={() => navigate('/history')}
-            className="!text-sidebar-foreground text-sm font-semibold rounded-full px-3 py-1.5 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+            title={t('nav.history')}
+            className="!text-sidebar-foreground rounded-full hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
           >
-            <span className="hidden lg:inline">{t('nav.history')}</span>
-            <span className="lg:hidden">{t('nav.historyShort', 'Histórico')}</span>
+            <History className="h-4 w-4" />
           </Button>
 
           <div className="relative">
             <Button
               ref={notifToggleRef}
               variant="ghost"
-              size="sm"
+              size="icon-sm"
               onClick={() => setIsNotifOpen(!isNotifOpen)}
-              className="relative !text-sidebar-foreground text-sm font-semibold rounded-full px-3 py-1.5 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+              title={t('nav.notifications.title')}
+              className="relative !text-sidebar-foreground rounded-full hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
             >
-              <span className="hidden lg:inline">{t('nav.notifications.title')}</span>
-              <span className="lg:hidden">{t('nav.notifications.short', 'Alertas')}</span>
+              <Bell className="h-4 w-4" />
               {unreadCount > 0 && (
-                <span className="ml-1.5 flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold">
+                <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
@@ -301,40 +322,47 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Button
                 ref={generateBtnRef}
                 variant="ghost"
-                size="sm"
-                className="gap-1.5 !text-sidebar-foreground text-sm font-semibold rounded-full px-3 py-1.5 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
-                onClick={() => setIsGenerateModalOpen((v) => !v)}
+                size="icon-sm"
+                title="Gerar conteúdo"
+                className="!text-sidebar-foreground rounded-full hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+                onClick={() => setIsGenerateMenuOpen((v) => !v)}
               >
-                <span className="hidden lg:inline">{t('nav.generateArticle')}</span>
-                <span className="lg:hidden">{t('nav.generateArticleShort', 'Artigo')}</span>
+                <PenSquare className="h-4 w-4" />
               </Button>
+
+              {isGenerateMenuOpen && (
+                <div
+                  ref={generateMenuRef}
+                  className="absolute top-[calc(100%+10px)] left-1/2 -translate-x-1/2 w-[190px] bg-popover rounded-xl border border-border shadow-[0_8px_30px_rgba(0,0,0,0.12)] overflow-hidden z-50 p-1.5"
+                >
+                  <button
+                    onClick={() => { setIsGenerateMenuOpen(false); setIsGenerateModalOpen(true); }}
+                    className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent/50 transition-colors"
+                  >
+                    <FileText className="h-4 w-4" />
+                    {t('nav.generateArticle')}
+                  </button>
+                  <button
+                    onClick={() => { setIsGenerateMenuOpen(false); setIsGenerateNewsModalOpen(true); }}
+                    className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent/50 transition-colors"
+                  >
+                    <Newspaper className="h-4 w-4" />
+                    Gerar Notícia
+                  </button>
+                </div>
+              )}
+
               <GenerateArticleModal
                 open={isGenerateModalOpen}
                 onOpenChange={setIsGenerateModalOpen}
                 onGenerated={(slug) => navigate(`/blog/${slug}`)}
                 anchorRef={generateBtnRef}
               />
-            </div>
-          )}
-
-
-{showGenerateButton && (
-            <div className="relative">
-              <Button
-                ref={generateNewsBtnRef}
-                variant="ghost"
-                size="sm"
-                className="gap-1.5 !text-sidebar-foreground text-sm font-semibold rounded-full px-3 py-1.5 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
-                onClick={() => setIsGenerateNewsModalOpen((v) => !v)}
-              >
-                <Newspaper className="h-3.5 w-3.5" />
-                <span className="hidden lg:inline">Gerar Notícia</span>
-              </Button>
               <GenerateNewsModal
                 open={isGenerateNewsModalOpen}
                 onOpenChange={setIsGenerateNewsModalOpen}
                 onGenerated={(slug) => navigate(`/noticias/${slug}`)}
-                anchorRef={generateNewsBtnRef}
+                anchorRef={generateBtnRef}
               />
             </div>
           )}
@@ -576,6 +604,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             </div>
           )}
+          </div>
         </div>
       </div>
     </header>
