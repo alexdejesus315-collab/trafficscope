@@ -4,6 +4,7 @@ import { Activity } from 'lucide-react';
 import { useAuth } from './hooks/useAuth';
 import { LanguageProvider } from './context/LanguageContext';
 
+const Landing = lazy(() => import('./pages/Landing'));
 const Login = lazy(() => import('./pages/Login'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const History = lazy(() => import('./pages/History'));
@@ -42,7 +43,7 @@ export default function App() {
       <Suspense fallback={<PageFallback />}>
         <Routes>
           <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
-          <Route path="/" element={user ? <Dashboard /> : <Navigate to="/login" replace />} />
+          <Route path="/" element={user ? <Dashboard /> : <Landing />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPostDetail />} />
           <Route path="/noticias" element={<Noticias />} />
