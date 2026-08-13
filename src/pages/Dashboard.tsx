@@ -17,6 +17,7 @@ import { TrafficSources } from '../components/TrafficSources';
 import { GeoMapSection } from '../components/GeoMapSection';
 import { UserProfileModal } from '../components/UserProfileModal';
 import { BuyCreditsModal } from '../components/BuyCreditsModal';
+import { SiteFooter } from '../components/SiteFooter';
 
 const AiInsightsModal = lazy(() =>
   import('../components/AiInsightsModal').then(m => ({ default: m.AiInsightsModal }))
@@ -465,6 +466,8 @@ export default function Dashboard() {
         onClose={() => setIsBuyCreditsOpen(false)}
         userId={user?.id}
       />
+
+      <SiteFooter />
     </div>
   );
 }
