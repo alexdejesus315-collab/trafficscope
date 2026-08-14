@@ -1159,6 +1159,49 @@ let category: string;
           console.error("Falha na pesquisa Tavily, artigo seguirá sem estatísticas externas:", searchErr);
         }
 
+        // NOVO: se for artigo de notícia e a Tavily trouxer resultados fracos/insuficientes,
+        // tenta automaticamente outras categorias antes de forçar o artigo com material pobre
+        // (evita o "ensaio genérico sem facto concreto" que vimos no artigo de IA-como-padrão).
+        if (topic.type === "news") {
+          const MIN_SNIPPETS = 2;
+          const triedCategories = new Set<string>([topic.news.category]);
+          let attempts = 0;
+          const MAX_ATTEMPTS = 3;
+
+          while (statsContext.snippets.length < MIN_SNIPPETS && attempts < MAX_ATTEMPTS) {
+            attempts++;
+            const alternatives = NEWS_TOPICS.filter((n) => !triedCategories.has(n.category));
+            if (alternatives.length === 0) break;
+
+            const nextNews = alternatives[Math.floor(Math.random() * alternatives.length)];
+            triedCategories.add(nextNews.category);
+
+            console.warn(
+              `Tavily devolveu apenas ${statsContext.snippets.length} snippet(s) para "${topic.news.category}", a tentar categoria alternativa: "${nextNews.category}" (tentativa ${attempts}/${MAX_ATTEMPTS})`
+            );
+
+            try {
+              const altContext = await fetchRealStats(nextNews.query);
+              if (altContext.snippets.length >= MIN_SNIPPETS) {
+                statsContext = altContext;
+                topic.news = nextNews;
+                topic.topicKey = `news::${nextNews.category}`;
+                statsQuery = nextNews.query;
+                category = nextNews.category;
+                break;
+              }
+            } catch (retryErr) {
+              console.error(`Falha na pesquisa Tavily para categoria alternativa "${nextNews.category}":`, retryErr);
+            }
+          }
+
+          if (statsContext.snippets.length < MIN_SNIPPETS) {
+            console.warn(
+              `Nenhuma categoria alternativa trouxe resultados suficientes após ${attempts} tentativa(s); artigo seguirá com material limitado (${statsContext.snippets.length} snippet(s)) para "${topic.news.category}".`
+            );
+          }
+        }
+
         const angleInstruction =
           topic.type === "comparison" ? topic.angle.instruction :
           topic.type === "news" ? topic.news.instruction :
@@ -1202,6 +1245,7 @@ vazia. Não incluas aqui uma fonte só porque o tema é relacionado — só se o
 
 ÂNGULO/TEMA OBRIGATÓRIO PARA ESTE ARTIGO:
 ${angleInstruction}
+${topic.type === "news" ? "\nEXIGÊNCIA DE CONCRETUDE: o artigo tem de girar à volta de um facto específico e verificável — um nome de empresa, produto, valor, evento ou decisão concreta presente nas fontes. NÃO escrevas um ensaio genérico sobre 'tendências' ou 'o futuro do setor' sem nenhuma âncora factual específica. Se as fontes fornecidas forem vagas demais ou não contiverem nenhum facto concreto e datável, usa o facto mais específico disponível ainda que menor, em vez de preencheres o artigo com generalidades." : ""}
 
 AVISO GERAL SOBRE CAUSALIDADE DIGITAL VS FÍSICA: nunca afirmes que volume de pesquisa ou tráfego web causa ou "satura" infraestrutura física (armazéns, frotas de entrega, lojas físicas, servidores de terceiros, redes elétricas, etc.) — pesquisa online é comportamento de atenção do utilizador, não é o mesmo que compras reais, envios físicos ou consumo de recursos físicos. Se quiseres relacionar os dois, liga-os só como sinais correlacionados (ex: "pode sinalizar", "costuma preceder"), nunca como causa direta.
 AVISO SOBRE FOCO OBRIGATÓRIO: a TrafficScope é uma ferramenta de inteligência de MERCADO, não apenas de tráfego web/busca. NUNCA forces uma conexão com tráfego, popularidade de busca ou cliques só para "fechar" o artigo com um gancho digital. Se o ângulo natural da notícia for de negócio, investimento, produto, regulação, geopolítica ou cultura, o artigo pode (e deve) ficar inteiramente nesse plano, sem qualquer menção a tráfego/busca. A menção a comportamento digital só deve aparecer quando for uma consequência genuína e específica dos factos — nunca uma ponte genérica tipo "isto deve gerar mais buscas online".
@@ -1227,8 +1271,16 @@ REGRAS PARA O CONTEÚDO:
   {{IMG_1}} e {{IMG_2}}, cada um numa linha própria, sem mais nada à volta.
 - Usa subtítulos que também gerem curiosidade, não só descritivos.
 - Termina com uma secção final que aponte uma implicação prática ou pergunta em aberto para o leitor.
+- NUNCA adiciones frases de disclaimer ou meta-comentário sobre o próprio artigo (ex: "Este artigo foi
+  elaborado com base nas informações disponíveis nas fontes citadas", "Este texto é apenas informativo",
+  ou equivalentes). O artigo deve terminar diretamente na pergunta/implicação ao leitor, sem nenhuma
+  frase de fecho sobre a origem ou natureza do próprio texto.
 - Em UM único ponto do corpo do texto (não no título, não no excerpt, não na conclusão), insira uma
-  referência natural e sutil ao tipo de análise que a TrafficScope permite fazer. Varia a formulação a cada
+  referência natural e sutil ao tipo de análise que a TrafficScope permite fazer. Esta referência tem de
+  estar DENTRO de um parágrafo já existente, integrada ao raciocínio do texto — NUNCA cries um subtítulo,
+  secção ou parágrafo dedicado só a isto (nada de cabeçalhos tipo "Como a TrafficScope pode ajudar?").
+  Se não conseguires encaixar a menção com naturalidade num parágrafo já existente, prefere omiti-la
+  nesta geração a criar uma secção isolada para a fazer caber. Varia a formulação a cada
   artigo, adaptando-a ao tema específico em vez de reutilizares sempre a mesma frase — por exemplo (escolhe
   UMA ideia destas ou inventa uma equivalente, nunca repitas literalmente a mesma frase de artigos
   anteriores): monitorizar esta variação em tempo real, cruzar estes dados com o domínio do próprio
