@@ -245,6 +245,7 @@ export const es = {
 'blogPost.deleteButton': 'Eliminar artículo',
 'blogPost.citedCompanies': 'Empresas citadas:',
 'blogPost.cta.text': '¿Curioso sobre cómo {{domain}} se compara con tu propio sitio? TrafficScope analiza cualquier dominio en segundos.',
+'blogPost.cta.textGeneric': '¿Quieres detectar tendencias como esta antes que tu competencia? TrafficScope analiza cualquier dominio o mercado en segundos.',
 'blogPost.cta.link': 'Ver mi análisis gratuito',
 'blogPost.affiliate.title': 'Recomendación relacionada',
 'blogPost.affiliate.desc': 'Merece la pena saber más sobre {{domain}}.',

@@ -98,19 +98,27 @@ const NICHE_POOLS: { category: string; domains: string[] }[] = [  { category: "E
 const NARRATIVE_ANGLES = [
   {
     key: "rivalry",
-    instruction: "Foque numa RIVALIDADE direta entre dois domínios do dataset com trajetórias opostas — um a crescer, outro a estagnar ou cair. Escolhe UM único par de domínios logo no início e usa exatamente esse par (nunca troques por outro domínio do dataset) no título, no excerpt e em todo o corpo do texto.",
+    instruction: "Foque numa RIVALIDADE direta entre dois domínios do dataset com trajetórias opostas — um a crescer, outro a estagnar ou cair. Escolhe UM único par de domínios logo no início e usa exatamente esse par (nunca troques por outro domínio do dataset) no título, no excerpt e em todo o corpo do texto. Usa estritamente a escala do Google Trends (0-100) para ilustrar a rivalidade de atenção — nunca inventes números absolutos de visitas/utilizadores na casa dos milhões.",
+  },
+  {
+    key: "case_study",
+    instruction: "Foque num ÚNICO domínio do dataset que tenha o dado mais notável (maior crescimento, maior queda, ou maior volume). Trate-o como um estudo de caso: o que pode explicar essa trajetória (lançamento, campanha, mudança de mercado). O domínio escolhido é o protagonista absoluto do texto; os restantes domínios do dataset servem apenas como referência de escala em UMA frase, nunca como confronto direto — este artigo NÃO é sobre 'quem lidera'.",
+  },
+  {
+    key: "sector_trend",
+    instruction: "Foque no NICHO/SETOR como um todo, não em domínios individuais em confronto. Descreva o comportamento coletivo do consumidor ou do mercado que os dados do dataset ilustram, usando 2-3 domínios apenas como exemplos ilustrativos da tendência — nunca coloque dois domínios 'frente a frente'.",
   },
   {
     key: "prediction",
-    instruction: "Foque numa PREVISÃO/TENDÊNCIA futura baseada nos dados atuais — o que estes números sugerem para os próximos 6-12 meses neste setor.",
+    instruction: "Foque numa PREVISÃO/TENDÊNCIA futura baseada nos dados atuais — o que estes números sugerem para os próximos 6-12 meses neste setor. Isto é sobre para onde o setor vai, não sobre qual domínio específico 'vence' outro. Baseia a previsão exclusivamente em dados e factos do presente (ver DATA ATUAL no topo do prompt) — nunca trates projeções, relatórios ou artigos antigos das fontes como se fossem verdades já consolidadas do ano corrente.",
   },
   {
     key: "warning",
-    instruction: "Foque num ALERTA ou RISCO que os dados revelam — um sinal de alerta que empresas do setor deveriam notar, com tom de urgência mas sem exagero.",
+    instruction: "Foque num ALERTA ou RISCO que os dados revelam — mas só se o risco for uma consequência lógica e direta dos dados, não uma interpretação forçada. Um domínio ter mais interesse de pesquisa do que outro NÃO é, por si só, um risco ou vulnerabilidade — normalmente é só sucesso de mercado; não inventes uma ameaça a partir de uma simples disparidade de popularidade. Se os domínios comparados tiverem modelos de negócio claramente diferentes (ex: retalhista com logística própria vs marketplace de revenda entre particulares), não os trates como concorrentes diretos numa mesma corrida de atenção. Se não houver um risco genuíno e específico nos dados, usa outro ângulo (ex: sector_trend ou prediction) em vez de forçar um.",
   },
   {
     key: "listicle",
-    instruction: "Estruture o artigo como uma pequena lista ordenada (ex: 'Os 3 sinais que os dados revelam sobre X'), usando os domínios do dataset como exemplos de cada ponto.",
+    instruction: "Estruture o artigo como uma pequena lista ordenada (ex: 'Os 3 sinais que os dados revelam sobre o setor'), usando os domínios do dataset como exemplos pontuais de cada sinal — não como um ranking de quem está melhor ou pior.",
   },
   {
     key: "regional",
@@ -127,7 +135,7 @@ const NEWS_TOPICS: { category: string; query: string; instruction: string }[] = 
   {
     category: "Tecnologia",
     query: "notícias tecnologia inteligência artificial lançamentos 2026",
-    instruction: "Escolha UMA notícia recente e concreta sobre tecnologia/IA a partir dos factos fornecidos. Explique o que aconteceu e depois ligue explicitamente a como isso deve afetar o tráfego web, a popularidade de busca ou o comportamento digital das empresas/plataformas envolvidas.",
+    instruction: "Escolha UMA notícia recente e concreta sobre tecnologia/IA a partir dos factos fornecidos. Explique o que aconteceu e o seu impacto real no setor (adoção, investimento, competição, produto, regulação). Só ligue isso a tráfego web, busca ou comportamento digital SE essa ligação for natural e específica ao caso — caso contrário, mantém o foco inteiramente no impacto de mercado/negócio.",
   },
   {
     category: "Mercados Financeiros",
@@ -137,27 +145,27 @@ const NEWS_TOPICS: { category: string; query: string; instruction: string }[] = 
   {
     category: "Geopolítica & Economia Global",
     query: "geopolítica economia global tarifas sanções comércio internacional 2026",
-    instruction: "Escolha UM desenvolvimento geopolítico recente a partir dos factos fornecidos. Explique as consequências práticas para a economia global e ligue isso a efeitos esperados no comércio digital, e-commerce cross-border ou tráfego web de plataformas afetadas.",
+    instruction: "Escolha UM desenvolvimento geopolítico recente a partir dos factos fornecidos. Explique as consequências práticas para a economia global, para setores e empresas afetadas. Só mencione efeitos em comércio digital, e-commerce cross-border ou tráfego web SE houver uma ligação direta e plausível nos factos — caso contrário, foca-te inteiramente no impacto económico/geopolítico, sem inventar uma ponte digital.",
   },
   {
     category: "Startups & Inovação em África",
     query: "startups inovação tecnologia África funding 2026",
-    instruction: "Escolha UMA notícia recente sobre uma startup ou iniciativa de inovação africana a partir dos factos fornecidos. Explique o que a torna relevante e ligue isso ao potencial de crescimento de tráfego/popularidade digital que representa para o ecossistema africano.",
+    instruction: "Escolha UMA notícia recente sobre uma startup ou iniciativa de inovação africana a partir dos factos fornecidos. Explique o que a torna relevante — modelo de negócio, investimento captado, problema real que resolve. Só menciona potencial de tráfego/popularidade digital se a startup for de consumo digital direto; para startups B2B, fintech de infraestrutura, hardware, etc., mantém o foco no impacto de negócio/mercado.",
   },
   {
     category: "China-América & Comércio Global",
     query: "relação China Estados Unidos comércio tecnologia 2026",
-    instruction: "Escolha UM desenvolvimento recente na relação China-EUA (tecnologia, comércio, tarifas) a partir dos factos fornecidos. Ligue isso a como afeta plataformas digitais, e-commerce global ou o tráfego de empresas destes dois mercados.",
+    instruction: "Escolha UM desenvolvimento recente na relação China-EUA (tecnologia, comércio, tarifas) a partir dos factos fornecidos. Explique o impacto real nas empresas, cadeias de fornecimento ou mercados dos dois países. Só ligue isso a plataformas digitais, e-commerce ou tráfego SE a notícia tiver essa natureza — caso contrário, mantém a análise no plano económico/comercial.",
   },
   {
     category: "Criptomoedas",
     query: "criptomoedas bitcoin mercado cripto notícias 2026",
-    instruction: "Escolha UM movimento recente do mercado cripto a partir dos factos fornecidos. Ligue isso a picos ou quedas esperadas de interesse de busca/tráfego em exchanges e plataformas relacionadas.",
+    instruction: "Escolha UM movimento recente do mercado cripto a partir dos factos fornecidos. Explique o impacto direto no mercado (preço, adoção, regulação, confiança de investidores). Só menciona picos/quedas de interesse de busca/tráfego se isso for um ângulo genuinamente natural da notícia, nunca uma conclusão forçada.",
   },
   {
     category: "Moda & Arte",
     query: "moda arte tendências lançamentos colaborações 2026",
-    instruction: "Escolha UMA tendência ou lançamento recente em moda/arte a partir dos factos fornecidos. Ligue isso a como esse tipo de evento costuma gerar picos de busca e tráfego digital para marcas e plataformas envolvidas.",
+    instruction: "Escolha UMA tendência ou lançamento recente em moda/arte a partir dos factos fornecidos. Explique a relevância cultural/comercial do evento para a marca ou o setor. Só menciona impacto em busca/tráfego digital se for um ângulo genuinamente interessante para esta notícia específica — não é obrigatório em todos os artigos desta categoria.",
   },
 ];
 
@@ -1124,7 +1132,9 @@ let category: string;
               return { name: d, value: m.monthlyVisits };
             });
           }
-          statsQuery = `${referenceDomains.slice(0, 2).map((d) => d.split(".")[0]).join(" vs ")} estatísticas mercado 2026`;
+          statsQuery = topic.angle.key === "rivalry"
+            ? `${referenceDomains.slice(0, 2).map((d) => d.split(".")[0]).join(" vs ")} estatísticas mercado 2026`
+            : `${topic.niche.category} tendências mercado consumidor 2026`;
           category = topic.niche.category;
         } else if (topic.type === "news") {
           statsQuery = topic.news.query;
@@ -1164,8 +1174,8 @@ let category: string;
             : `Não há dados de comparação de domínios pré-definidos para este artigo — é um artigo de notícia/contexto, não de comparação de tráfego. Só inclua "chart_data" e "chart_type" no JSON de resposta se a notícia mencionar claramente 1-5 domínios/marcas cujo tráfego/popularidade faça sentido ilustrar; caso contrário, devolva "chart_data": null e "chart_type": null.`;
 
         const prompt = `
-Você é um analista sénior de mercado digital da TrafficScope, especialista em copywriting orientado a dados.
-Escreva um artigo de blog em Português sobre tendências de tráfego web e comportamento de mercado.
+Você é um analista sénior de inteligência de mercado da TrafficScope, especialista em copywriting orientado a dados.
+Escreva um artigo de blog em Português sobre tendências de mercado, comportamento digital e dinâmicas competitivas — tráfego web e busca são APENAS um dos ângulos possíveis, nunca um requisito obrigatório do artigo.
 
 DATA ATUAL: ${new Date().toLocaleDateString('pt-PT', { year: 'numeric', month: 'long', day: 'numeric' })}. Usa esta data como referência de "presente". Se as fontes mencionarem números ou factos de anos anteriores (2024, 2025), trata-os SEMPRE como dados históricos/já ocorridos — nunca os apresentes como previsão futura ou como se fossem o ano corrente. Nunca confundas a linha do tempo entre passado, presente e futuro.
 
@@ -1177,18 +1187,27 @@ Factos e estatísticas reais publicadas recentemente sobre o tema (use-os para f
 parafraseando, NUNCA copiando texto literal):
 ${statsContext.snippets.map((s, i) => `[Fonte ${i + 1}] ${s}`).join("\n")}
 
+REGRA CRÍTICA DE ATRIBUIÇÃO: só podes nomear ou referenciar "Fonte N" no corpo do texto (ex: "Segundo a
+Fonte 2...", "De acordo com...") se a afirmação que estás a atribuir estiver literalmente presente no
+texto dessa fonte acima. É PROIBIDO usar conhecimento próprio/geral sobre o tema e depois etiquetá-lo como
+vindo de uma das fontes listadas — isso é uma atribuição falsa, mesmo que o facto em si seja verdadeiro.
+Se souberes um facto relevante mas ele não estiver em nenhuma das fontes acima, podes mencioná-lo em tom
+mais genérico e SEM o atribuir a nenhuma fonte específica (nada de "segundo X" ou "Fonte N"), ou preferir
+não o incluir.
+
 Nem todas as fontes acima têm de ser usadas — usa só as que forem realmente relevantes para o ângulo deste
-artigo. No campo "sources_used" da resposta, lista APENAS os números das fontes ([Fonte N]) que
-efetivamente usaste no corpo do texto; se não usaste nenhuma, devolve uma lista vazia.
+artigo. No campo "sources_used" da resposta, lista APENAS os números das fontes ([Fonte N]) cujo texto
+literal usaste ou parafraseaste diretamente no corpo do texto; se não usaste nenhuma, devolve uma lista
+vazia. Não incluas aqui uma fonte só porque o tema é relacionado — só se o conteúdo dela foi mesmo usado.
 
 ÂNGULO/TEMA OBRIGATÓRIO PARA ESTE ARTIGO:
 ${angleInstruction}
 
 AVISO GERAL SOBRE CAUSALIDADE DIGITAL VS FÍSICA: nunca afirmes que volume de pesquisa ou tráfego web causa ou "satura" infraestrutura física (armazéns, frotas de entrega, lojas físicas, servidores de terceiros, redes elétricas, etc.) — pesquisa online é comportamento de atenção do utilizador, não é o mesmo que compras reais, envios físicos ou consumo de recursos físicos. Se quiseres relacionar os dois, liga-os só como sinais correlacionados (ex: "pode sinalizar", "costuma preceder"), nunca como causa direta.
+AVISO SOBRE FOCO OBRIGATÓRIO: a TrafficScope é uma ferramenta de inteligência de MERCADO, não apenas de tráfego web/busca. NUNCA forces uma conexão com tráfego, popularidade de busca ou cliques só para "fechar" o artigo com um gancho digital. Se o ângulo natural da notícia for de negócio, investimento, produto, regulação, geopolítica ou cultura, o artigo pode (e deve) ficar inteiramente nesse plano, sem qualquer menção a tráfego/busca. A menção a comportamento digital só deve aparecer quando for uma consequência genuína e específica dos factos — nunca uma ponte genérica tipo "isto deve gerar mais buscas online".
 ${topic.type === "news" ? "\nAVISO SOBRE CAUSALIDADE: só faças a ligação entre o evento noticiado e tráfego/comportamento digital se essa ligação for tecnicamente ou logicamente plausível (ex: eventos de e-commerce, plataformas digitais, comportamento de utilizador online). NUNCA invente um mecanismo técnico que não existe (ex: não associes hardware/chips de IA a 'roteamento' ou 'fluxo' de tráfego web — são coisas tecnicamente não relacionadas). Se a ligação genuína for fraca ou inexistente, prefere não a fazer, ou menciona-a só como reflexão vaga sobre o setor em geral, nunca como afirmação técnica específica." : ""}
-${topic.type === "comparison" ? "\nAVISO SOBRE ESCALA: antes de escolher o par de domínios em foco no artigo, avalie se ambos operam numa escala de mercado comparável (ambos globais, ou ambos regionais/de nicho semelhante). Se os dados mostrarem um player claramente global ao lado de um player claramente regional/de nicho menor, NÃO apresente isso como 'quem domina' ou uma disputa direta — em vez disso, explique a diferença de escala como contexto (ex: alcance geográfico diferente), e escolha um par mais equilibrado dentro do dataset para o confronto principal do artigo, se existir. Confirma também que os dois domínios pertencem à mesma categoria funcional de produto (ex: ambos ferramentas de design, ambos apps de chat, ambos motores de busca) — NUNCA apresentes dois produtos de categorias claramente diferentes (ex: ferramenta de design vs ferramenta de chat) como concorrentes diretos, mesmo que estejam no mesmo pool de nicho amplo; se não houver par da mesma categoria funcional disponível, foca o artigo só num domínio ou usa um ângulo não competitivo." : ""}\n\nAVISO SOBRE O QUE O ÍNDICE REALMENTE MEDE: o valor do Google Trends é volume de interesse de pesquisa, NÃO é receita, tráfego real, quota de mercado, nem desempenho de negócio. NUNCA enquadres um valor mais alto como a empresa 'a ganhar', 'a dominar' ou 'a vencer' a outra — usa linguagem como 'gera mais interesse de pesquisa' ou 'tem mais procura online', deixando claro que é sobre atenção/curiosidade do público, não sobre sucesso empresarial." : ""}
-REGRAS PARA O TÍTULO (crítico para gerar cliques):
-- ${topic.type === "comparison" ? 'Use um dos formatos: contraste com o valor real do índice de popularidade ("X regista Y pontos de interesse de pesquisa, Z fica em N"), pergunta direta que o leitor quer responder, ou contraste qualitativo entre as trajetórias reais do dataset (sem inventar percentagens). NUNCA enquadres o índice como "quem está a ganhar/perder" ou "quem domina" — é volume de pesquisa, não desempenho de negócio (ver AVISO SOBRE O QUE O ÍNDICE REALMENTE MEDE).' : "Use um gancho de curiosidade baseado no facto mais forte encontrado nas fontes: uma pergunta direta, um número concreto (só se vier literalmente das fontes), ou uma afirmação que gere tensão."}- Se incluíres um número, ele tem de vir literalmente do chartData ou das fontes — nunca inventado (ver REGRA CRÍTICA acima).
+${topic.type === "comparison" && topic.angle.key === "rivalry" ? "\nAVISO SOBRE ESCALA: antes de escolher o par de domínios em foco no artigo, avalie se ambos operam numa escala de mercado comparável (ambos globais, ou ambos regionais/de nicho semelhante). Se os dados mostrarem um player claramente global ao lado de um player claramente regional/de nicho menor, NÃO apresente isso como 'quem domina' ou uma disputa direta — em vez disso, explique a diferença de escala como contexto (ex: alcance geográfico diferente), e escolha um par mais equilibrado dentro do dataset para o confronto principal do artigo, se existir. Confirma também que os dois domínios pertencem à mesma categoria funcional de produto (ex: ambos ferramentas de design, ambos apps de chat, ambos motores de busca) — NUNCA apresentes dois produtos de categorias claramente diferentes (ex: ferramenta de design vs ferramenta de chat) como concorrentes diretos, mesmo que estejam no mesmo pool de nicho amplo; se não houver par da mesma categoria funcional disponível, foca o artigo só num domínio ou usa um ângulo não competitivo." : ""}
+${topic.type === "comparison" && topic.angle.key !== "rivalry" ? "\nDIRETRIZ DE FORMATO EDITORIAL: este artigo NÃO deve ser estruturado como um embate ou duelo direto de popularidade entre marcas (nada de 'Quem está ganhando?', 'X supera Y', ou títulos/estrutura de confronto). Trate os dados de forma analítica, tratando os domínios do dataset como exemplos ou contexto de apoio ao ângulo pedido, nunca como adversários num ringue. Além disso, NUNCA apresentes uma diferença de popularidade de pesquisa entre dois domínios como sendo, por si só, prova de risco, vulnerabilidade ou perigo competitivo — isso é uma inferência não sustentada pelos dados; se quiseres discutir risco, ele tem de vir de um facto concreto nas fontes (ex: uma notícia real sobre perda de quota de mercado), nunca de uma simples leitura do gráfico." : ""}- ${topic.type === "comparison" ? 'Use um dos formatos: contraste com o valor real do índice de popularidade ("X regista Y pontos de interesse de pesquisa, Z fica em N"), pergunta direta que o leitor quer responder, ou contraste qualitativo entre as trajetórias reais do dataset (sem inventar percentagens). NUNCA enquadres o índice como "quem está a ganhar/perder" ou "quem domina" — é volume de pesquisa, não desempenho de negócio (ver AVISO SOBRE O QUE O ÍNDICE REALMENTE MEDE).' : "Use um gancho de curiosidade baseado no facto mais forte encontrado nas fontes: uma pergunta direta, um número concreto (só se vier literalmente das fontes), ou uma afirmação que gere tensão."}- Se incluíres um número, ele tem de vir literalmente do chartData ou das fontes — nunca inventado (ver REGRA CRÍTICA acima).
 
 REGRAS PARA O EXCERPT (aparece na listagem do blog, é a isca para o clique):
 - 1-2 frases que criem uma lacuna de curiosidade (o leitor precisa de abrir o artigo para saber "porquê"
@@ -1216,7 +1235,10 @@ REGRAS PARA O CONTEÚDO:
   negócio, identificar este tipo de mudança de comportamento antes da concorrência, ou acompanhar a
   evolução deste índice ao longo do tempo. NUNCA use linguagem de venda direta (nunca escreva "experimente",
   "assine", "clique aqui", "compre", nomes de planos ou preços). A menção deve soar como uma observação
-  natural de analista, não como publicidade.
+  natural de analista, não como publicidade. CRÍTICO: esta menção nunca pode depender de um risco ou
+  urgência fabricados no resto do artigo para "fazer sentido" — se o artigo não tiver um ângulo de negócio
+  genuíno onde monitorização seja relevante, faz a menção de forma mais genérica (ex: sobre acompanhar
+  tendências do setor) em vez de forçar uma narrativa de perigo só para justificar a frase.
 - 400-600 palavras, tom analítico mas envolvente — nunca sensacionalista ao ponto de distorcer os dados, e
   sem projeções financeiras ou de crescimento excessivamente otimistas; qualquer previsão deve soar
   equilibrada e cautelosa, reconhecendo incerteza.
@@ -1269,6 +1291,26 @@ if (topic.type === "manual") {
           .replace(/(^-|-$)/g, "");
         const slug = `${slugBase}-${Date.now()}`;
 
+        const usedIndices: number[] = Array.isArray(article.sources_used) ? article.sources_used : [];
+        const usedSnippets = statsContext.snippets.filter((_, i) => usedIndices.includes(i + 1));
+
+        // Verificação leve: extrai números "grandes" citados no corpo do artigo (percentagens,
+        // valores monetários, milhões/biliões/trilhões) e confere se aparecem literalmente nos
+        // snippets usados. Não bloqueia a publicação — só regista aviso para auditoria manual.
+        const suspiciousNumbers: string[] = [];
+        const numberPattern = /\d+([.,]\d+)?\s*(%|trilh[ãa]o|bilh[ãa]o|milh[ãa]o)/gi;
+        const numbersInContent = [...article.content.matchAll(numberPattern)].map((m) => m[0]);
+        const snippetsJoined = usedSnippets.join(" ");
+        for (const num of numbersInContent) {
+          const digits = num.match(/\d+([.,]\d+)?/)?.[0] || "";
+          if (digits && !snippetsJoined.includes(digits)) {
+            suspiciousNumbers.push(num);
+          }
+        }
+        if (suspiciousNumbers.length > 0) {
+          console.warn(`⚠️ Possível número inventado no artigo "${article.title}":`, suspiciousNumbers);
+        }
+
         const { data: inserted, error } = await supabaseAdmin
           .from("blog_posts")
           .insert({
@@ -1279,11 +1321,11 @@ if (topic.type === "manual") {
             category: article.category || category,
             chart_type: article.chart_type || null,
             chart_data: article.chart_data || null,
-            sources: (() => {
-              const usedIndices: number[] = Array.isArray(article.sources_used) ? article.sources_used : [];
-              const filtered = statsContext.sources.filter((_, i) => usedIndices.includes(i + 1));
-              return filtered.length > 0 ? filtered : null;
-            })(),
+            sources: usedSnippets.length > 0
+              ? statsContext.sources.filter((_, i) => usedIndices.includes(i + 1))
+              : null,
+            source_snippets_used: usedSnippets.length > 0 ? usedSnippets : null,
+            flagged_numbers: suspiciousNumbers.length > 0 ? suspiciousNumbers : null,
             topic_key: topic.topicKey,
             affiliate_link: topic.type === "manual" ? (topic.affiliateLink || null) : null,
           })

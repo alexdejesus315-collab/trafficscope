@@ -220,7 +220,9 @@ export default function BlogPostDetail() {
             </div>
             <div className="flex-1">
               <p className="text-sm md:text-base text-foreground font-medium">
-                {t('blogPost.cta.text', undefined, { domain: firstDomainName })}
+                {firstDomainName
+                  ? t('blogPost.cta.text', undefined, { domain: firstDomainName })
+                  : t('blogPost.cta.textGeneric')}
               </p>
               <Link
                 to="/"
