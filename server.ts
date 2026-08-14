@@ -8,8 +8,9 @@ import rateLimit from "express-rate-limit";
 import { Paddle, EventName } from '@paddle/paddle-node-sdk';
 import { supabaseAdmin } from './src/lib/supabaseAdmin';
 import { OWNER_USER_ID } from './src/lib/ownerConfig';
-import { PADDLE_PRICES } from './src/lib/paddleConfig';
 import googleTrends from 'google-trends-api';
+import fs from 'fs';
+
 const paddle = new Paddle(process.env.PADDLE_API_KEY!);
 
 const LANGUAGE_NAMES: Record<string, string> = {
@@ -86,7 +87,8 @@ const FIXED_REFERENCE_DOMAINS = [
 ];
 
 // ===== NOVO: Pools de nicho e ângulos narrativos para o Blog =====
-const NICHE_POOLS: { category: string; domains: string[] }[] = [  { category: "E-commerce Global", domains: ["amazon.com", "ebay.com", "shopee.com", "aliexpress.com", "temu.com"] },
+const NICHE_POOLS: { category: string; domains: string[] }[] = [
+  { category: "E-commerce Global", domains: ["amazon.com", "ebay.com", "shopee.com", "aliexpress.com", "temu.com"] },
   { category: "Streaming & Entretenimento", domains: ["netflix.com", "disneyplus.com", "primevideo.com", "spotify.com", "hbomax.com"] },
   { category: "Fintech & Pagamentos", domains: ["paypal.com", "stripe.com", "revolut.com", "klarna.com", "wise.com"] },
   { category: "Redes Sociais", domains: ["instagram.com", "tiktok.com", "x.com", "linkedin.com", "snapchat.com"] },
@@ -97,36 +99,40 @@ const NICHE_POOLS: { category: string; domains: string[] }[] = [  { category: "E
 
 const NARRATIVE_ANGLES = [
   {
-    key: "rivalry",
-    instruction: "Foque numa RIVALIDADE direta entre dois domínios do dataset com trajetórias opostas — um a crescer, outro a estagnar ou cair. Escolhe UM único par de domínios logo no início e usa exatamente esse par (nunca troques por outro domínio do dataset) no título, no excerpt e em todo o corpo do texto. Usa estritamente a escala do Google Trends (0-100) para ilustrar a rivalidade de atenção — nunca inventes números absolutos de visitas/utilizadores na casa dos milhões.",
+    key: "ecosystem_analysis",
+    instruction: "Analise o ecossistema digital do setor representado pelos domínios do dataset. Em vez de confrontar marcas, examine como diferentes modelos de negócio (marketplace, SaaS, conteúdo, etc.) coexistem e respondem a estímulos de mercado distintos. Use os dados de popularidade de pesquisa apenas para ilustrar padrões de comportamento do consumidor — nunca para declarar um 'vencedor'. O foco é a arquitetura do mercado, não o ranking das empresas.",
   },
   {
     key: "case_study",
-    instruction: "Foque num ÚNICO domínio do dataset que tenha o dado mais notável (maior crescimento, maior queda, ou maior volume). Trate-o como um estudo de caso: o que pode explicar essa trajetória (lançamento, campanha, mudança de mercado). O domínio escolhido é o protagonista absoluto do texto; os restantes domínios do dataset servem apenas como referência de escala em UMA frase, nunca como confronto direto — este artigo NÃO é sobre 'quem lidera'.",
+    instruction: "Foque num ÚNICO domínio do dataset que apresente o dado mais notável (maior crescimento, maior queda, ou maior volume). Trate-o como um estudo de caso de SEO/estratégia digital: o que a trajetória de pesquisa revela sobre decisões de produto, investimento em conteúdo ou mudanças de algoritmo. O domínio é o protagonista absoluto; os restantes servem apenas como contexto de escala em UMA frase. Este artigo NÃO é sobre 'quem lidera' — é sobre entender uma trajetória específica.",
   },
   {
     key: "sector_trend",
-    instruction: "Foque no NICHO/SETOR como um todo, não em domínios individuais em confronto. Descreva o comportamento coletivo do consumidor ou do mercado que os dados do dataset ilustram, usando 2-3 domínios apenas como exemplos ilustrativos da tendência — nunca coloque dois domínios 'frente a frente'.",
+    instruction: "Foque no comportamento coletivo do consumidor ou do mercado que os dados ilustram. Descreva tendências de busca como sintomas de mudanças culturais, económicas ou tecnológicas mais amplas. Use 2-3 domínios apenas como exemplos ilustrativos da tendência — nunca os coloque em confronto direto ou implique que um 'está a ganhar' ao outro.",
   },
   {
-    key: "prediction",
-    instruction: "Foque numa PREVISÃO/TENDÊNCIA futura baseada nos dados atuais — o que estes números sugerem para os próximos 6-12 meses neste setor. Isto é sobre para onde o setor vai, não sobre qual domínio específico 'vence' outro. Baseia a previsão exclusivamente em dados e factos do presente (ver DATA ATUAL no topo do prompt) — nunca trates projeções, relatórios ou artigos antigos das fontes como se fossem verdades já consolidadas do ano corrente.",
+    key: "search_behavior",
+    instruction: "Foque na psicologia e nos padrões de comportamento de pesquisa revelados pelos dados. O que as flutuações de interesse de pesquisa dizem sobre as necessidades, dúvidas ou intenções dos utilizadores? Analise os dados como um antropólogo digital, não como um comentador desportivo. Não atribua valor moral (bom/ruim, vence/perde) às variações de popularidade.",
   },
   {
-    key: "warning",
-    instruction: "Foque num ALERTA ou RISCO que os dados revelam — mas só se o risco for uma consequência lógica e direta dos dados, não uma interpretação forçada. Um domínio ter mais interesse de pesquisa do que outro NÃO é, por si só, um risco ou vulnerabilidade — normalmente é só sucesso de mercado; não inventes uma ameaça a partir de uma simples disparidade de popularidade. Se os domínios comparados tiverem modelos de negócio claramente diferentes (ex: retalhista com logística própria vs marketplace de revenda entre particulares), não os trates como concorrentes diretos numa mesma corrida de atenção. Se não houver um risco genuíno e específico nos dados, usa outro ângulo (ex: sector_trend ou prediction) em vez de forçar um.",
+    key: "algorithm_impact",
+    instruction: "Foque no impacto presumível de atualizações algorítmicas, mudanças regulatórias ou eventos tecnológicos sobre o setor. Como os dados de pesquisa refletem (ou não) grandes mudanças no ecossistema digital? Baseie a análise exclusivamente em dados e factos do presente (ver DATA ATUAL no topo do prompt) — nunca trate projeções, relatórios ou artigos antigos das fontes como se fossem verdades já consolidadas do ano corrente.",
   },
   {
     key: "listicle",
-    instruction: "Estruture o artigo como uma pequena lista ordenada (ex: 'Os 3 sinais que os dados revelam sobre o setor'), usando os domínios do dataset como exemplos pontuais de cada sinal — não como um ranking de quem está melhor ou pior.",
+    instruction: "Estruture o artigo como uma lista analítica (ex: '3 padrões de busca que revelam a maturidade do setor'), usando os domínios do dataset como exemplos pontuais de cada padrão — não como um ranking de desempenho.",
   },
   {
     key: "regional",
-    instruction: "Foque na perspetiva REGIONAL/LOCAL, mas só se os domínios do dataset tiverem ligação real a mercados emergentes/África — não force essa ligação se não existir base real nos dados.",
+    instruction: "Foque na perspetiva geográfica dos dados de pesquisa. Como diferentes mercados respondem a estes produtos/serviços? Há padrões regionais que revelam oportunidades de localização SEO ou gaps de conteúdo? Só explore esta vertente se os dados tiverem base geográfica real.",
   },
   {
     key: "mythbusting",
-    instruction: "Foque em DESMENTIR uma suposição comum do setor, usando os dados reais para mostrar que a realidade é diferente do que se pensa.",
+    instruction: "Desminta uma suposição comum sobre SEO, tráfego ou comportamento digital no setor, usando os dados reais para mostrar que a realidade é diferente do senso comum. O foco é educar o leitor, não confrontar marcas.",
+  },
+  {
+    key: "content_strategy",
+    instruction: "Analise o que os padrões de pesquisa sugerem sobre estratégias de conteúdo e SEO no setor. Que tipo de intenção de busca (informacional, transacional, navegacional) parece predominar? Como isso deveria informar a criação de conteúdo de quem opera neste mercado? Use os domínios como casos de ilustração, nunca como adversários.",
   },
 ];
 
@@ -174,44 +180,111 @@ const NEWS_CATEGORIES: { key: string; label: string; query: string }[] = [
   {
     key: "tech-ia",
     label: "Tecnologia & IA",
-    query: "\"artificial intelligence\" OR ChatGPT OR \"AI regulation\"",
+    query: '"artificial intelligence" OR ChatGPT OR "AI regulation"',
   },
   {
     key: "big-tech",
     label: "Big Tech & Plataformas",
-    query: "Google OR Meta OR \"Amazon Web Services\" OR TikTok OR Microsoft",
+    query: 'Google OR Meta OR "Amazon Web Services" OR TikTok OR Microsoft',
   },
   {
     key: "seo-marketing",
     label: "SEO & Marketing Digital",
-    query: "SEO OR \"digital marketing\" OR \"Google algorithm\"",
+    query: 'SEO OR "digital marketing" OR "Google algorithm"',
   },
   {
     key: "ecommerce",
     label: "E-commerce & Retalho Online",
-    query: "ecommerce OR \"online retail\" OR \"online shopping trends\"",
+    query: 'ecommerce OR "online retail" OR "online shopping trends"',
   },
   {
     key: "mercados-cripto",
     label: "Mercados Financeiros & Cripto",
-    query: "bitcoin OR cryptocurrency OR \"stock market\"",
+    query: 'bitcoin OR cryptocurrency OR "stock market"',
   },
   {
     key: "startups-africa",
     label: "Startups & Inovação em África",
-    query: "\"African startup\" OR \"Africa tech\" OR \"African fintech\"",
+    query: '"African startup" OR "Africa tech" OR "African fintech"',
   },
   {
     key: "geopolitica-comercio",
     label: "Geopolítica & Comércio Global",
-    query: "tariffs OR \"global trade\" OR sanctions OR \"trade war\"",
+    query: 'tariffs OR "global trade" OR sanctions OR "trade war"',
   },
   {
     key: "privacidade-regulacao",
     label: "Privacidade & Regulação Digital",
-    query: "\"data privacy\" OR \"AI regulation\" OR GDPR",
+    query: '"data privacy" OR "AI regulation" OR GDPR',
   },
 ];
+
+
+// ===== Mapa de palavras-chave para validação de relevância de fontes =====
+const CATEGORY_KEYWORDS: Record<string, string[]> = {
+  // Nichos de comparação
+  "E-commerce Global": ["ecommerce", "comércio", "loja", "venda", "online", "retail", "marketplace", "shopping", "consumidor", "digital"],
+  "Streaming & Entretenimento": ["streaming", "vídeo", "música", "entretenimento", "plataforma", "conteúdo", "audiovisual", "série", "filme"],
+  "Fintech & Pagamentos": ["pagamento", "fintech", "financeiro", "banco", "digital", "carteira", "transação", "drex", "pix", "monetária", "crédito", "débito", "transferência"],
+  "Redes Sociais": ["social", "rede", "plataforma", "conteúdo", "comunidade", "engajamento", "usuário", "digital"],
+  "Viagens & Turismo": ["viagem", "turismo", "destino", "hospedagem", "turista", "hotel", "aéreo", "passagem", "experiência"],
+  "Entrega & Mobilidade": ["entrega", "mobilidade", "transporte", "logística", "delivery", "frete", "veículo", "app"],
+  "Produtividade & SaaS": ["produtividade", "saas", "software", "ferramenta", "workflow", "colaboração", "automação", "cloud"],
+  // Categorias de notícia
+  "Tecnologia": ["tecnologia", "tech", "inteligência artificial", "ia", "ai", "inovação", "digital", "software", "hardware", "computação", "automação", "robótica"],
+  "Mercados Financeiros": ["mercado", "financeiro", "bolsa", "ação", "investimento", "economia", "banco", "fintech", "receita", "lucro", "ipo", "fusão", "aquisição"],
+  "Geopolítica & Economia Global": ["geopolítica", "economia", "global", "comércio", "tarifa", "sanção", "trade", "internacional", "relação", "diplomacia", "conflito"],
+  "Startups & Inovação em África": ["startup", "inovação", "áfrica", "africa", "funding", "investimento", "tecnologia", "empresa", "negócio", "africano"],
+  "China-América & Comércio Global": ["china", "estados unidos", "eua", "usa", "comércio", "trade", "tecnologia", "tarifa", "relação", "global", "supply chain"],
+  "Criptomoedas": ["cripto", "bitcoin", "ethereum", "blockchain", "moeda digital", "defi", "nft", "mineração", "wallet", "exchange", "regulação"],
+  "Moda & Arte": ["moda", "arte", "design", "tendência", "estilo", "criativo", "cultural", "luxo", "coleção", "artista", "galeria"],
+};
+
+function isSourceRelevant(
+  source: { title: string; url: string; content?: string },
+  category: string
+): boolean {
+  const keywords = CATEGORY_KEYWORDS[category];
+  if (!keywords || keywords.length === 0) return true;
+  const text = `${source.title} ${source.url} ${source.content || ""}`.toLowerCase();
+  const matches = keywords.filter((k) => text.includes(k.toLowerCase()));
+  return matches.length >= 1;
+}
+
+function filterRelevantStats(
+  stats: { snippets: string[]; sources: { title: string; url: string }[] },
+  category: string,
+  customKeywords?: string[]
+): { snippets: string[]; sources: { title: string; url: string }[] } {
+  const relevantSnippets: string[] = [];
+  const relevantSources: { title: string; url: string }[] = [];
+  const keywords = customKeywords || CATEGORY_KEYWORDS[category];
+
+  for (let i = 0; i < stats.snippets.length; i++) {
+    const source = stats.sources[i];
+    const snippet = stats.snippets[i];
+    if (!source) continue;
+
+    // Se não há keywords definidas, aceita tudo (fallback seguro)
+    if (!keywords || keywords.length === 0) {
+      relevantSnippets.push(snippet);
+      relevantSources.push(source);
+      continue;
+    }
+
+    const text = `${source.title} ${source.url} ${snippet || ""}`.toLowerCase();
+    const matches = keywords.filter((k) => text.includes(k.toLowerCase()));
+
+    if (matches.length >= 1) {
+      relevantSnippets.push(snippet);
+      relevantSources.push(source);
+    } else {
+      console.warn(`⛔ Fonte irrelevante descartada [${category}]: "${source.title}" (${source.url})`);
+    }
+  }
+  return { snippets: relevantSnippets, sources: relevantSources };
+}
+
 
 // ===== NOVO: Busca de notícias reais (GNews) + vídeo associado (YouTube) =====
 
@@ -317,9 +390,9 @@ async function pickUnusedTopic(): Promise<Topic> {
     topicKey: `news::${news.category}`,
   }));
 
-  // Notícias entram com peso x6 para equilibrar com o pool bem maior de comparação de tráfego
-  // (42 combinações de comparação vs 7 de notícia — sem este peso, notícia sairia só ~14% das vezes)
-  const allCombos: Topic[] = [...comparisonCombos, ...Array(6).fill(newsCombos).flat()];
+  // Notícias entram com peso x10 para reduzir frequência de artigos baseados em datasets de domínios
+  // e privilegiar conteúdo de contexto, análise de mercado e notícias reais
+  const allCombos: Topic[] = [...comparisonCombos, ...Array(10).fill(newsCombos).flat()];
 
   const unused = allCombos.filter((c) => !recentKeys.has(c.topicKey));
   const pool = unused.length > 0 ? unused : allCombos; // se já usámos tudo, liberta o filtro
@@ -676,123 +749,122 @@ async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT) || 3000;
 
-app.post(
-  '/api/webhooks/paddle',
-  express.raw({ type: 'application/json' }),
-  async (req, res) => {
-    const signature = req.headers['paddle-signature'] as string;
-    const rawBody = req.body.toString();
+  app.post(
+    '/api/webhooks/paddle',
+    express.raw({ type: 'application/json' }),
+    async (req, res) => {
+      const signature = req.headers['paddle-signature'] as string;
+      const rawBody = req.body.toString();
 
-    try {
-      const event = await paddle.webhooks.unmarshal(
-        rawBody,
-        process.env.PADDLE_WEBHOOK_SECRET!,
-        signature
-      );
+      try {
+        const event = await paddle.webhooks.unmarshal(
+          rawBody,
+          process.env.PADDLE_WEBHOOK_SECRET!,
+          signature
+        );
 
-      console.log('Webhook Paddle recebido:', event.eventType);
+        console.log('Webhook Paddle recebido:', event.eventType);
 
-      // === SUBSCRIÇÕES ANTIGAS (mantido para compatibilidade) ===
-            // === SUBSCRIÇÕES ANTIGAS (mantido para compatibilidade, mas inativo no novo modelo) ===
-      if (
-        event.eventType === EventName.SubscriptionCreated ||
-        event.eventType === EventName.SubscriptionUpdated
-      ) {
-        const sub = event.data;
-        const userId = sub.customData?.user_id as string | undefined;
+        // === SUBSCRIÇÕES ANTIGAS (mantido para compatibilidade, mas inativo no novo modelo) ===
+        if (
+          event.eventType === EventName.SubscriptionCreated ||
+          event.eventType === EventName.SubscriptionUpdated
+        ) {
+          const sub = event.data;
+          const userId = sub.customData?.user_id as string | undefined;
 
-        if (userId) {
-          const priceId = sub.items?.[0]?.price?.id;
-          // NOVO: como o modelo mudou para créditos, subscrições antigas são tratadas como Pro
-          const billingCycle = 'monthly';
-          const plan = 'pro';
+          if (userId) {
+            const priceId = sub.items?.[0]?.price?.id;
+            // NOVO: como o modelo mudou para créditos, subscrições antigas são tratadas como Pro
+            const billingCycle = 'monthly';
+            const plan = 'pro';
 
-          await supabaseAdmin.from('subscriptions').upsert(
-            {
-              user_id: userId,
-              paddle_subscription_id: sub.id,
-              paddle_customer_id: sub.customerId,
-              status: sub.status,
-              plan,
-              billing_cycle: billingCycle,
-              current_period_end: sub.currentBillingPeriod?.endsAt ?? null,
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: 'user_id' }
-          );
-        } else {
-          console.error('Webhook sem user_id em customData');
-        }
-      }
-
-      if (event.eventType === EventName.SubscriptionCanceled) {
-        const sub = event.data;
-        const userId = sub.customData?.user_id as string | undefined;
-
-        if (userId) {
-          await supabaseAdmin
-            .from('subscriptions')
-            .update({ status: 'canceled', updated_at: new Date().toISOString() })
-            .eq('user_id', userId);
-        }
-      }
-
-      // === NOVO: COMPRA ÚNICA DE CRÉDITOS ===
-      if (event.eventType === EventName.TransactionCompleted) {
-        const transaction = event.data;
-        const userId = transaction.customData?.user_id as string | undefined;
-        const creditsToAdd = (transaction.customData?.credits_to_add as number) || 10;
-
-        if (userId) {
-          // Busca perfil atual
-          const { data: profile } = await supabaseAdmin
-            .from('user_profiles')
-            .select('credits, total_purchases')
-            .eq('user_id', userId)
-            .single();
-
-          const currentCredits = profile?.credits ?? 0;
-          const currentPurchases = profile?.total_purchases ?? 0;
-
-          const newCredits = currentCredits + creditsToAdd;
-          const newPurchases = currentPurchases + 1;
-
-          // Atualiza perfil com créditos e ativa modo real
-          await supabaseAdmin
-            .from('user_profiles')
-            .upsert(
+            await supabaseAdmin.from('subscriptions').upsert(
               {
                 user_id: userId,
-                credits: newCredits,
-                total_purchases: newPurchases,
-                mode: 'real',
+                paddle_subscription_id: sub.id,
+                paddle_customer_id: sub.customerId,
+                status: sub.status,
+                plan,
+                billing_cycle: billingCycle,
+                current_period_end: sub.currentBillingPeriod?.endsAt ?? null,
                 updated_at: new Date().toISOString(),
               },
               { onConflict: 'user_id' }
             );
-
-          console.log(`✅ Créditos adicionados: user=${userId}, +${creditsToAdd}, total=${newCredits}`);
-
-          // NOVO: notifica o utilizador da compra confirmada
-          await createNotification(
-            userId,
-            'credits_purchased',
-            'Créditos adicionados',
-            `Foram adicionados ${creditsToAdd} créditos à tua conta. Total: ${newCredits}.`,
-            undefined
-          );
-        } else {
-          console.error('❌ TransactionCompleted sem user_id em customData');
+          } else {
+            console.error('Webhook sem user_id em customData');
+          }
         }
-      }
 
-      res.status(200).send('OK');
-    } catch (err) {
-      console.error('Erro ao verificar webhook Paddle:', err);
-      res.status(400).send('Assinatura inválida');
+        if (event.eventType === EventName.SubscriptionCanceled) {
+          const sub = event.data;
+          const userId = sub.customData?.user_id as string | undefined;
+
+          if (userId) {
+            await supabaseAdmin
+              .from('subscriptions')
+              .update({ status: 'canceled', updated_at: new Date().toISOString() })
+              .eq('user_id', userId);
+          }
+        }
+
+        // === NOVO: COMPRA ÚNICA DE CRÉDITOS ===
+        if (event.eventType === EventName.TransactionCompleted) {
+          const transaction = event.data;
+          const userId = transaction.customData?.user_id as string | undefined;
+          const creditsToAdd = (transaction.customData?.credits_to_add as number) || 10;
+
+          if (userId) {
+            // Busca perfil atual
+            const { data: profile } = await supabaseAdmin
+              .from('user_profiles')
+              .select('credits, total_purchases')
+              .eq('user_id', userId)
+              .single();
+
+            const currentCredits = profile?.credits ?? 0;
+            const currentPurchases = profile?.total_purchases ?? 0;
+
+            const newCredits = currentCredits + creditsToAdd;
+            const newPurchases = currentPurchases + 1;
+
+            // Atualiza perfil com créditos e ativa modo real
+            await supabaseAdmin
+              .from('user_profiles')
+              .upsert(
+                {
+                  user_id: userId,
+                  credits: newCredits,
+                  total_purchases: newPurchases,
+                  mode: 'real',
+                  updated_at: new Date().toISOString(),
+                },
+                { onConflict: 'user_id' }
+              );
+
+            console.log(`✅ Créditos adicionados: user=${userId}, +${creditsToAdd}, total=${newCredits}`);
+
+            // NOVO: notifica o utilizador da compra confirmada
+            await createNotification(
+              userId,
+              'credits_purchased',
+              'Créditos adicionados',
+              `Foram adicionados ${creditsToAdd} créditos à tua conta. Total: ${newCredits}.`,
+              undefined
+            );
+          } else {
+            console.error('❌ TransactionCompleted sem user_id em customData');
+          }
+        }
+
+        res.status(200).send('OK');
+      } catch (err) {
+        console.error('Erro ao verificar webhook Paddle:', err);
+        res.status(400).send('Assinatura inválida');
+      }
     }
-  }
-);
+  );
 
   app.use(express.json());
 
@@ -867,7 +939,7 @@ app.post(
     }
   });
 
-// ===== NOVO: Histórico de Pesquisas =====
+  // ===== NOVO: Histórico de Pesquisas =====
 
   // Lista o histórico do utilizador autenticado
   app.get("/api/search-history", async (req, res) => {
@@ -992,9 +1064,9 @@ app.post(
         ? `\n\nAVISO IMPORTANTE: Os dados acima são sintéticos/ilustrativos, gerados para fins de demonstração (plano gratuito) e não refletem tráfego real de mercado. Nunca afirmes que são dados reais — podes referir que se trata de uma análise sobre dados de demonstração.`
         : '';
 
-      const prompt = `
-Você é um especialista sênior em inteligência competitiva e marketing digital.
-Analise os seguintes dados do website "${domain}":
+      const prompt = `Você é um analista de dados. Com base apenas nos números fornecidos abaixo, descreva o que os dados mostram e o que não mostram.
+
+Dados do website "${domain}":
 - Visitas Mensais: ${metrics.monthlyVisits}
 - Crescimento: ${metrics.growthRate}%
 - Tempo Médio: ${metrics.avgVisitDuration}
@@ -1003,20 +1075,21 @@ Analise os seguintes dados do website "${domain}":
 - Top Países: ${JSON.stringify(metrics.countryTraffic)}
 ${dataNotice}
 
-Forneça uma análise estratégica completa em ${languageName}, respondendo APENAS com um objeto JSON válido no seguinte formato exato, sem texto antes ou depois:{
-  "summary": "resumo executivo de 2 a 3 frases com principais conclusões de tráfego e comportamento",
-  "growthDrivers": ["impulsionador 1", "impulsionador 2", "impulsionador 3"],
-  "threatsAndRisks": ["risco 1", "risco 2"],
-  "opportunities": ["oportunidade 1", "oportunidade 2", "oportunidade 3"],
-  "strategicActions": ["ação 1", "ação 2"],
-  "forecast3Months": {
-    "optimistic": numero,
-    "baseline": numero,
-    "pessimistic": numero,
-    "comment": "comentário sobre a previsão"
-  }
-}
-`;
+REGRAS DE RIGOR:
+1. Descreva APENAS o que é visível nos dados. NÃO invente causas, eventos de mercado, campanhas de marketing, mudanças de algoritmo ou factos externos que "expliquem" os números.
+2. NUNCA apresente uma diferença de percentagem entre canais ou países como prova de superioridade, risco ou "ameaça competitiva" — isso é inferência não sustentada.
+3. Se não souber o contexto do negócio (tipo de site, sector, modelo de receita), não assuma. Use linguagem como "sugere que", "pode indicar" ou "é consistente com" em vez de afirmações definitivas.
+4. NÃO faça previsões numéricas (não invente números de visitas futuras). Se quiser projetar tendência, use linguagem qualitativa: "tendência de crescimento", "estagnação aparente", "aceleração".
+5. NÃO associe métricas de tráfego a impacto físico real (armazéns, frotas, lojas) — são comportamentos de atenção online, não compras ou logística.
+
+ESTRUTURA DA RESPOSTA — JSON apenas, sem texto antes ou depois:
+{
+  "summary": "2-3 frases descrevendo estritamente o que os dados revelam (distribuição de fontes, geografia, padrões de engajamento visíveis). Não interprete além do óbvio.",
+  "observedPatterns": ["padrão 1 visível nos dados", "padrão 2 visível nos dados"],
+  "limitations": ["limitação 1 do dataset — ex: não sabemos a qualidade do tráfego, não temos dados de conversão", "limitação 2 — ex: crescimento percentual sem base absoluta pode ser enganador"],
+  "possibleImplications": ["implicação 1, formulada como hipótese (ex: 'Se o site depende de pesquisa orgânica, a concentração em X canal pode ser ponto de atenção')", "implicação 2 como hipótese"],
+  "recommendations": ["recomendação 1 de análise posterior — ex: 'cruzar com taxa de conversão'", "recomendação 2 — ex: 'verificar se o tempo médio reflete engajamento real ou problemas de carregamento'"]
+}`;
 
       const response = await groq.chat.completions.create({
         model: "openai/gpt-oss-120b",
@@ -1025,7 +1098,8 @@ Forneça uma análise estratégica completa em ${languageName}, respondendo APEN
         messages: [
           {
             role: "system",
-content: `Você é o assistente executivo de Inteligência Competitiva da plataforma TrafficScope. Responda em ${languageName} com tom profissional, preciso e acionável. Responda SEMPRE apenas com JSON válido, sem texto adicional, sem markdown dentro dos valores de texto (nada de tabelas, pipes, asteriscos ou cabeçalhos dentro das strings).${isSynthetic ? ' Os dados fornecidos são sintéticos/de demonstração — nunca os apresentes como dados reais de mercado.' : ''}`          },
+            content: `Você é o assistente executivo de Inteligência Competitiva da plataforma TrafficScope. Responda em ${languageName} com tom profissional, preciso e acionável. Responda SEMPRE apenas com JSON válido, sem texto adicional, sem markdown dentro dos valores de texto (nada de tabelas, pipes, asteriscos ou cabeçalhos dentro das strings).${isSynthetic ? ' Os dados fornecidos são sintéticos/de demonstração — nunca os apresentes como dados reais de mercado.' : ''}`
+          },
           { role: "user", content: prompt }
         ]
       });
@@ -1074,7 +1148,8 @@ Pergunta do usuário: "${lastUserMessage}"
         messages: [
           {
             role: "system",
-content: `Responda sempre em ${languageName}. Você é o Copilot de Inteligência Competitiva da TrafficScope. Responda em texto corrido, natural, como numa conversa de chat — nem telegráfico nem um ensaio. Como referência, entre 3 a 6 frases costuma ser o ponto certo, mas ajuste ao que a pergunta pede: uma dúvida simples merece resposta curta, um pedido que peça mais detalhe ou passos merece uma resposta um pouco mais desenvolvida. Nunca recuse ou diga que não consegue responder só por causa do tamanho pedido — nesse caso, dê a versão mais completa e útil que conseguir dentro de um chat, sem se preocupar em bater um número exato de linhas. Termine sempre as frases por completo, nunca corte uma ideia a meio. NUNCA use tabelas markdown, símbolos de pipe (|), cabeçalhos (#), listas numeradas ou com marcadores, nem asteriscos para negrito.${isSynthetic ? ' Os dados fornecidos são sintéticos/de demonstração — nunca os apresentes como dados reais de mercado.' : ''}`          },
+            content: `Responda sempre em ${languageName}. Você é o Copilot de Inteligência Competitiva da TrafficScope. Responda em texto corrido, natural, como numa conversa de chat — nem telegráfico nem um ensaio. Como referência, entre 3 a 6 frases costuma ser o ponto certo, mas ajuste ao que a pergunta pede: uma dúvida simples merece resposta curta, um pedido que peça mais detalhe ou passos merece uma resposta um pouco mais desenvolvida. Nunca recuse ou diga que não consegue responder só por causa do tamanho pedido — nesse caso, dê a versão mais completa e útil que conseguir dentro de um chat, sem se preocupar em bater um número exato de linhas. Termine sempre as frases por completo, nunca corte uma ideia a meio. NUNCA use tabelas markdown, símbolos de pipe (|), cabeçalhos (#), listas numeradas ou com marcadores, nem asteriscos para negrito.${isSynthetic ? ' Os dados fornecidos são sintéticos/de demonstração — nunca os apresentes como dados reais de mercado.' : ''}`
+          },
           { role: "user", content: chatPrompt }
         ]
       });
@@ -1086,533 +1161,564 @@ content: `Responda sempre em ${languageName}. Você é o Copilot de Inteligênci
     }
   });
 
-// ===== NOVO: Geração de artigos do Blog (só o dono) =====
-    app.post("/api/blog/generate", async (req, res) => {
-      try {
-        const user = await getUserFromRequest(req);
-        if (!user) {
-          console.error("Blog generate: sem sessão válida (token ausente ou expirado).");
-          return res.status(403).json({ error: "Sessão inválida. Faz login novamente." });
-        }
-        if (user.id !== OWNER_USER_ID) {
-          console.error(`Blog generate: user.id (${user.id}) não corresponde a OWNER_USER_ID (${OWNER_USER_ID}).`);
-          return res.status(403).json({ error: "Acesso negado." });
-        }
+  // ===== NOVO: Geração de artigos do Blog (só o dono) =====
+  app.post("/api/blog/generate", async (req, res) => {
+    try {
+      const user = await getUserFromRequest(req);
+      if (!user) {
+        console.error("Blog generate: sem sessão válida (token ausente ou expirado).");
+        return res.status(403).json({ error: "Sessão inválida. Faz login novamente." });
+      }
+      if (user.id !== OWNER_USER_ID) {
+        console.error(`Blog generate: user.id (${user.id}) não corresponde a OWNER_USER_ID (${OWNER_USER_ID}).`);
+        return res.status(403).json({ error: "Acesso negado." });
+      }
 
-        if (!process.env.GROQ_API_KEY) {
-          return res.status(500).json({ error: "GROQ_API_KEY não configurada no servidor." });
-        }
+      if (!process.env.GROQ_API_KEY) {
+        return res.status(500).json({ error: "GROQ_API_KEY não configurada no servidor." });
+      }
 
-        const { domain: manualDomain, theme: manualTheme, affiliateLink } = req.body;
+      const { domain: manualDomain, theme: manualTheme, affiliateLink } = req.body;
 
-        // NOVO: se o Admin indicou domínio + temática, usa modo manual;
-        // caso contrário, escolhe automaticamente (comparação de tráfego ou notícia/contexto)
-        const topic: Topic = manualDomain && manualTheme
-          ? { type: "manual", domain: manualDomain, theme: manualTheme, affiliateLink, topicKey: `manual::${manualDomain}::${Date.now()}` }
-          : await pickUnusedTopic();
+      // NOVO: se o Admin indicou domínio + temática, usa modo manual;
+      // caso contrário, escolhe automaticamente (comparação de tráfego ou notícia/contexto)
+      let topic: Topic = manualDomain && manualTheme
+        ? { type: "manual", domain: manualDomain, theme: manualTheme, affiliateLink, topicKey: `manual::${manualDomain}::${Date.now()}` }
+        : await pickUnusedTopic();
 
-        let chartData: { name: string; value: number }[] | null = null;
-let chartDataIsRealTrends = false;
-let statsQuery: string;
-let category: string;
+      let chartData: { name: string; value: number }[] | null = null;
+      let manualKeywords: string[] | undefined = undefined; // só preenchido para artigos manuais
+      let chartDataIsRealTrends = false;
+      let statsQuery: string;
+      let category: string;
 
-        if (topic.type === "comparison") {
-          const referenceDomains = topic.niche.domains;
-          const trendsKeywords = referenceDomains.map((d) => d.split(".")[0]);
-          try {
-            const trendsResults = await fetchTrendsData(trendsKeywords);
-            // Remapeia de volta para o domínio completo (ex: "amazon" → "amazon.com"),
-            // já que o Trends foi consultado com a keyword truncada mas o favicon precisa do domínio real
-            chartData = trendsResults.map((r, i) => ({ name: referenceDomains[i], value: r.value }));
-            chartDataIsRealTrends = true;
-          } catch (trendsErr) {
-            console.error("Falha no Google Trends, a usar dados de teste como fallback:", trendsErr);
-            chartData = referenceDomains.map((d) => {
-              const m = getOrGenerateDomainData(d);
-              return { name: d, value: m.monthlyVisits };
-            });
-          }
-          statsQuery = topic.angle.key === "rivalry"
-            ? `${referenceDomains.slice(0, 2).map((d) => d.split(".")[0]).join(" vs ")} estatísticas mercado 2026`
-            : `${topic.niche.category} tendências mercado consumidor 2026`;
-          category = topic.niche.category;
-        } else if (topic.type === "news") {
-          statsQuery = topic.news.query;
-          category = topic.news.category;
-          // Sem comparação de domínios fixa; gráfico fica ausente a menos que a IA
-          // identifique um domínio claramente relevante na notícia (tratado no prompt).
-        } else {
-          const domainList = topic.domain
-            .split(/[,\s]+/)
-            .map((d) => d.trim())
-            .filter(Boolean)
-            .slice(0, 5);
-          chartData = domainList.map((d) => ({ name: d, value: getOrGenerateDomainData(d).monthlyVisits }));
-          statsQuery = `${topic.theme} ${topic.domain}`;
-          category = "Manual";
-        }
-
-        let statsContext: { snippets: string[]; sources: { title: string; url: string }[] } = { snippets: [], sources: [] };
+      if (topic.type === "comparison") {
+        const referenceDomains = topic.niche.domains;
+        const trendsKeywords = referenceDomains.map((d) => d.split(".")[0]);
         try {
-          statsContext = await fetchRealStats(statsQuery);
-        } catch (searchErr) {
-          console.error("Falha na pesquisa Tavily, artigo seguirá sem estatísticas externas:", searchErr);
+          const trendsResults = await fetchTrendsData(trendsKeywords);
+          // Remapeia de volta para o domínio completo (ex: "amazon" → "amazon.com"),
+          // já que o Trends foi consultado com a keyword truncada mas o favicon precisa do domínio real
+          chartData = trendsResults.map((r, i) => ({ name: referenceDomains[i], value: r.value }));
+          chartDataIsRealTrends = true;
+        } catch (trendsErr) {
+          console.error("Falha no Google Trends, a usar dados de teste como fallback:", trendsErr);
+          chartData = referenceDomains.map((d) => {
+            const m = getOrGenerateDomainData(d);
+            return { name: d, value: m.monthlyVisits };
+          });
         }
+        const domainKeywords = referenceDomains.map((d) => d.split(".")[0]).join(" OR ");
+        statsQuery = `${topic.niche.category} ${domainKeywords} tendências inovação mercado 2026`;
+        category = topic.niche.category;
+      } else if (topic.type === "news") {
+        statsQuery = topic.news.query;
+        category = topic.news.category;
+        // Sem comparação de domínios fixa; gráfico fica ausente a menos que a IA
+        // identifique um domínio claramente relevante na notícia (tratado no prompt).
+      } else {
+        const domainList = topic.domain
+          .split(/[,\s]+/)
+          .map((d) => d.trim())
+          .filter(Boolean)
+          .slice(0, 5);
+        chartData = domainList.map((d) => ({ name: d, value: getOrGenerateDomainData(d).monthlyVisits }));
+        statsQuery = `${topic.theme} ${topic.domain}`;
+        category = "Manual";
+        // Keywords personalizadas extraídas do domínio e tema para filtragem
+        manualKeywords = [
+          ...topic.domain.split(/[.,\s]+/).filter(Boolean),
+          ...topic.theme.split(/\s+/).filter(Boolean),
+        ].map((k) => k.toLowerCase());
+      }
 
-        // NOVO: se for artigo de notícia e a Tavily trouxer resultados fracos/insuficientes,
-        // tenta automaticamente outras categorias antes de forçar o artigo com material pobre
-        // (evita o "ensaio genérico sem facto concreto" que vimos no artigo de IA-como-padrão).
-        if (topic.type === "news") {
-          const MIN_SNIPPETS = 2;
-          const triedCategories = new Set<string>([topic.news.category]);
-          let attempts = 0;
-          const MAX_ATTEMPTS = 3;
+      let statsContext: { snippets: string[]; sources: { title: string; url: string }[] } = { snippets: [], sources: [] };
+      try {
+        const rawStats = await fetchRealStats(statsQuery);
+        statsContext = filterRelevantStats(rawStats, category, topic.type === "manual" ? manualKeywords : undefined);
+        if (statsContext.snippets.length < rawStats.snippets.length) {
+          console.warn(`🧹 Filtragem: ${rawStats.snippets.length - statsContext.snippets.length} fonte(s) irrelevante(s) removida(s) para "${category}".`);
+        }
+      } catch (searchErr) {
+        console.error("Falha na pesquisa Tavily, artigo seguirá sem estatísticas externas:", searchErr);
+      }
 
-          while (statsContext.snippets.length < MIN_SNIPPETS && attempts < MAX_ATTEMPTS) {
-            attempts++;
-            const alternatives = NEWS_TOPICS.filter((n) => !triedCategories.has(n.category));
-            if (alternatives.length === 0) break;
+      // NOVO: se for artigo de notícia e a Tavily trouxer resultados fracos/insuficientes,
+      // tenta automaticamente outras categorias antes de forçar o artigo com material pobre
+      // (evita o "ensaio genérico sem facto concreto" que vimos no artigo de IA-como-padrão).
+      if (topic.type === "news") {
+        const MIN_SNIPPETS = 2;
+        const triedCategories = new Set<string>([topic.news.category]);
+        let attempts = 0;
+        const MAX_ATTEMPTS = 3;
 
-            const nextNews = alternatives[Math.floor(Math.random() * alternatives.length)];
-            triedCategories.add(nextNews.category);
+        while (statsContext.snippets.length < MIN_SNIPPETS && attempts < MAX_ATTEMPTS) {
+          attempts++;
+          const alternatives = NEWS_TOPICS.filter((n) => !triedCategories.has(n.category));
+          if (alternatives.length === 0) break;
 
-            console.warn(
-              `Tavily devolveu apenas ${statsContext.snippets.length} snippet(s) para "${topic.news.category}", a tentar categoria alternativa: "${nextNews.category}" (tentativa ${attempts}/${MAX_ATTEMPTS})`
-            );
+          const nextNews = alternatives[Math.floor(Math.random() * alternatives.length)];
+          triedCategories.add(nextNews.category);
 
-            try {
-              const altContext = await fetchRealStats(nextNews.query);
-              if (altContext.snippets.length >= MIN_SNIPPETS) {
-                statsContext = altContext;
-                topic.news = nextNews;
-                topic.topicKey = `news::${nextNews.category}`;
-                statsQuery = nextNews.query;
-                category = nextNews.category;
-                break;
-              }
-            } catch (retryErr) {
-              console.error(`Falha na pesquisa Tavily para categoria alternativa "${nextNews.category}":`, retryErr);
+          console.warn(
+            `Tavily devolveu apenas ${statsContext.snippets.length} snippet(s) para "${topic.news.category}", a tentar categoria alternativa: "${nextNews.category}" (tentativa ${attempts}/${MAX_ATTEMPTS})`
+          );
+
+          try {
+            const altContext = await fetchRealStats(nextNews.query);
+            const filteredAlt = filterRelevantStats(altContext, nextNews.category);
+            if (filteredAlt.snippets.length >= MIN_SNIPPETS) {
+              statsContext = filteredAlt;
+              (topic as NewsTopic).news = nextNews;
+              topic.topicKey = `news::${nextNews.category}`;
+              statsQuery = nextNews.query;
+              category = nextNews.category;
+              break;
             }
-          }
-
-          if (statsContext.snippets.length < MIN_SNIPPETS) {
-            console.warn(
-              `Nenhuma categoria alternativa trouxe resultados suficientes após ${attempts} tentativa(s); artigo seguirá com material limitado (${statsContext.snippets.length} snippet(s)) para "${topic.news.category}".`
-            );
+          } catch (retryErr) {
+            console.error(`Falha na pesquisa Tavily para categoria alternativa "${nextNews.category}":`, retryErr);
           }
         }
 
-        const angleInstruction =
-          topic.type === "comparison" ? topic.angle.instruction :
-          topic.type === "news" ? topic.news.instruction :
-          `Escreva o artigo com foco no domínio "${topic.domain}" e na temática indicada pelo Admin: "${topic.theme}". Use os factos e estatísticas fornecidos para fundamentar o texto de forma natural.`;
+        if (statsContext.snippets.length < MIN_SNIPPETS) {
+          console.warn(
+            `Nenhuma categoria alternativa trouxe resultados suficientes após ${attempts} tentativa(s); artigo seguirá com material limitado (${statsContext.snippets.length} snippet(s)) para "${topic.news.category}".`
+          );
+        }
+      }
 
-        const chartSection =
-          topic.type === "comparison"
-            ? chartDataIsRealTrends
-              ? `Dados reais de popularidade de pesquisa (Google Trends, últimos 90 dias, escala 0-100): ${JSON.stringify(chartData)}. Estes são os ÚNICOS valores numéricos que podes citar sobre estes domínios.`
-              : `O Google Trends falhou nesta geração. Os valores abaixo NÃO são dados reais de pesquisa — são só estimativas internas usadas para desenhar o gráfico, sem escala 0-100 e sem validade estatística: ${JSON.stringify(chartData)}. NÃO cites nenhum destes números no título, excerpt ou corpo do artigo, e NÃO enquadres nenhum domínio como tendo "mais interesse", "mais pontos" ou "a ganhar" com base neles — escreve em tom qualitativo, sem estatística de comparação.`
-            : topic.type === "manual"
-            ? `Não inclua "chart_data" nem "chart_type" próprios — devolva ambos como null; o sistema já trata a exibição do domínio "${topic.domain}" automaticamente.`
-            : `Não há dados de comparação de domínios pré-definidos para este artigo — é um artigo de notícia/contexto, não de comparação de tráfego. Só inclua "chart_data" e "chart_type" no JSON de resposta se a notícia mencionar claramente 1-5 domínios/marcas cujo tráfego/popularidade faça sentido ilustrar; caso contrário, devolva "chart_data": null e "chart_type": null.`;
+      const angleInstruction =
+        topic.type === "comparison" ? topic.angle.instruction :
+        topic.type === "news" ? topic.news.instruction :
+        `Escreva o artigo com foco no domínio "${topic.domain}" e na temática indicada pelo Admin: "${topic.theme}". Use os factos e estatísticas fornecidos para fundamentar o texto de forma natural.`;
 
-        const prompt = `
-Você é um analista sénior de inteligência de mercado da TrafficScope, especialista em copywriting orientado a dados.
-Escreva um artigo de blog em Português sobre tendências de mercado, comportamento digital e dinâmicas competitivas — tráfego web e busca são APENAS um dos ângulos possíveis, nunca um requisito obrigatório do artigo.
+      const chartSection =
+        topic.type === "comparison"
+          ? chartDataIsRealTrends
+            ? `Padrão de interesse de pesquisa relativo (Google Trends, últimos 90 dias, escala 0-100): ${JSON.stringify(chartData)}. ESTES DADOS MEDEM ATENÇÃO DE PESQUISA, NÃO DESEMPENHO EMPRESARIAL. Use-os para ilustrar como o interesse do consumidor flutua entre diferentes modelos de negócio no setor. NUNCA os use para declarar que um domínio "vence" outro, "domina" ou "supera" — são padrões de atenção pública, não placares de competição.`
+            : `O Google Trends não está disponível. Os valores abaixo são estimativas internas sem validade estatística: ${JSON.stringify(chartData)}. NÃO cite estes números no título, excerpt ou corpo do artigo. Escreva em tom qualitativo sobre o setor, sem estatística de comparação.`
+          : topic.type === "manual"
+          ? `Não inclua "chart_data" nem "chart_type" próprios — devolva ambos como null; o sistema já trata a exibição do domínio "${topic.domain}" automaticamente.`
+          : `Não há dados de comparação de domínios pré-definidos para este artigo — é um artigo de notícia/contexto, não de comparação de tráfego. Só inclua "chart_data" e "chart_type" no JSON de resposta se a notícia mencionar claramente 1-5 domínios/marcas cujo padrão de busca seja relevante ilustrar; caso contrário, devolva "chart_data": null e "chart_type": null.`;
 
-DATA ATUAL: ${new Date().toLocaleDateString('pt-PT', { year: 'numeric', month: 'long', day: 'numeric' })}. Usa esta data como referência de "presente". Se as fontes mencionarem números ou factos de anos anteriores (2024, 2025), trata-os SEMPRE como dados históricos/já ocorridos — nunca os apresentes como previsão futura ou como se fossem o ano corrente. Nunca confundas a linha do tempo entre passado, presente e futuro.
+      const prompt = `Você é um analista de mercado. Escreva um artigo de blog em Português sobre o tema fornecido, com base apenas nos factos abaixo.
+
+DATA ATUAL: ${new Date().toLocaleDateString('pt-PT', { year: 'numeric', month: 'long', day: 'numeric' })}. Use esta data como referência de "presente". Dados de anos anteriores são históricos.
 
 ${chartSection}
 
-REGRA CRÍTICA — SÓ NÚMEROS REAIS:
-Os únicos números que podes citar em todo o artigo (título, excerpt e corpo) são: (1) os valores exatos do índice de popularidade do Google Trends listados acima, (2) números que apareçam literalmente nas fontes listadas a seguir. É PROIBIDO inventar qualquer percentagem, taxa de crescimento, número de utilizadores, ou qualquer outra estatística que não esteja explicitamente presente nesses dados. Se quiseres comunicar uma tendência sem ter o número exato disponível, usa linguagem qualitativa (ex: "dispara", "estagna", "acelera") em vez de inventar uma percentagem.
-Factos e estatísticas reais publicadas recentemente sobre o tema (use-os para fundamentar o artigo,
-parafraseando, NUNCA copiando texto literal):
+DADOS E FONTES (use apenas estes):
 ${statsContext.snippets.map((s, i) => `[Fonte ${i + 1}] ${s}`).join("\n")}
 
-REGRA CRÍTICA DE ATRIBUIÇÃO: só podes nomear ou referenciar "Fonte N" no corpo do texto (ex: "Segundo a
-Fonte 2...", "De acordo com...") se a afirmação que estás a atribuir estiver literalmente presente no
-texto dessa fonte acima. É PROIBIDO usar conhecimento próprio/geral sobre o tema e depois etiquetá-lo como
-vindo de uma das fontes listadas — isso é uma atribuição falsa, mesmo que o facto em si seja verdadeiro.
-Se souberes um facto relevante mas ele não estiver em nenhuma das fontes acima, podes mencioná-lo em tom
-mais genérico e SEM o atribuir a nenhuma fonte específica (nada de "segundo X" ou "Fonte N"), ou preferir
-não o incluir.
+REGRAS DE RIGOR:
+1. Só cite números, percentagens ou estatísticas se estiverem literalmente nas fontes acima ou no chartData. Se não tiver um número exacto, use linguagem qualitativa (ex: "aumenta", "estabiliza", "desacelera").
+2. Só atribua uma afirmação a "[Fonte N]" se essa afirmação estiver literalmente no texto dessa fonte. Não use conhecimento geral e etiquete-o como fonte. Se souber algo que não está nas fontes, mencione-o sem atribuição ou omita.
+3. Conte quantas fontes existem acima. Se houver 2 snippets, NUNMA cite "Fonte 3" ou superior. Se houver 0 snippets, NUNCA cite nenhuma fonte.
+4. Não invente nomes de produtos futuros, lançamentos não confirmados, declarações de CEOs ou dados de mercado. Se algo não estiver confirmado nas fontes, use termos genéricos.
+5. Não confunda pesquisa online com impacto físico real (armazéns, frotas, servidores). Pesquisa é comportamento de atenção, não causa logística.
 
-Nem todas as fontes acima têm de ser usadas — usa só as que forem realmente relevantes para o ângulo deste
-artigo. No campo "sources_used" da resposta, lista APENAS os números das fontes ([Fonte N]) cujo texto
-literal usaste ou parafraseaste diretamente no corpo do texto; se não usaste nenhuma, devolve uma lista
-vazia. Não incluas aqui uma fonte só porque o tema é relacionado — só se o conteúdo dela foi mesmo usado.
+TOM E ÂNGULO:
+- Analítico, maduro, educativo. Sem sensacionalismo, sem "guerras" entre marcas, sem ranking de vencedores/perdedores.
+- Não estruture como duelo ou confronto direto, mesmo em comparações. Descreva coexistentes num ecossistema.
+- O ângulo natural do artigo pode ser negócio, investimento, produto, regulação, geopolítica ou cultura. NÃO force conexão com tráfego web, SEO ou cliques se não for genuína.
+- Se o tema não tiver relação natural com comportamento digital, o artigo fica noutro plano. Não invente ponte digital.
+- Abra com uma observação analítica forte nas primeiras 2 frases.
+- Termine com uma implicação estratégica para profissionais de mercado, não com pergunta de "quem vai vencer".
+- Não adicione disclaimers sobre o próprio artigo.
 
-ÂNGULO/TEMA OBRIGATÓRIO PARA ESTE ARTIGO:
-${angleInstruction}
-${topic.type === "news" ? "\nEXIGÊNCIA DE CONCRETUDE: o artigo tem de girar à volta de um facto específico e verificável — um nome de empresa, produto, valor, evento ou decisão concreta presente nas fontes. NÃO escrevas um ensaio genérico sobre 'tendências' ou 'o futuro do setor' sem nenhuma âncora factual específica. Se as fontes fornecidas forem vagas demais ou não contiverem nenhum facto concreto e datável, usa o facto mais específico disponível ainda que menor, em vez de preencheres o artigo com generalidades." : ""}
+ESTRUTURA:
+- 400-600 palavras.
+- Use subtítulos que provoquem reflexão.
+- Insira EXATAMENTE 2 marcadores de imagem: {{IMG_1}} e {{IMG_2}}, cada um numa linha própria, em pontos visuais estratégicos.
+- Se fizer sentido natural, pode incluir num parágrafo existente uma menção sutil à TrafficScope como ferramenta de monitorização de tendências — integrada ao raciocínio, sem subtítulo dedicado, sem linguagem de venda ("experimente", "assine"). Se não encaixar naturalmente, omita.
 
-AVISO GERAL SOBRE CAUSALIDADE DIGITAL VS FÍSICA: nunca afirmes que volume de pesquisa ou tráfego web causa ou "satura" infraestrutura física (armazéns, frotas de entrega, lojas físicas, servidores de terceiros, redes elétricas, etc.) — pesquisa online é comportamento de atenção do utilizador, não é o mesmo que compras reais, envios físicos ou consumo de recursos físicos. Se quiseres relacionar os dois, liga-os só como sinais correlacionados (ex: "pode sinalizar", "costuma preceder"), nunca como causa direta.
-AVISO SOBRE FOCO OBRIGATÓRIO: a TrafficScope é uma ferramenta de inteligência de MERCADO, não apenas de tráfego web/busca. NUNCA forces uma conexão com tráfego, popularidade de busca ou cliques só para "fechar" o artigo com um gancho digital. Se o ângulo natural da notícia for de negócio, investimento, produto, regulação, geopolítica ou cultura, o artigo pode (e deve) ficar inteiramente nesse plano, sem qualquer menção a tráfego/busca. A menção a comportamento digital só deve aparecer quando for uma consequência genuína e específica dos factos — nunca uma ponte genérica tipo "isto deve gerar mais buscas online".
-${topic.type === "news" ? "\nAVISO SOBRE CAUSALIDADE: só faças a ligação entre o evento noticiado e tráfego/comportamento digital se essa ligação for tecnicamente ou logicamente plausível (ex: eventos de e-commerce, plataformas digitais, comportamento de utilizador online). NUNCA invente um mecanismo técnico que não existe (ex: não associes hardware/chips de IA a 'roteamento' ou 'fluxo' de tráfego web — são coisas tecnicamente não relacionadas). Se a ligação genuína for fraca ou inexistente, prefere não a fazer, ou menciona-a só como reflexão vaga sobre o setor em geral, nunca como afirmação técnica específica." : ""}
-${topic.type === "comparison" && topic.angle.key === "rivalry" ? "\nAVISO SOBRE ESCALA: antes de escolher o par de domínios em foco no artigo, avalie se ambos operam numa escala de mercado comparável (ambos globais, ou ambos regionais/de nicho semelhante). Se os dados mostrarem um player claramente global ao lado de um player claramente regional/de nicho menor, NÃO apresente isso como 'quem domina' ou uma disputa direta — em vez disso, explique a diferença de escala como contexto (ex: alcance geográfico diferente), e escolha um par mais equilibrado dentro do dataset para o confronto principal do artigo, se existir. Confirma também que os dois domínios pertencem à mesma categoria funcional de produto (ex: ambos ferramentas de design, ambos apps de chat, ambos motores de busca) — NUNCA apresentes dois produtos de categorias claramente diferentes (ex: ferramenta de design vs ferramenta de chat) como concorrentes diretos, mesmo que estejam no mesmo pool de nicho amplo; se não houver par da mesma categoria funcional disponível, foca o artigo só num domínio ou usa um ângulo não competitivo." : ""}
-${topic.type === "comparison" && topic.angle.key !== "rivalry" ? "\nDIRETRIZ DE FORMATO EDITORIAL: este artigo NÃO deve ser estruturado como um embate ou duelo direto de popularidade entre marcas (nada de 'Quem está ganhando?', 'X supera Y', ou títulos/estrutura de confronto). Trate os dados de forma analítica, tratando os domínios do dataset como exemplos ou contexto de apoio ao ângulo pedido, nunca como adversários num ringue. Além disso, NUNCA apresentes uma diferença de popularidade de pesquisa entre dois domínios como sendo, por si só, prova de risco, vulnerabilidade ou perigo competitivo — isso é uma inferência não sustentada pelos dados; se quiseres discutir risco, ele tem de vir de um facto concreto nas fontes (ex: uma notícia real sobre perda de quota de mercado), nunca de uma simples leitura do gráfico." : ""}- ${topic.type === "comparison" ? 'Use um dos formatos: contraste com o valor real do índice de popularidade ("X regista Y pontos de interesse de pesquisa, Z fica em N"), pergunta direta que o leitor quer responder, ou contraste qualitativo entre as trajetórias reais do dataset (sem inventar percentagens). NUNCA enquadres o índice como "quem está a ganhar/perder" ou "quem domina" — é volume de pesquisa, não desempenho de negócio (ver AVISO SOBRE O QUE O ÍNDICE REALMENTE MEDE).' : "Use um gancho de curiosidade baseado no facto mais forte encontrado nas fontes: uma pergunta direta, um número concreto (só se vier literalmente das fontes), ou uma afirmação que gere tensão."}- Se incluíres um número, ele tem de vir literalmente do chartData ou das fontes — nunca inventado (ver REGRA CRÍTICA acima).
+TÍTULO E EXCERPT:
+- Título: analítico, sem "vs", "quem domina", "guerra". Números só se vierem das fontes/chartData.
+- Excerpt: 1-2 frases que criem curiosidade intelectual, sem revelar tudo. Sem linguagem de confronto.
 
-REGRAS PARA O EXCERPT (aparece na listagem do blog, é a isca para o clique):
-- 1-2 frases que criem uma lacuna de curiosidade (o leitor precisa de abrir o artigo para saber "porquê"
-  ou "como"), sem revelar a resposta completa.
-- Se incluíres um dado numérico, tem de vir literalmente do chartData ou das fontes (ver REGRA CRÍTICA); se não houver número real disponível, usa linguagem qualitativa em vez de inventar um.
-REGRAS PARA O CONTEÚDO:
-- NUNCA cites como facto consolidado o nome ou lançamento de um produto, versão ou funcionalidade futura
-  que não esteja explicitamente confirmado nas fontes fornecidas (ex: não escrevas "relatórios da Microsoft
-  sobre o Windows 12" se isso não vier literalmente das fontes) — usa termos genéricos como "sistemas
-  operacionais nativos em IA" quando não tiveres confirmação factual.
-- Quando citares uma fonte no corpo do texto, nomeia-a diretamente sempre que possível (ex: "Segundo a
-  IBM," ou "De acordo com o Canaltech,") em vez de referências vagas como "segundo veículos especializados".
-- Abre com um gancho nas primeiras 2 frases: um dado surpreendente ou contraintuitivo, antes de qualquer
-  contexto genérico.
-- Insere EXATAMENTE 2 marcadores de imagem no corpo do texto, em pontos que façam sentido visualmente
-  (ex: depois de introduzir um conceito, antes de uma secção nova). Os marcadores são literalmente o texto
-  {{IMG_1}} e {{IMG_2}}, cada um numa linha própria, sem mais nada à volta.
-- Usa subtítulos que também gerem curiosidade, não só descritivos.
-- Termina com uma secção final que aponte uma implicação prática ou pergunta em aberto para o leitor.
-- NUNCA adiciones frases de disclaimer ou meta-comentário sobre o próprio artigo (ex: "Este artigo foi
-  elaborado com base nas informações disponíveis nas fontes citadas", "Este texto é apenas informativo",
-  ou equivalentes). O artigo deve terminar diretamente na pergunta/implicação ao leitor, sem nenhuma
-  frase de fecho sobre a origem ou natureza do próprio texto.
-- Em UM único ponto do corpo do texto (não no título, não no excerpt, não na conclusão), insira uma
-  referência natural e sutil ao tipo de análise que a TrafficScope permite fazer. Esta referência tem de
-  estar DENTRO de um parágrafo já existente, integrada ao raciocínio do texto — NUNCA cries um subtítulo,
-  secção ou parágrafo dedicado só a isto (nada de cabeçalhos tipo "Como a TrafficScope pode ajudar?").
-  Se não conseguires encaixar a menção com naturalidade num parágrafo já existente, prefere omiti-la
-  nesta geração a criar uma secção isolada para a fazer caber. Varia a formulação a cada
-  artigo, adaptando-a ao tema específico em vez de reutilizares sempre a mesma frase — por exemplo (escolhe
-  UMA ideia destas ou inventa uma equivalente, nunca repitas literalmente a mesma frase de artigos
-  anteriores): monitorizar esta variação em tempo real, cruzar estes dados com o domínio do próprio
-  negócio, identificar este tipo de mudança de comportamento antes da concorrência, ou acompanhar a
-  evolução deste índice ao longo do tempo. NUNCA use linguagem de venda direta (nunca escreva "experimente",
-  "assine", "clique aqui", "compre", nomes de planos ou preços). A menção deve soar como uma observação
-  natural de analista, não como publicidade. CRÍTICO: esta menção nunca pode depender de um risco ou
-  urgência fabricados no resto do artigo para "fazer sentido" — se o artigo não tiver um ângulo de negócio
-  genuíno onde monitorização seja relevante, faz a menção de forma mais genérica (ex: sobre acompanhar
-  tendências do setor) em vez de forçar uma narrativa de perigo só para justificar a frase.
-- 400-600 palavras, tom analítico mas envolvente — nunca sensacionalista ao ponto de distorcer os dados, e
-  sem projeções financeiras ou de crescimento excessivamente otimistas; qualquer previsão deve soar
-  equilibrada e cautelosa, reconhecendo incerteza.
+SANITY CHECK:
+Antes de responder, verifique:
+(a) Não citei fontes inexistentes.
+(b) Todos os números vêm literalmente das fontes ou chartData.
+(c) Não inventei dados, declarações ou atribuições.
 
-Responda APENAS com um objeto JSON válido, sem texto antes ou depois, neste formato exato:
+Responda APENAS com este JSON, sem texto antes ou depois:
 {
-  "title": "título com gatilho de curiosidade, baseado em dado real",
-  "excerpt": "1-2 frases com lacuna de curiosidade e um número concreto",
-  "content": "corpo do artigo em markdown, 400-600 palavras, com gancho inicial forte, incluindo {{IMG_1}} e {{IMG_2}} em pontos estratégicos",
+  "title": "...",
+  "excerpt": "...",
+  "content": "markdown com {{IMG_1}} e {{IMG_2}}",
   "category": "${category}",
   "chart_type": "bar ou null",
-  "chart_data": ${topic.type === "comparison" ? '[{"name": "dominio.com", "value": 12345}, ...]' : "[{...}] ou null"},
-  "image_prompts": ["duas palavras-chave em inglês para a imagem 1, ex: online shopping laptop", "duas palavras-chave em inglês para a imagem 2, ex: global business growth"],
-  "sources_used": [números das fontes realmente usadas no texto, ex: 1, 3]
+  "chart_data": ${topic.type === "comparison" ? '[{"name": "...", "value": 123}, ...]' : "null"},
+  "image_prompts": ["keywords imagem 1 em inglês", "keywords imagem 2 em inglês"],
+  "sources_used": [números das fontes realmente usadas no texto]
 }`;
 
-        const response = await groq.chat.completions.create({
-          model: "openai/gpt-oss-120b",
-          response_format: { type: "json_object" },
-          reasoning_effort: "low",
-          messages: [
-            {
-              role: "system",
-              content: "Você escreve artigos de blog para a TrafficScope, uma plataforma de inteligência competitiva. Escreva em português correto, com pontuação cuidada (ex: vírgula após advérbios de tempo introdutórios, como em 'Em 2026, a IA...'). Responda SEMPRE apenas com JSON válido, sem markdown fora do campo 'content', sem texto adicional.",
-            },
-            { role: "user", content: prompt },
-          ],
-        });
+      const response = await groq.chat.completions.create({
+        model: "openai/gpt-oss-120b",
+        response_format: { type: "json_object" },
+        reasoning_effort: "low",
+        messages: [
+          {
+            role: "system",
+            content: "Você escreve artigos de blog para a TrafficScope, uma plataforma de inteligência competitiva. Escreva em português correto, com pontuação cuidada (ex: vírgula após advérbios de tempo introdutórios, como em 'Em 2026, a IA...'). Responda SEMPRE apenas com JSON válido, sem markdown fora do campo 'content', sem texto adicional.",
+          },
+          { role: "user", content: prompt },
+        ],
+      });
 
-        const raw = response.choices[0]?.message?.content || "{}";
-        const article = JSON.parse(raw);
+      const raw = response.choices[0]?.message?.content || "{}";
+      const article = JSON.parse(raw);
 
-        // NOVO: substitui os marcadores {{IMG_1}}/{{IMG_2}} por fotos reais do Unsplash
-        try {
-          article.content = await injectImagesIntoContent(article.content, article.image_prompts || []);
-        } catch (imgErr) {
-          console.error('Falha ao injetar imagens Unsplash, artigo segue sem fotos:', imgErr);
-          article.content = article.content.replace(/\{\{IMG_\d+\}\}/g, '');
-        }
-if (topic.type === "manual") {
-          article.chart_data = chartData; // favicon do domínio escolhido pelo Admin
-          article.chart_type = null;
-        }
-
-        const slugBase = article.title
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/(^-|-$)/g, "");
-        const slug = `${slugBase}-${Date.now()}`;
-
-        const usedIndices: number[] = Array.isArray(article.sources_used) ? article.sources_used : [];
-        const usedSnippets = statsContext.snippets.filter((_, i) => usedIndices.includes(i + 1));
-
-        // Verificação leve: extrai números "grandes" citados no corpo do artigo (percentagens,
-        // valores monetários, milhões/biliões/trilhões) e confere se aparecem literalmente nos
-        // snippets usados. Não bloqueia a publicação — só regista aviso para auditoria manual.
-        const suspiciousNumbers: string[] = [];
-        const numberPattern = /\d+([.,]\d+)?\s*(%|trilh[ãa]o|bilh[ãa]o|milh[ãa]o)/gi;
-        const numbersInContent = [...article.content.matchAll(numberPattern)].map((m) => m[0]);
-        const snippetsJoined = usedSnippets.join(" ");
-        for (const num of numbersInContent) {
-          const digits = num.match(/\d+([.,]\d+)?/)?.[0] || "";
-          if (digits && !snippetsJoined.includes(digits)) {
-            suspiciousNumbers.push(num);
-          }
-        }
-        if (suspiciousNumbers.length > 0) {
-          console.warn(`⚠️ Possível número inventado no artigo "${article.title}":`, suspiciousNumbers);
-        }
-
-        const { data: inserted, error } = await supabaseAdmin
-          .from("blog_posts")
-          .insert({
-            slug,
-            title: article.title,
-            excerpt: article.excerpt,
-            content: article.content,
-            category: article.category || category,
-            chart_type: article.chart_type || null,
-            chart_data: article.chart_data || null,
-            sources: usedSnippets.length > 0
-              ? statsContext.sources.filter((_, i) => usedIndices.includes(i + 1))
-              : null,
-            source_snippets_used: usedSnippets.length > 0 ? usedSnippets : null,
-            flagged_numbers: suspiciousNumbers.length > 0 ? suspiciousNumbers : null,
-            topic_key: topic.topicKey,
-            affiliate_link: topic.type === "manual" ? (topic.affiliateLink || null) : null,
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-
-        // NOVO: notificação global — todos os utilizadores veem que saiu artigo novo
-        await createNotification(
-          null,
-          'new_blog_post',
-          'Novo artigo no blog',
-          article.title,
-          `/blog/${slug}`
-        );
-
-        return res.json({ success: true, post: inserted });
-      } catch (err: any) {
-        console.error("Erro ao gerar artigo do blog:", err);
-        return res.status(500).json({ error: "Falha ao gerar artigo." });
-      }
-    });
-
-
-
-    // ===== NOVO: Eliminar artigo do Blog (só o dono) =====
-    app.delete("/api/blog/:slug", async (req, res) => {
+      // NOVO: substitui os marcadores {{IMG_1}}/{{IMG_2}} por fotos reais do Unsplash
       try {
-        const user = await getUserFromRequest(req);
-        if (!user || user.id !== OWNER_USER_ID) {
-          return res.status(403).json({ error: "Acesso negado." });
-        }
-
-        const { slug } = req.params;
-        const { error } = await supabaseAdmin
-          .from("blog_posts")
-          .delete()
-          .eq("slug", slug);
-
-        if (error) throw error;
-
-        return res.json({ success: true });
-      } catch (err: any) {
-        console.error("Erro ao eliminar artigo do blog:", err);
-        return res.status(500).json({ error: "Falha ao eliminar artigo." });
+        article.content = await injectImagesIntoContent(article.content, article.image_prompts || []);
+      } catch (imgErr) {
+        console.error('Falha ao injetar imagens Unsplash, artigo segue sem fotos:', imgErr);
+        article.content = article.content.replace(/\{\{IMG_\d+\}\}/g, '');
       }
-    });
-    
-    // ===== NOVO: Geração individual de notícia (busca 1 + reescreve com IA) =====
-app.post("/api/news/generate", async (req, res) => {
-  try {
-    const user = await getUserFromRequest(req);
-    if (!user || user.id !== OWNER_USER_ID) {
-      return res.status(403).json({ error: "Acesso negado." });
+
+      if (topic.type === "manual") {
+        article.chart_data = chartData; // favicon do domínio escolhido pelo Admin
+        article.chart_type = null;
+      }
+
+      const slugBase = article.title
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+      const slug = `${slugBase}-${Date.now()}`;
+
+      // ===== VALIDAÇÃO ROBUSTA DE FONTES =====
+      const availableSnippetCount = statsContext.snippets.length;
+
+      // 1. Tentar obter índices do campo sources_used da IA
+      // Prioridade: o que está REALMENTE citado no corpo do texto, não o que a IA
+      // diz em sources_used — a IA às vezes lista fontes que consultou mas não
+      // chegou a citar inline, o que criava bibliografia com itens "fantasma".
+      const citationMatches = [...article.content.matchAll(/Fonte\s+(\d+)/gi)];
+      let rawIndices: number[] = [...new Set(citationMatches.map((m) => parseInt(m[1], 10)))];
+
+      if (rawIndices.length === 0 && Array.isArray(article.sources_used) && article.sources_used.length > 0) {
+        console.log(`📰 Artigo "${article.title}": nenhuma citação "Fonte N" encontrada no texto — a usar sources_used como fallback: [${article.sources_used.join(", ")}]`);
+        rawIndices = article.sources_used;
+      }
+
+      // 3. Validar índices contra snippets reais disponíveis
+      const validIndices = rawIndices.filter((n) => Number.isInteger(n) && n >= 1 && n <= availableSnippetCount);
+      const invalidIndices = rawIndices.filter((n) => !(Number.isInteger(n) && n >= 1 && n <= availableSnippetCount));
+
+      if (invalidIndices.length > 0) {
+        console.warn(`⚠️ Artigo "${article.title}" citou fontes inexistentes: [${invalidIndices.join(", ")}]. Apenas ${availableSnippetCount} snippet(s) disponível(eis).`);
+      }
+
+      // 4. Renumera citações válidas para corresponderem à posição na bibliografia final
+      //    (que só contém as fontes efetivamente citadas), e remove citações inválidas.
+      const sortedUsedIndices = [...new Set(validIndices)].sort((a, b) => a - b);
+
+      // Se a IA tentou citar fontes mas NENHUMA sobrou válida, rejeita em vez de publicar
+      // um artigo com citações removidas e sem bibliografia.
+      if (sortedUsedIndices.length === 0 && rawIndices.length > 0) {
+        console.error(`❌ Todas as citações do artigo "${article.title}" são inválidas (${rawIndices.join(", ")}) contra ${availableSnippetCount} fonte(s) disponível(eis).`);
+        return res.status(422).json({
+          error: "Artigo gerado citou apenas fontes inexistentes. A IA violou as regras de atribuição.",
+          details: { indicesCitados: rawIndices, snippetsDisponiveis: availableSnippetCount, titulo: article.title }
+        });
+      }
+
+      const indexMap = new Map(sortedUsedIndices.map((oldIdx, i) => [oldIdx, i + 1]));
+      article.content = article.content
+        .replace(/\(?\[?Fonte\s+(\d+)\]?\)?/gi, (match: string, numStr: string) => {
+          const oldNum = parseInt(numStr, 10);
+          const newNum = indexMap.get(oldNum);
+          return newNum ? `[Fonte ${newNum}]` : '';
+        })
+        .replace(/  +/g, ' ')
+        .replace(/\s+([.,;:!?])/g, '$1')
+        .replace(/\n\s*\n\s*\n/g, '\n\n');
+
+      // 5. Bibliografia final já alinhada 1-a-1 com a numeração renumerada no texto
+      const finalSources = sortedUsedIndices.map((i) => statsContext.sources[i - 1]).filter(Boolean);
+      const finalSnippets = sortedUsedIndices.map((i) => statsContext.snippets[i - 1]).filter(Boolean);
+
+      // 8. Verificação de números suspeitos (auditoria, não bloqueia)
+      const suspiciousNumbers: string[] = [];
+      const numberPattern = /\d+([.,]\d+)?\s*(%|trilh[ãa]o|bilh[ãa]o|milh[ãa]o)/gi;
+      const numbersInContent = [...article.content.matchAll(numberPattern)].map((m) => m[0]);
+      const snippetsJoined = finalSnippets.join(" ");
+      for (const num of numbersInContent) {
+        const digits = num.match(/\d+([.,]\d+)?/)?.[0] || "";
+        if (digits && !snippetsJoined.includes(digits)) {
+          suspiciousNumbers.push(num);
+        }
+      }
+      if (suspiciousNumbers.length > 0) {
+        console.warn(`⚠️ Possível número inventado no artigo "${article.title}":`, suspiciousNumbers);
+      }
+
+      // 9. Log consolidado de integridade
+      if (invalidIndices.length > 0 || suspiciousNumbers.length > 0) {
+        console.warn(`📋 Relatório de integridade — "${article.title}":`, {
+          snippetsDisponiveis: availableSnippetCount,
+          indicesCitadosPelaIA: rawIndices,
+          indicesValidos: validIndices,
+          indicesInvalidos: invalidIndices,
+          numerosSuspeitos: suspiciousNumbers,
+          bibliografiaGerada: finalSources.length,
+        });
+      }
+
+      const { data: inserted, error } = await supabaseAdmin
+        .from("blog_posts")
+        .insert({
+          slug,
+          title: article.title,
+          excerpt: article.excerpt,
+          content: article.content,
+          category: article.category || category,
+          chart_type: article.chart_type || null,
+          chart_data: article.chart_data || null,
+          sources: finalSources.length > 0 ? finalSources : null,
+          source_snippets_used: finalSnippets.length > 0 ? finalSnippets : null,
+          flagged_numbers: suspiciousNumbers.length > 0 ? suspiciousNumbers : null,
+          topic_key: topic.topicKey,
+          affiliate_link: topic.type === "manual" ? (topic.affiliateLink || null) : null,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // NOVO: notificação global — todos os utilizadores veem que saiu artigo novo
+      await createNotification(
+        null,
+        'new_blog_post',
+        'Novo artigo no blog',
+        article.title,
+        `/blog/${slug}`
+      );
+
+      return res.json({ success: true, post: inserted });
+    } catch (err: any) {
+      console.error("Erro ao gerar artigo do blog:", err);
+      return res.status(500).json({ error: "Falha ao gerar artigo." });
     }
+  });
 
-    if (!process.env.GROQ_API_KEY) {
-      return res.status(500).json({ error: "GROQ_API_KEY não configurada no servidor." });
+
+
+  // ===== NOVO: Eliminar artigo do Blog (só o dono) =====
+  app.delete("/api/blog/:slug", async (req, res) => {
+    try {
+      const user = await getUserFromRequest(req);
+      if (!user || user.id !== OWNER_USER_ID) {
+        return res.status(403).json({ error: "Acesso negado." });
+      }
+
+      const { slug } = req.params;
+      const { error } = await supabaseAdmin
+        .from("blog_posts")
+        .delete()
+        .eq("slug", slug);
+
+      if (error) throw error;
+
+      return res.json({ success: true });
+    } catch (err: any) {
+      console.error("Erro ao eliminar artigo do blog:", err);
+      return res.status(500).json({ error: "Falha ao eliminar artigo." });
     }
+  });
 
-    const { categoryKey } = req.body as { categoryKey?: string };
-    const category = categoryKey
-      ? NEWS_CATEGORIES.find((c) => c.key === categoryKey)
-      : NEWS_CATEGORIES[Math.floor(Math.random() * NEWS_CATEGORIES.length)];
+  // ===== NOVO: Geração individual de notícia (busca 1 + reescreve com IA) =====
+  app.post("/api/news/generate", async (req, res) => {
+    try {
+      const user = await getUserFromRequest(req);
+      if (!user || user.id !== OWNER_USER_ID) {
+        return res.status(403).json({ error: "Acesso negado." });
+      }
 
-    if (!category) {
-      return res.status(400).json({ error: "Categoria inválida." });
-    }
+      if (!process.env.GROQ_API_KEY) {
+        return res.status(500).json({ error: "GROQ_API_KEY não configurada no servidor." });
+      }
 
-    // Busca notícias recentes já usadas (para evitar repetir)
-    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
-    const { data: existingNews } = await supabaseAdmin
-      .from("news_items")
-      .select("headline")
-      .gte("published_at", threeDaysAgo);
-    const existingHeadlines = new Set((existingNews || []).map((n) => n.headline.trim().toLowerCase()));
+      const { categoryKey } = req.body as { categoryKey?: string };
+      const category = categoryKey
+        ? NEWS_CATEGORIES.find((c) => c.key === categoryKey)
+        : NEWS_CATEGORIES[Math.floor(Math.random() * NEWS_CATEGORIES.length)];
 
-    const articles = await fetchGNewsForCategory(category.query);
-    const article = articles.find((a) => !existingHeadlines.has(a.title.trim().toLowerCase()));
+      if (!category) {
+        return res.status(400).json({ error: "Categoria inválida." });
+      }
 
-    if (!article) {
-      return res.status(404).json({ error: "Nenhuma notícia nova encontrada para esta categoria. Tenta novamente mais tarde ou escolhe outra categoria." });
-    }
+      // Busca notícias recentes já usadas (para evitar repetir)
+      const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+      const { data: existingNews } = await supabaseAdmin
+        .from("news_items")
+        .select("headline")
+        .gte("published_at", threeDaysAgo);
+      const existingHeadlines = new Set((existingNews || []).map((n) => n.headline.trim().toLowerCase()));
 
-    const candidates = await findYoutubeCandidates(article.title);
-    const videoId = await pickRelevantVideo(groq, candidates, article.title, article.description);
+      const articles = await fetchGNewsForCategory(category.query);
+      const article = articles.find((a) => !existingHeadlines.has(a.title.trim().toLowerCase()));
 
-    // Reescreve a notícia com a IA — texto curto, factual, sem inventar dados
-    const prompt = `
-Você é um jornalista digital da TrafficScope, especializado em ligar notícias reais a impacto no tráfego web e comportamento digital.
+      if (!article) {
+        return res.status(404).json({ error: "Nenhuma notícia nova encontrada para esta categoria. Tenta novamente mais tarde ou escolhe outra categoria." });
+      }
 
-Reescreva a notícia abaixo em Português, de forma curta e clara (150-250 palavras), parafraseando o conteúdo original (NUNCA copiando texto literal).
+      const candidates = await findYoutubeCandidates(article.title);
+      const videoId = await pickRelevantVideo(groq, candidates, article.title, article.description);
 
-TÍTULO ORIGINAL: ${article.title}
-DESCRIÇÃO ORIGINAL: ${article.description || ""}
-CONTEÚDO DISPONÍVEL: ${article.content || ""}
+      // Reescreve a notícia com a IA — texto curto, factual, sem inventar dados
+      const prompt = `
+Você é um editor de resumo internacional de uma plataforma de notícias digitais. O seu trabalho é identificar notícias com verdadeiro alcance global e reescrevê-las de forma clara, curta e factual.
 
-Regras:
-- Só reescreva esta notícia se ela tiver relevância internacional/global real (afeta múltiplos países, mercados globais, big tech, ou tendências mundiais). Se a notícia for essencialmente sobre política ou economia doméstica de um único país sem impacto internacional claro, responda APENAS com {"skip": true} e mais nada.
-- Mantenha os factos exatamente como estão na fonte — não invente números, declarações ou detalhes que não estejam no material fornecido.
-- Tom jornalístico, direto, sem sensacionalismo.
-- Pode incluir, no máximo em uma frase, uma observação sobre a relevância desta notícia para tráfego/comportamento digital — só se fizer sentido natural, sem forçar.
-- Não repita o título dentro do corpo do texto.
+Dados da notícia original:
+TÍTULO: ${article.title}
+DESCRIÇÃO: ${article.description || ""}
+CONTEÚDO: ${article.content || ""}
 
-Responda APENAS com um objeto JSON válido, sem texto antes ou depois, neste formato exato:
+Regras rigorosas:
+1. Só reescreva se a notícia tiver relevância internacional real (afeta múltiplos países, mercados globais, big tech, ciência/ambiente de alcance mundial, ou segurança global). Se for notícia essencialmente doméstica de um único país (política interna, economia local, acidente regional sem repercussão alargada), responda APENAS com {"skip": true} e nada mais.
+2. Parafraseie completamente. NUNCA copie frases literais do original.
+3. Mantenha os factos exactamente como constam da fonte. NÃO invente números, nomes de pessoas, declarações, datas ou detalhes que não estejam no material fornecido. Se a fonte não tiver um dado específico, omita-o — não o suponha.
+4. Tom jornalístico, directo, neutro. Sem sensacionalismo, sem adjetivos exagerados, sem opinião pessoal.
+5. Não repita o título no corpo do texto.
+6. Se — e só se — a notícia tiver uma conexão natural e óbvia com comportamento digital, consumo de informação online ou dinâmicas de plataformas, pode incluir uma breve frase sobre isso. Se não for relevante, ignore completamente este ponto. Não force a ligação.
+
+Responda APENAS com um objeto JSON válido, sem texto antes ou depois:
 {
-  "title": "título curto e claro (pode ajustar o original para maior clareza, mas mantendo os factos)",
-  "summary": "1 frase de resumo/isca para a listagem",
+  "title": "título curto e claro (ajuste para clareza, mantendo os factos)",
+  "summary": "uma frase de resumo/isca para listagem",
   "content": "corpo do texto em markdown, 150-250 palavras"
-}`;
+}
+`;
 
-    const response = await groq.chat.completions.create({
-      model: "openai/gpt-oss-120b",
-      response_format: { type: "json_object" },
-      reasoning_effort: "low",
-      messages: [
-        {
-          role: "system",
-          content: "Você reescreve notícias reais para a TrafficScope de forma curta e factual. Responda SEMPRE apenas com JSON válido, sem texto adicional.",
-        },
-        { role: "user", content: prompt },
-      ],
-    });
+      const response = await groq.chat.completions.create({
+        model: "openai/gpt-oss-120b",
+        response_format: { type: "json_object" },
+        reasoning_effort: "low",
+        messages: [
+          {
+            role: "system",
+            content: "Você reescreve notícias reais para a TrafficScope de forma curta e factual. Responda SEMPRE apenas com JSON válido, sem texto adicional.",
+          },
+          { role: "user", content: prompt },
+        ],
+      });
 
-    const raw = response.choices[0]?.message?.content || "{}";
-    const rewritten = JSON.parse(raw);
+      const raw = response.choices[0]?.message?.content || "{}";
+      const rewritten = JSON.parse(raw);
 
-    if (rewritten.skip) {
-      console.log("⏭️ Notícia descartada por falta de relevância global:", article.title);
-      return res.status(404).json({ error: "A notícia encontrada não tinha relevância global suficiente. Tenta novamente ou escolhe outra categoria." });
+      if (rewritten.skip) {
+        console.log("⏭️ Notícia descartada por falta de relevância global:", article.title);
+        return res.status(404).json({ error: "A notícia encontrada não tinha relevância global suficiente. Tenta novamente ou escolhe outra categoria." });
+      }
+
+      const slugBase = rewritten.title
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+      const slug = `${slugBase}-${Date.now()}`;
+
+      const { data: inserted, error } = await supabaseAdmin
+        .from("news_items")
+        .insert({
+          slug,
+          headline: rewritten.title,
+          summary: rewritten.summary,
+          content: rewritten.content,
+          source_name: article.source?.name || "Fonte desconhecida",
+          source_url: article.url,
+          youtube_video_id: videoId,
+          cover_image: article.image || null,
+          category: category.label,
+          published_at: article.publishedAt,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await createNotification(
+        null,
+        'new_blog_post',
+        'Nova notícia publicada',
+        rewritten.title,
+        `/noticias/${slug}`
+      );
+
+      return res.json({ success: true, item: inserted });
+    } catch (err: any) {
+      console.error("Erro ao gerar notícia:", err);
+      const isGNewsQuota = err?.message?.includes("GNews") && err?.message?.includes("403");
+      const errorMessage = isGNewsQuota
+        ? "Limite diário da GNews API atingido. Tenta novamente após as 00:00 UTC ou faz upgrade do plano."
+        : "Falha ao gerar notícia.";
+      return res.status(isGNewsQuota ? 429 : 500).json({ error: errorMessage });
     }
+  });
 
-    const slugBase = rewritten.title
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
-    const slug = `${slugBase}-${Date.now()}`;
+  // ===== NOVO: Listagem pública de notícias =====
+  app.get("/api/news", async (req, res) => {
+    try {
+      const { data, error } = await supabaseAdmin
+        .from("news_items")
+        .select("*")
+        .not("slug", "is", null)
+        .order("published_at", { ascending: false })
+        .limit(50);
 
-    const { data: inserted, error } = await supabaseAdmin
-      .from("news_items")
-      .insert({
-        slug,
-        headline: rewritten.title,
-        summary: rewritten.summary,
-        content: rewritten.content,
-        source_name: article.source?.name || "Fonte desconhecida",
-        source_url: article.url,
-        youtube_video_id: videoId,
-        cover_image: article.image || null,
-        category: category.label,
-        published_at: article.publishedAt,
-      })
-      .select()
-      .single();
+      if (error) throw error;
 
-    if (error) throw error;
-
-    await createNotification(
-      null,
-      'new_blog_post',
-      'Nova notícia publicada',
-      rewritten.title,
-      `/noticias/${slug}`
-    );
-
-    return res.json({ success: true, item: inserted });
-  } catch (err: any) {
-    console.error("Erro ao gerar notícia:", err);
-    const isGNewsQuota = err?.message?.includes("GNews") && err?.message?.includes("403");
-    const errorMessage = isGNewsQuota
-      ? "Limite diário da GNews API atingido. Tenta novamente após as 00:00 UTC ou faz upgrade do plano."
-      : "Falha ao gerar notícia.";
-    return res.status(isGNewsQuota ? 429 : 500).json({ error: errorMessage });
-  }
-});
-
-// ===== NOVO: Listagem pública de notícias =====
-app.get("/api/news", async (req, res) => {
-  try {
-    const { data, error } = await supabaseAdmin
-      .from("news_items")
-      .select("*")
-      .not("slug", "is", null)
-      .order("published_at", { ascending: false })
-      .limit(50);
-
-    if (error) throw error;
-
-    return res.json({ success: true, items: data });
-  } catch (err: any) {
-    console.error("Erro ao listar notícias:", err);
-    return res.status(500).json({ error: "Falha ao listar notícias." });
-  }
-});
-
-// ===== NOVO: Detalhe público de uma notícia =====
-app.get("/api/news/:slug", async (req, res) => {
-  try {
-    const { slug } = req.params;
-    const { data, error } = await supabaseAdmin
-      .from("news_items")
-      .select("*")
-      .eq("slug", slug)
-      .single();
-
-    if (error) throw error;
-
-    return res.json({ success: true, item: data });
-  } catch (err: any) {
-    console.error("Erro ao buscar notícia:", err);
-    return res.status(404).json({ error: "Notícia não encontrada." });
-  }
-});
-
-// ===== NOVO: Eliminar item de notícia (só o dono) =====
-app.delete("/api/news/:id", async (req, res) => {
-  try {
-    const user = await getUserFromRequest(req);
-    if (!user || user.id !== OWNER_USER_ID) {
-      return res.status(403).json({ error: "Acesso negado." });
+      return res.json({ success: true, items: data });
+    } catch (err: any) {
+      console.error("Erro ao listar notícias:", err);
+      return res.status(500).json({ error: "Falha ao listar notícias." });
     }
+  });
 
-    const { id } = req.params;
-    const { error } = await supabaseAdmin.from("news_items").delete().eq("id", id);
-    if (error) throw error;
+  // ===== NOVO: Detalhe público de uma notícia =====
+  app.get("/api/news/:slug", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const { data, error } = await supabaseAdmin
+        .from("news_items")
+        .select("*")
+        .eq("slug", slug)
+        .single();
 
-    return res.json({ success: true });
-  } catch (err: any) {
-    console.error("Erro ao eliminar item de notícia:", err);
-    return res.status(500).json({ error: "Falha ao eliminar item." });
-  }
-});
+      if (error) throw error;
+
+      return res.json({ success: true, item: data });
+    } catch (err: any) {
+      console.error("Erro ao buscar notícia:", err);
+      return res.status(404).json({ error: "Notícia não encontrada." });
+    }
+  });
+
+  // ===== NOVO: Eliminar item de notícia (só o dono) =====
+  app.delete("/api/news/:id", async (req, res) => {
+    try {
+      const user = await getUserFromRequest(req);
+      if (!user || user.id !== OWNER_USER_ID) {
+        return res.status(403).json({ error: "Acesso negado." });
+      }
+
+      const { id } = req.params;
+      const { error } = await supabaseAdmin.from("news_items").delete().eq("id", id);
+      if (error) throw error;
+
+      return res.json({ success: true });
+    } catch (err: any) {
+      console.error("Erro ao eliminar item de notícia:", err);
+      return res.status(500).json({ error: "Falha ao eliminar item." });
+    }
+  });
 
 
 
@@ -1774,38 +1880,38 @@ Responda APENAS com um objeto JSON válido, sem texto antes ou depois, neste for
     }
   });
 
-const SITE_URL = "https://trafficscope.onrender.com";
+  const SITE_URL = "https://trafficscope.onrender.com";
 
-app.get("/sitemap.xml", async (req, res) => {
-  try {
-    const staticUrls: { loc: string; changefreq: string; priority: string; lastmod?: string }[] = [
-      { loc: "/", changefreq: "weekly", priority: "1.0" },
-      { loc: "/blog", changefreq: "weekly", priority: "0.8" },
-      { loc: "/sobre", changefreq: "monthly", priority: "0.6" },
-      { loc: "/faq", changefreq: "monthly", priority: "0.6" },
-      { loc: "/politica-privacidade", changefreq: "yearly", priority: "0.3" },
-      { loc: "/termos-de-uso", changefreq: "yearly", priority: "0.3" },
-      { loc: "/suporte", changefreq: "monthly", priority: "0.5" },
-    ];
+  app.get("/sitemap.xml", async (req, res) => {
+    try {
+      const staticUrls: { loc: string; changefreq: string; priority: string; lastmod?: string }[] = [
+        { loc: "/", changefreq: "weekly", priority: "1.0" },
+        { loc: "/blog", changefreq: "weekly", priority: "0.8" },
+        { loc: "/sobre", changefreq: "monthly", priority: "0.6" },
+        { loc: "/faq", changefreq: "monthly", priority: "0.6" },
+        { loc: "/politica-privacidade", changefreq: "yearly", priority: "0.3" },
+        { loc: "/termos-de-uso", changefreq: "yearly", priority: "0.3" },
+        { loc: "/suporte", changefreq: "monthly", priority: "0.5" },
+      ];
 
-    const { data: posts, error } = await supabaseAdmin
-      .from("blog_posts")
-      .select("slug, created_at")
-      .eq("published", true)
-      .order("created_at", { ascending: false });
+      const { data: posts, error } = await supabaseAdmin
+        .from("blog_posts")
+        .select("slug, created_at")
+        .eq("published", true)
+        .order("created_at", { ascending: false });
 
-    if (error) throw error;
+      if (error) throw error;
 
-    const postUrls = (posts || []).map((p) => ({
-      loc: `/blog/${p.slug}`,
-      changefreq: "monthly",
-      priority: "0.7",
-      lastmod: new Date(p.created_at).toISOString().split("T")[0],
-    }));
+      const postUrls = (posts || []).map((p) => ({
+        loc: `/blog/${p.slug}`,
+        changefreq: "monthly",
+        priority: "0.7",
+        lastmod: new Date(p.created_at).toISOString().split("T")[0],
+      }));
 
-    const allUrls = [...staticUrls, ...postUrls];
+      const allUrls = [...staticUrls, ...postUrls];
 
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${allUrls
   .map(
@@ -1818,13 +1924,13 @@ ${allUrls
   .join("\n")}
 </urlset>`;
 
-    res.set("Content-Type", "application/xml");
-    return res.send(xml);
-  } catch (err) {
-    console.error("Erro ao gerar sitemap.xml:", err);
-    return res.status(500).send("Erro ao gerar sitemap.");
-  }
-});
+      res.set("Content-Type", "application/xml");
+      return res.send(xml);
+    } catch (err) {
+      console.error("Erro ao gerar sitemap.xml:", err);
+      return res.status(500).send("Erro ao gerar sitemap.");
+    }
+  });
 
 
   // Vite middleware integration for Development vs Production
@@ -1839,7 +1945,7 @@ ${allUrls
 
     console.log('CWD:', process.cwd());
     console.log('distPath:', distPath);
-    console.log('favicon existe?', require('fs').existsSync(path.join(distPath, 'favicon.svg')));
+    console.log('favicon existe?', fs.existsSync(path.join(distPath, 'favicon.svg')));
 
     app.use(express.static(distPath));
     app.get('*', (req, res) => {

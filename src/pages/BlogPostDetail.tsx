@@ -152,7 +152,7 @@ export default function BlogPostDetail() {
               {displayTitle}
             </h1>
 
-            <p className="mt-3 text-base md:text-lg text-muted-foreground max-w-2xl line-clamp-2">
+            <p className="mt-3 text-base md:text-lg text-muted-foreground max-w-2xl">
               {displayExcerpt}
             </p>
 
