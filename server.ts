@@ -98,7 +98,7 @@ const NICHE_POOLS: { category: string; domains: string[] }[] = [  { category: "E
 const NARRATIVE_ANGLES = [
   {
     key: "rivalry",
-    instruction: "Foque numa RIVALIDADE direta entre dois domínios do dataset com trajetórias opostas — um a crescer, outro a estagnar ou cair. O título deve criar tensão entre os dois.",
+    instruction: "Foque numa RIVALIDADE direta entre dois domínios do dataset com trajetórias opostas — um a crescer, outro a estagnar ou cair. Escolhe UM único par de domínios logo no início e usa exatamente esse par (nunca troques por outro domínio do dataset) no título, no excerpt e em todo o corpo do texto.",
   },
   {
     key: "prediction",
@@ -132,7 +132,7 @@ const NEWS_TOPICS: { category: string; query: string; instruction: string }[] = 
   {
     category: "Mercados Financeiros",
     query: "notícias mercados financeiros bolsa big tech resultados 2026",
-    instruction: "Escolha UM evento financeiro recente (resultados trimestrais, IPO, fusão, queda/alta de ações) a partir dos factos fornecidos. Ligue explicitamente esse evento a como se reflete ou deve refletir no interesse de busca/tráfego online da empresa envolvida.",
+    instruction: "Escolha UM evento financeiro recente (resultados trimestrais, IPO, fusão, queda/alta de ações) a partir dos factos fornecidos. Antes de ligar o evento a tráfego, avalia se a empresa é B2C (venda direta ao consumidor, onde interesse de busca é um proxy razoável) ou B2B/infraestrutura (venda a empresas — cloud computing, ferramentas enterprise, etc.). Para empresas B2B/infraestrutura, NUNCA afirmes que a receita sobe por causa de mais pesquisas/tráfego de utilizadores comuns — explica o crescimento em termos do consumo real do negócio (contratos fechados, chamadas de API, migração de servidores, processamento de dados), e só depois, se fizer sentido, menciona tráfego digital como um sinal indireto que ferramentas de inteligência competitiva conseguem monitorizar. Para empresas B2C, podes ligar diretamente o evento a interesse de busca/tráfego online.",
   },
   {
     category: "Geopolítica & Economia Global",
@@ -322,6 +322,10 @@ async function pickUnusedTopic(): Promise<Topic> {
 // Cache simples em memória (evita pagar de novo pelo mesmo domínio em pouco tempo)
 const apifyCache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 horas
+
+// Guarda os últimos IDs de foto do Unsplash usados, para evitar repetir a mesma imagem entre artigos
+const recentlyUsedUnsplashIds: string[] = [];
+const UNSPLASH_MEMORY_SIZE = 30;
 
 // ===== Rate Limiting: protege o crédito Apify contra abuso =====
 // Nota: isto continua a aplicar-se a todos os pedidos a /api/analyze-domain,
@@ -538,14 +542,20 @@ async function fetchUnsplashImage(query: string): Promise<{ url: string; alt: st
   if (!process.env.UNSPLASH_ACCESS_KEY) return null;
 
   const res = await fetch(
-    `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape`,
+    `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=10&orientation=landscape`,
     { headers: { Authorization: `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}` } }
   );
   if (!res.ok) return null;
 
   const data = await res.json();
-  const photo = data.results?.[0];
-  if (!photo) return null;
+  const results = data.results || [];
+  if (results.length === 0) return null;
+
+  // Prefere uma foto que ainda não tenha sido usada recentemente noutro artigo
+  const photo = results.find((p: any) => !recentlyUsedUnsplashIds.includes(p.id)) || results[0];
+
+  recentlyUsedUnsplashIds.push(photo.id);
+  if (recentlyUsedUnsplashIds.length > UNSPLASH_MEMORY_SIZE) recentlyUsedUnsplashIds.shift();
 
   return {
     url: photo.urls.regular,
@@ -1094,8 +1104,9 @@ content: `Responda sempre em ${languageName}. Você é o Copilot de Inteligênci
           : await pickUnusedTopic();
 
         let chartData: { name: string; value: number }[] | null = null;
-        let statsQuery: string;
-        let category: string;
+let chartDataIsRealTrends = false;
+let statsQuery: string;
+let category: string;
 
         if (topic.type === "comparison") {
           const referenceDomains = topic.niche.domains;
@@ -1105,6 +1116,7 @@ content: `Responda sempre em ${languageName}. Você é o Copilot de Inteligênci
             // Remapeia de volta para o domínio completo (ex: "amazon" → "amazon.com"),
             // já que o Trends foi consultado com a keyword truncada mas o favicon precisa do domínio real
             chartData = trendsResults.map((r, i) => ({ name: referenceDomains[i], value: r.value }));
+            chartDataIsRealTrends = true;
           } catch (trendsErr) {
             console.error("Falha no Google Trends, a usar dados de teste como fallback:", trendsErr);
             chartData = referenceDomains.map((d) => {
@@ -1112,7 +1124,7 @@ content: `Responda sempre em ${languageName}. Você é o Copilot de Inteligênci
               return { name: d, value: m.monthlyVisits };
             });
           }
-          statsQuery = `estatísticas ${topic.niche.category} tendências globais 2026`;
+          statsQuery = `${referenceDomains.slice(0, 2).map((d) => d.split(".")[0]).join(" vs ")} estatísticas mercado 2026`;
           category = topic.niche.category;
         } else if (topic.type === "news") {
           statsQuery = topic.news.query;
@@ -1144,7 +1156,9 @@ content: `Responda sempre em ${languageName}. Você é o Copilot de Inteligênci
 
         const chartSection =
           topic.type === "comparison"
-            ? `Dados reais de popularidade de pesquisa (Google Trends, últimos 90 dias, escala 0-100): ${JSON.stringify(chartData)}`
+            ? chartDataIsRealTrends
+              ? `Dados reais de popularidade de pesquisa (Google Trends, últimos 90 dias, escala 0-100): ${JSON.stringify(chartData)}. Estes são os ÚNICOS valores numéricos que podes citar sobre estes domínios.`
+              : `O Google Trends falhou nesta geração. Os valores abaixo NÃO são dados reais de pesquisa — são só estimativas internas usadas para desenhar o gráfico, sem escala 0-100 e sem validade estatística: ${JSON.stringify(chartData)}. NÃO cites nenhum destes números no título, excerpt ou corpo do artigo, e NÃO enquadres nenhum domínio como tendo "mais interesse", "mais pontos" ou "a ganhar" com base neles — escreve em tom qualitativo, sem estatística de comparação.`
             : topic.type === "manual"
             ? `Não inclua "chart_data" nem "chart_type" próprios — devolva ambos como null; o sistema já trata a exibição do domínio "${topic.domain}" automaticamente.`
             : `Não há dados de comparação de domínios pré-definidos para este artigo — é um artigo de notícia/contexto, não de comparação de tráfego. Só inclua "chart_data" e "chart_type" no JSON de resposta se a notícia mencionar claramente 1-5 domínios/marcas cujo tráfego/popularidade faça sentido ilustrar; caso contrário, devolva "chart_data": null e "chart_type": null.`;
@@ -1153,27 +1167,40 @@ content: `Responda sempre em ${languageName}. Você é o Copilot de Inteligênci
 Você é um analista sénior de mercado digital da TrafficScope, especialista em copywriting orientado a dados.
 Escreva um artigo de blog em Português sobre tendências de tráfego web e comportamento de mercado.
 
+DATA ATUAL: ${new Date().toLocaleDateString('pt-PT', { year: 'numeric', month: 'long', day: 'numeric' })}. Usa esta data como referência de "presente". Se as fontes mencionarem números ou factos de anos anteriores (2024, 2025), trata-os SEMPRE como dados históricos/já ocorridos — nunca os apresentes como previsão futura ou como se fossem o ano corrente. Nunca confundas a linha do tempo entre passado, presente e futuro.
+
 ${chartSection}
 
+REGRA CRÍTICA — SÓ NÚMEROS REAIS:
+Os únicos números que podes citar em todo o artigo (título, excerpt e corpo) são: (1) os valores exatos do índice de popularidade do Google Trends listados acima, (2) números que apareçam literalmente nas fontes listadas a seguir. É PROIBIDO inventar qualquer percentagem, taxa de crescimento, número de utilizadores, ou qualquer outra estatística que não esteja explicitamente presente nesses dados. Se quiseres comunicar uma tendência sem ter o número exato disponível, usa linguagem qualitativa (ex: "dispara", "estagna", "acelera") em vez de inventar uma percentagem.
 Factos e estatísticas reais publicadas recentemente sobre o tema (use-os para fundamentar o artigo,
 parafraseando, NUNCA copiando texto literal):
 ${statsContext.snippets.map((s, i) => `[Fonte ${i + 1}] ${s}`).join("\n")}
 
+Nem todas as fontes acima têm de ser usadas — usa só as que forem realmente relevantes para o ângulo deste
+artigo. No campo "sources_used" da resposta, lista APENAS os números das fontes ([Fonte N]) que
+efetivamente usaste no corpo do texto; se não usaste nenhuma, devolve uma lista vazia.
+
 ÂNGULO/TEMA OBRIGATÓRIO PARA ESTE ARTIGO:
 ${angleInstruction}
-${topic.type === "manual" && topic.affiliateLink ? `\nEste artigo tem componente comercial. No corpo do texto, de forma natural e não forçada, integre uma recomendação relacionada ao tema (sem inserir links, URLs ou nomes de marcas patrocinadas no texto — isso é tratado à parte pelo sistema).` : ""}${topic.type === "comparison" ? "\nAVISO SOBRE ESCALA: antes de escolher o par de domínios em foco no artigo, avalie se ambos operam numa escala de mercado comparável (ambos globais, ou ambos regionais/de nicho semelhante). Se os dados mostrarem um player claramente global ao lado de um player claramente regional/de nicho menor, NÃO apresente isso como 'quem domina' ou uma disputa direta — em vez disso, explique a diferença de escala como contexto (ex: alcance geográfico diferente), e escolha um par mais equilibrado dentro do dataset para o confronto principal do artigo, se existir." : ""}
 
+AVISO GERAL SOBRE CAUSALIDADE DIGITAL VS FÍSICA: nunca afirmes que volume de pesquisa ou tráfego web causa ou "satura" infraestrutura física (armazéns, frotas de entrega, lojas físicas, servidores de terceiros, redes elétricas, etc.) — pesquisa online é comportamento de atenção do utilizador, não é o mesmo que compras reais, envios físicos ou consumo de recursos físicos. Se quiseres relacionar os dois, liga-os só como sinais correlacionados (ex: "pode sinalizar", "costuma preceder"), nunca como causa direta.
+${topic.type === "news" ? "\nAVISO SOBRE CAUSALIDADE: só faças a ligação entre o evento noticiado e tráfego/comportamento digital se essa ligação for tecnicamente ou logicamente plausível (ex: eventos de e-commerce, plataformas digitais, comportamento de utilizador online). NUNCA invente um mecanismo técnico que não existe (ex: não associes hardware/chips de IA a 'roteamento' ou 'fluxo' de tráfego web — são coisas tecnicamente não relacionadas). Se a ligação genuína for fraca ou inexistente, prefere não a fazer, ou menciona-a só como reflexão vaga sobre o setor em geral, nunca como afirmação técnica específica." : ""}
+${topic.type === "comparison" ? "\nAVISO SOBRE ESCALA: antes de escolher o par de domínios em foco no artigo, avalie se ambos operam numa escala de mercado comparável (ambos globais, ou ambos regionais/de nicho semelhante). Se os dados mostrarem um player claramente global ao lado de um player claramente regional/de nicho menor, NÃO apresente isso como 'quem domina' ou uma disputa direta — em vez disso, explique a diferença de escala como contexto (ex: alcance geográfico diferente), e escolha um par mais equilibrado dentro do dataset para o confronto principal do artigo, se existir. Confirma também que os dois domínios pertencem à mesma categoria funcional de produto (ex: ambos ferramentas de design, ambos apps de chat, ambos motores de busca) — NUNCA apresentes dois produtos de categorias claramente diferentes (ex: ferramenta de design vs ferramenta de chat) como concorrentes diretos, mesmo que estejam no mesmo pool de nicho amplo; se não houver par da mesma categoria funcional disponível, foca o artigo só num domínio ou usa um ângulo não competitivo." : ""}\n\nAVISO SOBRE O QUE O ÍNDICE REALMENTE MEDE: o valor do Google Trends é volume de interesse de pesquisa, NÃO é receita, tráfego real, quota de mercado, nem desempenho de negócio. NUNCA enquadres um valor mais alto como a empresa 'a ganhar', 'a dominar' ou 'a vencer' a outra — usa linguagem como 'gera mais interesse de pesquisa' ou 'tem mais procura online', deixando claro que é sobre atenção/curiosidade do público, não sobre sucesso empresarial." : ""}
 REGRAS PARA O TÍTULO (crítico para gerar cliques):
-- ${topic.type === "comparison" ? 'Use um dos formatos: número + surpresa ("X cresceu 31% enquanto Y estagnou"), pergunta direta que o leitor quer responder, ou contraste chocante entre dois dados reais do dataset.' : "Use um gancho de curiosidade baseado no facto mais forte encontrado nas fontes: uma pergunta direta, um número concreto, ou uma afirmação que gere tensão."}
-- Inclua sempre pelo menos um dado/número concreto vindo dos dados ou fontes fornecidas.
-- Máximo 70 caracteres. Nunca prometa algo que o artigo não entrega.
+- ${topic.type === "comparison" ? 'Use um dos formatos: contraste com o valor real do índice de popularidade ("X regista Y pontos de interesse de pesquisa, Z fica em N"), pergunta direta que o leitor quer responder, ou contraste qualitativo entre as trajetórias reais do dataset (sem inventar percentagens). NUNCA enquadres o índice como "quem está a ganhar/perder" ou "quem domina" — é volume de pesquisa, não desempenho de negócio (ver AVISO SOBRE O QUE O ÍNDICE REALMENTE MEDE).' : "Use um gancho de curiosidade baseado no facto mais forte encontrado nas fontes: uma pergunta direta, um número concreto (só se vier literalmente das fontes), ou uma afirmação que gere tensão."}- Se incluíres um número, ele tem de vir literalmente do chartData ou das fontes — nunca inventado (ver REGRA CRÍTICA acima).
 
 REGRAS PARA O EXCERPT (aparece na listagem do blog, é a isca para o clique):
 - 1-2 frases que criem uma lacuna de curiosidade (o leitor precisa de abrir o artigo para saber "porquê"
   ou "como"), sem revelar a resposta completa.
-- Deve conter pelo menos um dado numérico específico.
-
+- Se incluíres um dado numérico, tem de vir literalmente do chartData ou das fontes (ver REGRA CRÍTICA); se não houver número real disponível, usa linguagem qualitativa em vez de inventar um.
 REGRAS PARA O CONTEÚDO:
+- NUNCA cites como facto consolidado o nome ou lançamento de um produto, versão ou funcionalidade futura
+  que não esteja explicitamente confirmado nas fontes fornecidas (ex: não escrevas "relatórios da Microsoft
+  sobre o Windows 12" se isso não vier literalmente das fontes) — usa termos genéricos como "sistemas
+  operacionais nativos em IA" quando não tiveres confirmação factual.
+- Quando citares uma fonte no corpo do texto, nomeia-a diretamente sempre que possível (ex: "Segundo a
+  IBM," ou "De acordo com o Canaltech,") em vez de referências vagas como "segundo veículos especializados".
 - Abre com um gancho nas primeiras 2 frases: um dado surpreendente ou contraintuitivo, antes de qualquer
   contexto genérico.
 - Insere EXATAMENTE 2 marcadores de imagem no corpo do texto, em pontos que façam sentido visualmente
@@ -1182,12 +1209,17 @@ REGRAS PARA O CONTEÚDO:
 - Usa subtítulos que também gerem curiosidade, não só descritivos.
 - Termina com uma secção final que aponte uma implicação prática ou pergunta em aberto para o leitor.
 - Em UM único ponto do corpo do texto (não no título, não no excerpt, não na conclusão), insira uma
-  referência natural e sutil ao tipo de análise que a TrafficScope permite fazer — por exemplo, mencionando
-  de passagem que "monitorizar esse tipo de variação em tempo real" ou "cruzar esses dados com o próprio
-  domínio de um negócio" é algo que ferramentas de inteligência competitiva tornam possível. NUNCA use
-  linguagem de venda direta (nunca escreva "experimente", "assine", "clique aqui", "compre", nomes de
-  planos ou preços). A menção deve soar como uma observação natural de analista, não como publicidade.
-- 400-600 palavras, tom analítico mas envolvente — nunca sensacionalista ao ponto de distorcer os dados.
+  referência natural e sutil ao tipo de análise que a TrafficScope permite fazer. Varia a formulação a cada
+  artigo, adaptando-a ao tema específico em vez de reutilizares sempre a mesma frase — por exemplo (escolhe
+  UMA ideia destas ou inventa uma equivalente, nunca repitas literalmente a mesma frase de artigos
+  anteriores): monitorizar esta variação em tempo real, cruzar estes dados com o domínio do próprio
+  negócio, identificar este tipo de mudança de comportamento antes da concorrência, ou acompanhar a
+  evolução deste índice ao longo do tempo. NUNCA use linguagem de venda direta (nunca escreva "experimente",
+  "assine", "clique aqui", "compre", nomes de planos ou preços). A menção deve soar como uma observação
+  natural de analista, não como publicidade.
+- 400-600 palavras, tom analítico mas envolvente — nunca sensacionalista ao ponto de distorcer os dados, e
+  sem projeções financeiras ou de crescimento excessivamente otimistas; qualquer previsão deve soar
+  equilibrada e cautelosa, reconhecendo incerteza.
 
 Responda APENAS com um objeto JSON válido, sem texto antes ou depois, neste formato exato:
 {
@@ -1197,7 +1229,8 @@ Responda APENAS com um objeto JSON válido, sem texto antes ou depois, neste for
   "category": "${category}",
   "chart_type": "bar ou null",
   "chart_data": ${topic.type === "comparison" ? '[{"name": "dominio.com", "value": 12345}, ...]' : "[{...}] ou null"},
-  "image_prompts": ["duas palavras-chave em inglês para a imagem 1, ex: online shopping laptop", "duas palavras-chave em inglês para a imagem 2, ex: global business growth"]
+  "image_prompts": ["duas palavras-chave em inglês para a imagem 1, ex: online shopping laptop", "duas palavras-chave em inglês para a imagem 2, ex: global business growth"],
+  "sources_used": [números das fontes realmente usadas no texto, ex: 1, 3]
 }`;
 
         const response = await groq.chat.completions.create({
@@ -1207,7 +1240,7 @@ Responda APENAS com um objeto JSON válido, sem texto antes ou depois, neste for
           messages: [
             {
               role: "system",
-              content: "Você escreve artigos de blog para a TrafficScope, uma plataforma de inteligência competitiva. Responda SEMPRE apenas com JSON válido, sem markdown fora do campo 'content', sem texto adicional.",
+              content: "Você escreve artigos de blog para a TrafficScope, uma plataforma de inteligência competitiva. Escreva em português correto, com pontuação cuidada (ex: vírgula após advérbios de tempo introdutórios, como em 'Em 2026, a IA...'). Responda SEMPRE apenas com JSON válido, sem markdown fora do campo 'content', sem texto adicional.",
             },
             { role: "user", content: prompt },
           ],
@@ -1246,7 +1279,11 @@ if (topic.type === "manual") {
             category: article.category || category,
             chart_type: article.chart_type || null,
             chart_data: article.chart_data || null,
-            sources: statsContext.sources.length > 0 ? statsContext.sources : null,
+            sources: (() => {
+              const usedIndices: number[] = Array.isArray(article.sources_used) ? article.sources_used : [];
+              const filtered = statsContext.sources.filter((_, i) => usedIndices.includes(i + 1));
+              return filtered.length > 0 ? filtered : null;
+            })(),
             topic_key: topic.topicKey,
             affiliate_link: topic.type === "manual" ? (topic.affiliateLink || null) : null,
           })
