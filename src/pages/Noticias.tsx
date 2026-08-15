@@ -24,8 +24,9 @@ export default function Noticias() {
       .catch(() => setLoading(false));
   }, []);
 
+
   const handleDelete = async (id: string) => {
-    if (!confirm('Eliminar esta notícia?')) return;
+    if (!confirm(t('news.confirmDelete'))) return;
     const { data: { session } } = await supabase.auth.getSession();
     const res = await fetch(`/api/news/${id}`, {
       method: 'DELETE',
@@ -35,7 +36,7 @@ export default function Noticias() {
     if (data.success) {
       setItems((prev) => prev.filter((i) => i.id !== id));
     } else {
-      alert(data.error || 'Falha ao eliminar.');
+      alert(data.error || t('news.deleteError'));
     }
   };
 
@@ -66,7 +67,7 @@ export default function Noticias() {
               <ArrowLeft className="h-4 w-4" />
             </Link>
             <a href="/" className="text-xl font-bold tracking-tight text-foreground">
-              TrafficScope <span className="text-primary font-light">Notícias</span>
+              TrafficScope <span className="text-primary font-light">{t('news.header.title')}</span>
             </a>
           </div>
         </div>
@@ -79,7 +80,7 @@ export default function Noticias() {
             <div className="flex items-center gap-2 mb-6">
               <Radio className="h-4 w-4 text-red-500" />
               <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Últimas notícias
+                {t('news.section.latest')}
               </h2>
             </div>
 
@@ -132,7 +133,7 @@ export default function Noticias() {
             <div className="flex items-center gap-2 mb-8">
               <div className="h-px flex-1 bg-border" />
               <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground px-4">
-                Todas as notícias
+                {t('news.section.all')}
               </h2>
               <div className="h-px flex-1 bg-border" />
             </div>
@@ -154,8 +155,8 @@ export default function Noticias() {
         {items.length === 0 && (
           <div className="flex flex-col items-center justify-center py-32 text-center text-muted-foreground">
             <Newspaper className="h-12 w-12 text-muted-foreground/20 mb-4" />
-            <p className="text-lg font-medium">Nenhuma notícia disponível</p>
-            <p className="text-sm mt-1">Volte mais tarde para atualizações</p>
+            <p className="text-lg font-medium">{t('news.empty.title')}</p>
+            <p className="text-sm mt-1">{t('news.empty.subtitle')}</p>
           </div>
         )}
       </main>
@@ -167,12 +168,14 @@ export default function Noticias() {
 
 function FeaturedNewsCard({
   item,
+  translated,
   formatDate,
   showDelete,
   onDelete,
   size,
 }: {
   item: NewsItem;
+  translated?: { headline: string; summary: string };
   formatDate: (d: string) => string;
   showDelete: boolean;
   onDelete: (id: string) => void;
@@ -180,6 +183,8 @@ function FeaturedNewsCard({
 }) {
   const isLarge = size === 'large';
   const hasVideo = !!item.youtube_video_id;
+  const displayHeadline = translated?.headline || item.headline;
+  const displaySummary = translated?.summary || item.summary;
 
   return (
     <Link
@@ -232,12 +237,12 @@ function FeaturedNewsCard({
         <h3 className={`font-bold text-white leading-tight group-hover:text-red-100 transition-colors ${
           isLarge ? 'text-2xl lg:text-3xl' : 'text-lg'
         }`}>
-          {item.headline}
+          {displayHeadline}
         </h3>
 
         {isLarge && (
           <p className="mt-2 text-sm text-white/70 line-clamp-2 max-w-lg">
-            {item.summary}
+            {displaySummary}
           </p>
         )}
 
@@ -266,16 +271,21 @@ function FeaturedNewsCard({
 
 function NewsCard({
   item,
+  translated,
   formatDate,
   showDelete,
   onDelete,
 }: {
   item: NewsItem;
+  translated?: { headline: string; summary: string };
   formatDate: (d: string) => string;
   showDelete: boolean;
   onDelete: (id: string) => void;
 }) {
+  const { t } = useLanguage();
   const hasVideo = !!item.youtube_video_id;
+  const displayHeadline = translated?.headline || item.headline;
+  const displaySummary = translated?.summary || item.summary;
 
   return (
     <article className="group flex flex-col">
@@ -285,13 +295,13 @@ function NewsCard({
           {item.cover_image ? (
             <img
               src={item.cover_image}
-              alt={item.headline}
+              alt={displayHeadline}
               className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
           ) : (
             <div className="h-full w-full bg-gradient-to-br from-red-500/5 to-orange-500/10 flex flex-col items-center justify-center gap-2">
               <ImageOff className="h-8 w-8 text-red-500/20" />
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Sem imagem</span>
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{t('news.noImage')}</span>
             </div>
           )}
           
@@ -337,15 +347,15 @@ function NewsCard({
           </div>
 
           <h3 className="text-base font-bold text-foreground leading-snug group-hover:text-red-600 transition-colors line-clamp-2">
-            {item.headline}
+            {displayHeadline}
           </h3>
 
           <p className="mt-2 text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-            {item.summary}
+            {displaySummary}
           </p>
 
           <div className="mt-4 flex items-center text-xs font-semibold text-red-500 group-hover:underline">
-            Ler notícia
+            {t('news.readMore')}
             <svg className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
