@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { SiteFooter } from "../components/SiteFooter";
+import { useLanguage } from "../context/LanguageContext";
+import { LanguageSwitcher } from "../components/LanguageSwitcher";
 import {
   Activity,
   ArrowRight,
@@ -18,15 +20,6 @@ import {
   Sparkles,
   FlaskConical,
 } from "lucide-react";
-
-/* =========================================================
-   DESIGN SYSTEM ALIGNED WITH APP
-   - Background: #FAFAFA (oklch(97.642% ...))
-   - Foreground: #14141C (slate-950)
-   - Primary: #1D4ED8 (blue-700)
-   - Accent bg: #E3EEFC (blue-50)
-   - Fonts: Space Grotesk, Inter, JetBrains Mono
-   ========================================================= */
 
 function useReveal() {
   const ref = useRef<HTMLDivElement>(null);
@@ -51,7 +44,7 @@ function useReveal() {
 
 function Logo({ dark = false }) {
   return (
-    <div className="flex items-center gap-2.5">
+    <a href="/" className="flex items-center gap-2.5 w-fit hover:opacity-80 transition-opacity">
       <div className="h-8 w-8 rounded-lg bg-slate-950 flex items-center justify-center shrink-0">
         <Activity className="h-4 w-4 text-white" />
       </div>
@@ -60,16 +53,16 @@ function Logo({ dark = false }) {
           className={`font-semibold tracking-[0.18em] text-[13px] ${
             dark ? "text-white" : "text-slate-950"
           }`}
-          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
         >
           TRAFFICSCOPE
         </div>
       </div>
-    </div>
+    </a>
   );
 }
 
 function NavBar() {
+  const { t } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -88,46 +81,32 @@ function NavBar() {
     >
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         <Logo />
-        <nav className="hidden md:flex items-center gap-8 text-[14px] text-slate-600">
-          <a href="#produto" className="hover:text-slate-950 transition-colors">
-            Produto
-          </a>
-          <a href="#comparar" className="hover:text-slate-950 transition-colors">
-            Comparar
-          </a>
-          <a href="#precos" className="hover:text-slate-950 transition-colors">
-            Preços
-          </a>
-          <a href="/blog" className="hover:text-slate-950 transition-colors">
-            Blog
-          </a>
-          <a href="/noticias" className="hover:text-slate-950 transition-colors">
-            Notícias
-          </a>
+        <nav className="hidden md:flex items-center gap-1 text-[14px] text-slate-600">
+          <a href="#produto" className="rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200">{t('landing.nav.product')}</a>
+          <a href="#comparar" className="rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200">{t('landing.nav.compare')}</a>
+          <a href="#precos" className="rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200">{t('landing.nav.pricing')}</a>
+          <a href="/blog" className="rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200">{t('landing.nav.blog')}</a>
+          <a href="/noticias" className="rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200">{t('landing.nav.news')}</a>
         </nav>
         <div className="flex items-center gap-3">
-          <a
-            href="/login"
-            className="hidden sm:block text-[14px] text-slate-600 hover:text-slate-950 transition-colors"
-          >
-            Entrar
-          </a>
-          <a
-            href="/login"
-            className="inline-flex items-center gap-1.5 bg-blue-700 hover:bg-blue-800 text-white text-[14px] font-medium px-4 py-2 rounded-lg transition-all hover:shadow-lg hover:shadow-blue-700/20 hover:-translate-y-px active:translate-y-0"
-          >
-            Criar conta grátis
-          </a>
-        </div>
+  <LanguageSwitcher />
+  <a href="/login" className="inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 text-[14px] font-medium pl-3 pr-4 py-2 rounded-full shadow-sm transition-all hover:shadow-md hover:-translate-y-px active:translate-y-0">
+    <svg className="h-4 w-4" viewBox="0 0 48 48">
+      <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12 c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24 c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+      <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039 l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
+      <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36 c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+      <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571 c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24 C44,22.659,43.862,21.35,43.611,20.083z"/>
+    </svg>
+    {t('landing.nav.signup')}
+  </a>
+</div>
       </div>
     </header>
   );
 }
 
-/* ---------------------------------------------------------
-   HERO — com demo flutuante de comparação
----------------------------------------------------------- */
 function MiniCompareDemo() {
+  const { t } = useLanguage();
   const domains = [
     { d: "amazon.com", v: "2.450.000.000", w: 96, grow: "+12.4%", up: true },
     { d: "x.com", v: "86.495.700", w: 34, grow: "+30.4%", up: true },
@@ -137,18 +116,15 @@ function MiniCompareDemo() {
     <div className="bg-white rounded-2xl border border-slate-100 shadow-2xl shadow-slate-200/40 p-5 w-full max-w-md backdrop-blur-sm">
       <div className="flex items-center gap-2 text-slate-400 text-[12px] mb-5">
         <GitCompare className="h-3.5 w-3.5" />
-        <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-          comparação de 3 domínios
+        <span>
+          {t('landing.hero.demo.label')}
         </span>
       </div>
       <div className="space-y-4">
         {domains.map((r) => (
           <div key={r.d}>
             <div className="flex items-center justify-between text-[13px] mb-1.5">
-              <span
-                className="text-slate-700 font-medium"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}
-              >
+              <span className="text-slate-700 font-medium">
                 {r.d}
               </span>
               <div className="flex items-center gap-2">
@@ -161,7 +137,7 @@ function MiniCompareDemo() {
                 >
                   {r.grow}
                 </span>
-                <span className="text-slate-400 text-[12px]">{r.v} visitas/mês</span>
+                <span className="text-slate-400 text-[12px]">{r.v} {t('landing.hero.demo.visitsPerMonth')}</span>
               </div>
             </div>
             <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
@@ -174,17 +150,17 @@ function MiniCompareDemo() {
         ))}
       </div>
       <div className="mt-5 pt-4 border-t border-slate-50 flex items-center justify-between text-[11px] text-slate-400">
-        <span>Canal primário</span>
-        <span className="text-slate-600 font-medium">Direto · Orgânico · Social</span>
+        <span>{t('landing.hero.demo.primaryChannel')}</span>
+        <span className="text-slate-600 font-medium">{t('landing.hero.demo.channels')}</span>
       </div>
     </div>
   );
 }
 
 function Hero() {
+  const { t } = useLanguage();
   return (
     <section className="relative overflow-hidden bg-[#FAFAFA]">
-      {/* Gradient decor */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-blue-100/40 rounded-full blur-3xl" />
         <div className="absolute top-20 -left-20 w-[400px] h-[400px] bg-rose-100/30 rounded-full blur-3xl" />
@@ -194,34 +170,24 @@ function Hero() {
         <div>
           <div className="inline-flex items-center gap-2 text-[12px] font-medium text-blue-700 bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-full mb-6">
             <Activity className="h-3.5 w-3.5" />
-            Inteligência competitiva em tempo real
+            {t('landing.hero.badge')}
           </div>
-          <h1
-            className="text-[40px] sm:text-[52px] leading-[1.05] font-semibold text-slate-950 tracking-tight mb-5"
-            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-          >
-            Veja o tráfego que os seus concorrentes preferiam esconder.
+          <h1 className="text-[40px] sm:text-[52px] leading-[1.05] font-semibold text-slate-950 tracking-tight mb-5">
+            {t('landing.hero.title')}
           </h1>
           <p className="text-[17px] text-slate-600 leading-relaxed mb-8 max-w-md">
-            Compare visitas, SEO e stack tecnológico de qualquer site em
-            segundos. Sem espiar — só dados públicos, organizados.
+            {t('landing.hero.subtitle')}
           </p>
           <div className="flex flex-wrap items-center gap-4">
-            <a
-              href="/login"
-              className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-medium px-6 py-3.5 rounded-xl transition-all hover:shadow-xl hover:shadow-blue-700/20 hover:-translate-y-0.5 active:translate-y-0"
-            >
-              Criar conta grátis <ArrowRight className="h-4 w-4" />
+            <a href="/login" className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-medium px-6 py-3.5 rounded-xl transition-all hover:shadow-xl hover:shadow-blue-700/20 hover:-translate-y-0.5 active:translate-y-0">
+              {t('landing.hero.ctaPrimary')} <ArrowRight className="h-4 w-4" />
             </a>
-            <a
-              href="#comparar"
-              className="inline-flex items-center gap-2 text-slate-700 font-medium px-6 py-3.5 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-white transition-all"
-            >
-              Ver comparação
+            <a href="#comparar" className="inline-flex items-center gap-2 text-slate-700 font-medium px-6 py-3.5 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-white transition-all">
+              {t('landing.hero.ctaSecondary')}
             </a>
           </div>
           <p className="text-[12px] text-slate-400 mt-4">
-            Sem cartão de crédito · Cancele quando quiser
+            {t('landing.hero.footnote')}
           </p>
         </div>
         <div className="flex justify-center md:justify-end">
@@ -232,14 +198,12 @@ function Hero() {
   );
 }
 
-/* ---------------------------------------------------------
-   STATS BAR
----------------------------------------------------------- */
 function StatsBar() {
+  const { t } = useLanguage();
   const stats = [
-    { n: "1,2M+", l: "domínios comparados" },
-    { n: "48", l: "países cobertos" },
-    { n: "230K+", l: "relatórios gerados" },
+    { n: "1,2M+", l: t('landing.stats.domains') },
+    { n: "48", l: t('landing.stats.countries') },
+    { n: "230K+", l: t('landing.stats.reports') },
   ];
   const { ref, visible } = useReveal();
   return (
@@ -253,10 +217,7 @@ function StatsBar() {
             }`}
             style={{ transitionDelay: `${i * 120}ms` }}
           >
-            <div
-              className="text-[28px] sm:text-[36px] font-semibold text-slate-950"
-              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-            >
+            <div className="text-[28px] sm:text-[36px] font-semibold text-slate-950">
               {s.n}
             </div>
             <div className="text-[13px] text-slate-500 mt-1">{s.l}</div>
@@ -267,40 +228,38 @@ function StatsBar() {
   );
 }
 
-/* ---------------------------------------------------------
-   FEATURES — O Produto (sem redundância)
----------------------------------------------------------- */
 function Features() {
+  const { t } = useLanguage();
   const items = [
     {
       icon: GitCompare,
-      title: "Compare lado a lado",
-      desc: "Adicione vários domínios e veja tráfego, origem e crescimento num único painel comparativo.",
+      title: t('landing.features.compare.title'),
+      desc: t('landing.features.compare.desc'),
     },
     {
       icon: BarChart3,
-      title: "Estimativas de tráfego",
-      desc: "Visitas mensais, evolução histórica e projeções baseadas em dados públicos consolidados.",
+      title: t('landing.features.traffic.title'),
+      desc: t('landing.features.traffic.desc'),
     },
     {
       icon: Layers,
-      title: "Deteção de tecnologia",
-      desc: "Descubra que CMS, analytics e ferramentas de marketing um site está a usar no momento.",
+      title: t('landing.features.tech.title'),
+      desc: t('landing.features.tech.desc'),
     },
     {
       icon: Bell,
-      title: "Alertas em tempo real",
-      desc: "Receba notificações quando um concorrente sobe de posição, muda de stack ou tem pico de tráfego.",
+      title: t('landing.features.alerts.title'),
+      desc: t('landing.features.alerts.desc'),
     },
     {
       icon: History,
-      title: "Histórico completo",
-      desc: "Volte meses ou anos no tempo e analise como o desempenho digital de um domínio evoluiu.",
+      title: t('landing.features.history.title'),
+      desc: t('landing.features.history.desc'),
     },
     {
       icon: Sparkles,
-      title: "Insights com IA",
-      desc: "Relatórios automáticos que interpretam os dados e sugerem oportunidades de mercado.",
+      title: t('landing.features.ai.title'),
+      desc: t('landing.features.ai.desc'),
     },
   ];
 
@@ -314,15 +273,11 @@ function Features() {
           visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
         }`}
       >
-        <h2
-          className="text-[30px] font-semibold text-slate-950 mb-3"
-          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-        >
-          Tudo o que precisa num só lugar
+        <h2 className="text-[30px] font-semibold text-slate-950 mb-3">
+          {t('landing.features.title')}
         </h2>
         <p className="text-slate-600 text-[17px] leading-relaxed">
-          Uma suite completa de inteligência competitiva. Do primeiro olhar ao
-          relatório detalhado, em segundos.
+          {t('landing.features.subtitle')}
         </p>
       </div>
 
@@ -351,10 +306,8 @@ function Features() {
   );
 }
 
-/* ---------------------------------------------------------
-   COMPARE SHOWCASE — A funcionalidade estrela
----------------------------------------------------------- */
 function CompareShowcase() {
+  const { t } = useLanguage();
   const { ref, visible } = useReveal();
 
   const competitors = [
@@ -363,7 +316,7 @@ function CompareShowcase() {
       visits: "2.45B",
       growth: "+12.4%",
       up: true,
-      primary: "Direto",
+      primary: t('landing.compareShowcase.channel.direct'),
       share: 56.4,
       pages: "8.6",
       time: "7m 14s",
@@ -374,7 +327,7 @@ function CompareShowcase() {
       visits: "86.5M",
       growth: "+30.4%",
       up: true,
-      primary: "Orgânico",
+      primary: t('landing.compareShowcase.channel.organic'),
       share: 45,
       pages: "3.0",
       time: "3m 47s",
@@ -385,7 +338,7 @@ function CompareShowcase() {
       visits: "56.6M",
       growth: "-2.6%",
       up: false,
-      primary: "Orgânico",
+      primary: t('landing.compareShowcase.channel.organic'),
       share: 45,
       pages: "4.7",
       time: "5m 34s",
@@ -409,21 +362,14 @@ function CompareShowcase() {
             visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
           }`}
         >
-          <div
-            className="text-[12px] font-medium text-blue-400 uppercase tracking-widest mb-3"
-            style={{ fontFamily: "'JetBrains Mono', monospace" }}
-          >
-            Comparação
+          <div className="text-[12px] font-medium text-blue-400 uppercase tracking-widest mb-3">
+            {t('landing.compareShowcase.label')}
           </div>
-          <h2
-            className="text-[30px] font-semibold text-white mb-3"
-            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-          >
-            Benchmark de concorrentes, sem complicação
+          <h2 className="text-[30px] font-semibold text-white mb-3">
+            {t('landing.compareShowcase.title')}
           </h2>
           <p className="text-slate-400 text-[17px] leading-relaxed">
-            Introduza os domínios que quiser e receba uma tabela comparativa
-            limpa, com métricas que importam.
+            {t('landing.compareShowcase.subtitle')}
           </p>
         </div>
 
@@ -432,13 +378,12 @@ function CompareShowcase() {
             visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
-          {/* Table header */}
           <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-slate-50 border-b border-slate-100 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-            <div className="col-span-3">Domínio</div>
-            <div className="col-span-2 text-right">Tráfego Mensal</div>
-            <div className="col-span-2 text-right">Crescimento</div>
-            <div className="col-span-2 text-right">Canal Primário</div>
-            <div className="col-span-3 text-right hidden sm:block">Engajamento</div>
+            <div className="col-span-3">{t('landing.compareShowcase.table.domain')}</div>
+            <div className="col-span-2 text-right">{t('landing.compareShowcase.table.monthlyTraffic')}</div>
+            <div className="col-span-2 text-right">{t('landing.compareShowcase.table.growth')}</div>
+            <div className="col-span-2 text-right">{t('landing.compareShowcase.table.primaryChannel')}</div>
+            <div className="col-span-3 text-right hidden sm:block">{t('landing.compareShowcase.table.engagement')}</div>
           </div>
 
           {competitors.map((c, i) => (
@@ -451,17 +396,11 @@ function CompareShowcase() {
                 <div className="h-9 w-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
                   <Globe className="h-4 w-4 text-slate-600" />
                 </div>
-                <span
-                  className="text-slate-900 font-medium text-[14px]"
-                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                >
+                <span className="text-slate-900 font-medium text-[14px]">
                   {c.domain}
                 </span>
               </div>
-              <div
-                className="col-span-2 text-right text-slate-900 font-semibold text-[14px]"
-                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-              >
+              <div className="col-span-2 text-right text-slate-900 font-semibold text-[14px]">
                 {c.visits}
               </div>
               <div className="col-span-2 text-right">
@@ -484,19 +423,16 @@ function CompareShowcase() {
                 {c.primary} ({c.share}%)
               </div>
               <div className="col-span-3 text-right hidden sm:block text-[12px] text-slate-500">
-                {c.time} · {c.pages} págs. · {c.bounce} bounce
+                {c.time} · {c.pages} {t('landing.compareShowcase.pagesAbbr')} · {c.bounce} {t('landing.compareShowcase.bounceLabel')}
               </div>
             </div>
           ))}
         </div>
 
         <div className="mt-8 flex justify-center">
-          <a
-            href="/login"
-            className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-medium px-6 py-3 rounded-xl transition-all hover:shadow-lg hover:shadow-blue-700/25 hover:-translate-y-0.5"
-          >
+          <a href="/login" className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-medium px-6 py-3 rounded-xl transition-all hover:shadow-lg hover:shadow-blue-700/25 hover:-translate-y-0.5">
             <MousePointerClick className="h-4 w-4" />
-            Experimentar comparação
+            {t('landing.compareShowcase.cta')}
           </a>
         </div>
       </div>
@@ -504,10 +440,8 @@ function CompareShowcase() {
   );
 }
 
-/* ---------------------------------------------------------
-   PRICING — Sem pacotes, só Teste vs Real
----------------------------------------------------------- */
 function Pricing() {
+  const { t } = useLanguage();
   const { ref, visible } = useReveal();
 
   return (
@@ -518,15 +452,11 @@ function Pricing() {
           visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
         }`}
       >
-        <h2
-          className="text-[30px] font-semibold text-slate-950 mb-3"
-          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-        >
-          Pague só pelo que usar
+        <h2 className="text-[30px] font-semibold text-slate-950 mb-3">
+          {t('landing.pricing.title')}
         </h2>
         <p className="text-slate-600 text-[17px] leading-relaxed">
-          Sem mensalidades obrigatórias. Comece no Modo Teste, sem gastar
-          nada, e passe para o Modo Real quando quiser dados ao vivo.
+          {t('landing.pricing.subtitle')}
         </p>
       </div>
 
@@ -539,24 +469,20 @@ function Pricing() {
         >
           <div className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-amber-700 bg-amber-50 border border-amber-100 px-3 py-1 rounded-full mb-5">
             <FlaskConical className="h-3.5 w-3.5" />
-            Modo Teste
+            {t('landing.pricing.test.badge')}
           </div>
-          <div
-            className="text-[32px] font-semibold text-slate-950 mb-2"
-            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-          >
-            Ilimitado
+          <div className="text-[32px] font-semibold text-slate-950 mb-2">
+            {t('landing.pricing.test.price')}
           </div>
           <p className="text-[14px] text-slate-500 mb-8 leading-relaxed">
-            Dados sintéticos para explorar a plataforma, comparar domínios e
-            testar todas as funcionalidades sem gastar créditos.
+            {t('landing.pricing.test.desc')}
           </p>
           <ul className="space-y-3 mb-8">
             {[
-              "Comparação ilimitada",
-              "Dados sintéticos realistas",
-              "Acesso a todas as métricas",
-              "Sem cartão de crédito",
+              t('landing.pricing.test.feature1'),
+              t('landing.pricing.test.feature2'),
+              t('landing.pricing.test.feature3'),
+              t('landing.pricing.test.feature4'),
             ].map((f) => (
               <li key={f} className="flex items-center gap-2 text-[14px] text-slate-600">
                 <Zap className="h-4 w-4 text-amber-500 shrink-0" />
@@ -564,11 +490,8 @@ function Pricing() {
               </li>
             ))}
           </ul>
-          <a
-            href="/login"
-            className="block text-center font-medium px-4 py-3 rounded-xl border border-slate-200 hover:border-slate-300 text-slate-700 hover:bg-slate-50 transition-all"
-          >
-            Experimentar grátis
+          <a href="/login" className="block text-center font-medium px-4 py-3 rounded-xl border border-slate-200 hover:border-slate-300 text-slate-700 hover:bg-slate-50 transition-all">
+            {t('landing.pricing.test.cta')}
           </a>
         </div>
 
@@ -579,32 +502,28 @@ function Pricing() {
           style={{ transitionDelay: "200ms" }}
         >
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-700 text-white text-[11px] font-bold px-3 py-1 rounded-full">
-            MAIS POPULAR
+            {t('landing.pricing.real.popular')}
           </div>
 
           <div className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full mb-5">
             <Activity className="h-3.5 w-3.5" />
-            Modo Real
+            {t('landing.pricing.real.badge')}
           </div>
           <div className="flex items-baseline gap-1 mb-2">
-            <span
-              className="text-[32px] font-semibold text-slate-950"
-              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-            >
+            <span className="text-[32px] font-semibold text-slate-950">
               2€
             </span>
-            <span className="text-slate-500 text-[14px]">/ pesquisa</span>
+            <span className="text-slate-500 text-[14px]">{t('landing.pricing.real.priceSuffix')}</span>
           </div>
           <p className="text-[14px] text-slate-500 mb-8 leading-relaxed">
-            Estimativas de tráfego, SEO e stack tecnológico reais. Cada
-            pesquisa consome 1 crédito. Compre créditos quando precisar.
+            {t('landing.pricing.real.desc')}
           </p>
           <ul className="space-y-3 mb-8">
             {[
-              "Tudo do Modo Teste",
-              "Dados de tráfego reais",
-              "Deteção de tecnologia avançada",
-              "Exportação PDF & Excel",
+              t('landing.pricing.real.feature1'),
+              t('landing.pricing.real.feature2'),
+              t('landing.pricing.real.feature3'),
+              t('landing.pricing.real.feature4'),
             ].map((f) => (
               <li key={f} className="flex items-center gap-2 text-[14px] text-slate-700">
                 <ShieldCheck className="h-4 w-4 text-blue-700 shrink-0" />
@@ -612,11 +531,8 @@ function Pricing() {
               </li>
             ))}
           </ul>
-          <a
-            href="/login"
-            className="block text-center font-medium px-4 py-3 rounded-xl bg-blue-700 hover:bg-blue-800 text-white transition-all hover:shadow-lg hover:shadow-blue-700/25"
-          >
-            Começar no Modo Real
+          <a href="/login" className="block text-center font-medium px-4 py-3 rounded-xl bg-blue-700 hover:bg-blue-800 text-white transition-all hover:shadow-lg hover:shadow-blue-700/25">
+            {t('landing.pricing.real.cta')}
           </a>
         </div>
       </div>
@@ -624,10 +540,8 @@ function Pricing() {
   );
 }
 
-/* ---------------------------------------------------------
-   FINAL CTA
----------------------------------------------------------- */
 function FinalCTA() {
+  const { t } = useLanguage();
   const { ref, visible } = useReveal();
   return (
     <section className="relative overflow-hidden bg-[#FAFAFA]">
@@ -644,21 +558,14 @@ function FinalCTA() {
           <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-blue-700 text-white mb-6 shadow-lg shadow-blue-700/20">
             <ShieldCheck className="h-6 w-6" />
           </div>
-          <h2
-            className="text-[32px] font-semibold text-slate-950 mb-4"
-            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-          >
-            Pronto para ver mais longe do que a concorrência?
+          <h2 className="text-[32px] font-semibold text-slate-950 mb-4">
+            {t('landing.finalCta.title')}
           </h2>
           <p className="text-slate-600 mb-10 max-w-md mx-auto text-[17px] leading-relaxed">
-            Crie a sua conta em menos de um minuto. Não é preciso cartão de
-            crédito.
+            {t('landing.finalCta.subtitle')}
           </p>
-          <a
-            href="/login"
-            className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-medium px-8 py-4 rounded-xl transition-all hover:shadow-xl hover:shadow-blue-700/20 hover:-translate-y-0.5 active:translate-y-0"
-          >
-            Criar conta grátis <ArrowRight className="h-4 w-4" />
+          <a href="/login" className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-medium px-8 py-4 rounded-xl transition-all hover:shadow-xl hover:shadow-blue-700/20 hover:-translate-y-0.5 active:translate-y-0">
+            {t('landing.finalCta.cta')} <ArrowRight className="h-4 w-4" />
           </a>
         </div>
       </div>
@@ -666,17 +573,9 @@ function FinalCTA() {
   );
 }
 
-
-/* ---------------------------------------------------------
-   LANDING EXPORT
----------------------------------------------------------- */
 export default function Landing() {
   return (
     <div className="bg-[#FAFAFA] min-h-screen">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
-        * { font-family: 'Inter', sans-serif; }
-      `}</style>
       <NavBar />
       <Hero />
       <StatsBar />

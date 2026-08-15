@@ -13,17 +13,21 @@ export default function Login() {
       <div className="flex w-full max-w-5xl gap-4">
 
         {/* Brand Box */}
-        <div className="hidden md:flex w-[50%] min-h-[85vh] flex-col justify-between bg-sidebar px-10 py-10 text-sidebar-foreground rounded-xl shadow-xl shadow-black/5">
-          <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-sidebar-foreground/70">
-            <Activity className="h-4 w-4 text-sidebar-foreground" />
+        <div className="hidden md:flex relative w-[50%] min-h-[85vh] flex-col justify-between bg-slate-950 px-10 py-10 text-white rounded-xl shadow-xl shadow-black/5 overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-blue-900/20 rounded-full blur-3xl" />
+          </div>
+
+          <div className="relative inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/70">
+            <Activity className="h-4 w-4 text-white" />
             TrafficScope
           </div>
 
-          <div className="space-y-4">
-            <p className="text-xl font-semibold leading-snug tracking-tight text-sidebar-foreground">
+          <div className="relative space-y-4">
+            <p className="text-xl font-semibold leading-snug tracking-tight text-white">
               {t('login.tagline')}
             </p>
-            <p className="text-xs text-sidebar-foreground/60"></p>
+            <p className="text-xs text-white/60"></p>
           </div>
         </div>
 
