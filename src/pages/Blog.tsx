@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { isOwner } from '../lib/ownerConfig';
 import { Trash2, ArrowLeft, Clock, Calendar, TrendingUp, ImageOff } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 
 // Extrai a primeira imagem do conteúdo markdown (![alt](url))
 function extractFirstImage(content: string): string | null {
@@ -102,9 +103,12 @@ export default function Blog() {
               TrafficScope <span className="text-primary font-light">Blog</span>
             </a>
           </div>
-          {isTranslating && (
-            <span className="text-xs text-muted-foreground animate-pulse">{t('blog.translating', 'A traduzir...')}</span>
-          )}
+          <div className="flex items-center gap-3">
+            {isTranslating && (
+              <span className="text-xs text-muted-foreground animate-pulse">{t('blog.translating', 'A traduzir...')}</span>
+            )}
+            <LanguageSwitcher />
+          </div>
         </div>
       </header>
 

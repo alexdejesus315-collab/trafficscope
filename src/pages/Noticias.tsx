@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { isOwner } from '../lib/ownerConfig';
 import { Trash2, ArrowLeft, Calendar, ImageOff, PlayCircle, Radio, Newspaper } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 
 export default function Noticias() {
   const { user } = useAuth();
@@ -70,6 +71,7 @@ export default function Noticias() {
               TrafficScope <span className="text-primary font-light">{t('news.header.title')}</span>
             </a>
           </div>
+          <LanguageSwitcher />
         </div>
       </header>
 

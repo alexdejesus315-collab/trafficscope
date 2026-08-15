@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Activity } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 interface CompanyPagePanelProps {
   title: string;
@@ -25,17 +26,20 @@ export function CompanyPagePanel({ title, children }: CompanyPagePanelProps) {
     >
       {/* Header igual ao Blog */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
-        <div className="max-w-3xl mx-auto px-4 h-16 flex items-center gap-3">
-          <Link
-            to="/"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            aria-label={t('companyPanel.back', 'Voltar')}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-          <a href="/" className="text-xl font-bold tracking-tight text-foreground">
-            TrafficScope
-          </a>
+        <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Link
+              to="/"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              aria-label={t('companyPanel.back', 'Voltar')}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+            <a href="/" className="text-xl font-bold tracking-tight text-foreground">
+              TrafficScope
+            </a>
+          </div>
+          <LanguageSwitcher />
         </div>
       </header>
 

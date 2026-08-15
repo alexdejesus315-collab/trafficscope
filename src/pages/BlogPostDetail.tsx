@@ -9,7 +9,7 @@ import { useAuth } from '../hooks/useAuth';
 import { isOwner } from '../lib/ownerConfig';
 import { Trash2, ArrowLeft, ArrowRight, Clock, Calendar, TrendingUp, ExternalLink, BookOpen } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
-
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 function extractFirstImage(content: string): string | null {
   const match = content.match(/!\[([^\]]*)\]\(([^)]+)\)/);
   return match ? match[2] : null;
@@ -112,15 +112,18 @@ export default function BlogPostDetail() {
               TrafficScope <span className="text-primary font-light">Blog</span>
             </a>
           </div>
-          {showDeleteButton && (
-            <button
-              onClick={handleDelete}
-              className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-destructive transition-colors"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              {t('blogPost.deleteButton', 'Eliminar')}
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+            {showDeleteButton && (
+              <button
+                onClick={handleDelete}
+                className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-destructive transition-colors"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                {t('blogPost.deleteButton', 'Eliminar')}
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
