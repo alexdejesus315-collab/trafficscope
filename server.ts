@@ -676,7 +676,8 @@ type NotificationType =
   | 'credits_zero'
   | 'usage_milestone'
   | 'credits_purchased'
-  | 'new_blog_post';
+  | 'new_blog_post'
+  | 'new_news_item';
 
 async function createNotification(
   userId: string | null, // null = notificação global (todos os utilizadores)
@@ -1646,7 +1647,7 @@ Responda APENAS com um objeto JSON válido, sem texto antes ou depois:
 
       await createNotification(
         null,
-        'new_blog_post',
+        'new_news_item',
         'Nova notícia publicada',
         rewritten.title,
         `/noticias/${slug}`
@@ -1877,6 +1878,157 @@ Responda APENAS com um objeto JSON válido, sem texto antes ou depois, neste for
     } catch (err: any) {
       console.error("Erro ao traduzir artigos do blog:", err);
       return res.status(500).json({ error: "Falha ao traduzir artigos." });
+    }
+  });
+
+  // ===== NOVO: Tradução sob demanda das notícias (com cache) =====
+  // full=false (padrão): traduz só headline+summary, para a LISTAGEM.
+  // full=true: traduz também o corpo completo, para a PÁGINA DA NOTÍCIA.
+  app.post("/api/news/translate", async (req, res) => {
+    try {
+      const { slugs, language, full } = req.body as { slugs: string[]; language: string; full?: boolean };
+
+      if (!slugs || !Array.isArray(slugs) || slugs.length === 0) {
+        return res.status(400).json({ error: "slugs é obrigatório." });
+      }
+
+      // PT é o idioma original das notícias — nunca precisa de tradução
+      if (!language || language === 'pt') {
+        return res.json({ success: true, translations: {} });
+      }
+
+      if (!LANGUAGE_NAMES[language]) {
+        return res.status(400).json({ error: "Idioma não suportado." });
+      }
+
+      const { data: items, error: itemsErr } = await supabaseAdmin
+        .from("news_items")
+        .select("id, slug, headline, summary, content")
+        .in("slug", slugs);
+
+      if (itemsErr) throw itemsErr;
+      if (!items || items.length === 0) {
+        return res.json({ success: true, translations: {} });
+      }
+
+      const newsIds = items.map((i: any) => i.id);
+
+      const { data: cached, error: cacheErr } = await supabaseAdmin
+        .from("news_translations")
+        .select("news_id, headline, summary, content")
+        .eq("language", language)
+        .in("news_id", newsIds);
+
+      if (cacheErr) throw cacheErr;
+
+      const cachedByNewsId = new Map((cached || []).map((c) => [c.news_id, c]));
+      const translations: Record<string, { headline: string; summary: string; content?: string }> = {};
+
+      const toTranslate = items.filter((i: any) => {
+        const hit = cachedByNewsId.get(i.id);
+        if (hit && (!full || hit.content)) {
+          translations[i.slug] = full
+            ? { headline: hit.headline, summary: hit.summary, content: hit.content }
+            : { headline: hit.headline, summary: hit.summary };
+          return false;
+        }
+        return true;
+      });
+
+      if (toTranslate.length > 0 && process.env.GROQ_API_KEY) {
+        const languageName = getLanguageName(language);
+
+        for (const item of toTranslate) {
+          try {
+            const prompt = full
+              ? `Traduza a seguinte notícia do Português para ${languageName}.
+
+REGRAS CRÍTICAS:
+- Preserve TODA a formatação markdown exatamente como está.
+- NUNCA traduza URLs ou nomes próprios de marcas/empresas/pessoas.
+- Mantenha o mesmo tom jornalístico, direto e neutro.
+
+TÍTULO ORIGINAL:
+${item.headline}
+
+RESUMO ORIGINAL:
+${item.summary}
+
+CONTEÚDO ORIGINAL (markdown):
+${item.content || ""}
+
+Responda APENAS com um objeto JSON válido, sem texto antes ou depois, neste formato exato:
+{
+  "headline": "título traduzido",
+  "summary": "resumo traduzido",
+  "content": "conteúdo traduzido em markdown"
+}`
+              : `Traduza o TÍTULO e o RESUMO da seguinte notícia do Português para ${languageName}.
+
+REGRAS CRÍTICAS:
+- NUNCA traduza URLs ou nomes próprios de marcas/empresas/pessoas.
+- Mantenha o mesmo tom jornalístico, direto e neutro.
+
+TÍTULO ORIGINAL:
+${item.headline}
+
+RESUMO ORIGINAL:
+${item.summary}
+
+Responda APENAS com um objeto JSON válido, sem texto antes ou depois, neste formato exato:
+{
+  "headline": "título traduzido",
+  "summary": "resumo traduzido"
+}`;
+
+            const response = await groqCallWithRetry(() =>
+              groq.chat.completions.create({
+                model: "openai/gpt-oss-120b",
+                response_format: { type: "json_object" },
+                reasoning_effort: "low",
+                messages: [
+                  {
+                    role: "system",
+                    content: `Você é um tradutor profissional especializado em notícias. Traduza fielmente para ${languageName}, preservando markdown e nomes próprios. Responda SEMPRE apenas com JSON válido.`,
+                  },
+                  { role: "user", content: prompt },
+                ],
+              })
+            );
+
+            const raw = response.choices[0]?.message?.content || "{}";
+            const parsedTranslation = JSON.parse(raw);
+
+            const isValid = full
+              ? parsedTranslation.headline && parsedTranslation.summary && parsedTranslation.content
+              : parsedTranslation.headline && parsedTranslation.summary;
+
+            if (isValid) {
+              translations[item.slug] = full
+                ? { headline: parsedTranslation.headline, summary: parsedTranslation.summary, content: parsedTranslation.content }
+                : { headline: parsedTranslation.headline, summary: parsedTranslation.summary };
+
+              await supabaseAdmin.from("news_translations").upsert(
+                {
+                  news_id: item.id,
+                  language,
+                  headline: parsedTranslation.headline,
+                  summary: parsedTranslation.summary,
+                  content: full ? parsedTranslation.content : null,
+                },
+                { onConflict: "news_id,language" }
+              );
+            }
+          } catch (translateErr) {
+            console.error(`Falha ao traduzir notícia ${item.slug} para ${language}:`, translateErr);
+          }
+        }
+      }
+
+      return res.json({ success: true, translations });
+    } catch (err: any) {
+      console.error("Erro ao traduzir notícias:", err);
+      return res.status(500).json({ error: "Falha ao traduzir notícias." });
     }
   });
 

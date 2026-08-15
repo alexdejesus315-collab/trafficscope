@@ -19,6 +19,7 @@ import { supabase } from '../lib/supabaseClient';
 import { LanguageSwitcher } from './LanguageSwitcher';
 
 const LAST_SEEN_BLOG_KEY = 'trafficscope_last_seen_blog';
+const LAST_SEEN_NEWS_KEY = 'trafficscope_last_seen_news';
 
 interface NavbarProps {
   user?: User | null;
@@ -68,13 +69,24 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [lastSeenBlog, setLastSeenBlog] = useState<string | null>(() =>
     typeof window !== 'undefined' ? localStorage.getItem(LAST_SEEN_BLOG_KEY) : null
   );
+  const [lastSeenNews, setLastSeenNews] = useState<string | null>(() =>
+    typeof window !== 'undefined' ? localStorage.getItem(LAST_SEEN_NEWS_KEY) : null
+  );
 
   const latestBlogPostAt = notifications
     .filter(n => n.type === 'new_blog_post')
     .reduce<string | null>((latest, n) => (!latest || n.created_at > latest ? n.created_at : latest), null);
 
+  const latestNewsItemAt = notifications
+    .filter(n => n.type === 'new_news_item')
+    .reduce<string | null>((latest, n) => (!latest || n.created_at > latest ? n.created_at : latest), null);
+
   const hasNewBlogPost = Boolean(
     latestBlogPostAt && (!lastSeenBlog || latestBlogPostAt > lastSeenBlog)
+  );
+
+  const hasNewNews = Boolean(
+    latestNewsItemAt && (!lastSeenNews || latestNewsItemAt > lastSeenNews)
   );
 
   const handleBlogClick = () => {
@@ -82,6 +94,13 @@ export const Navbar: React.FC<NavbarProps> = ({
     localStorage.setItem(LAST_SEEN_BLOG_KEY, now);
     setLastSeenBlog(now);
     navigate('/blog');
+  };
+
+  const handleNoticiasClick = () => {
+    const now = new Date().toISOString();
+    localStorage.setItem(LAST_SEEN_NEWS_KEY, now);
+    setLastSeenNews(now);
+    navigate('/noticias');
   };
 
 
@@ -204,10 +223,13 @@ export const Navbar: React.FC<NavbarProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate('/noticias')}
-              className="!text-sidebar-foreground text-sm font-semibold rounded-full px-3 py-1.5 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+              onClick={handleNoticiasClick}
+              className="relative !text-sidebar-foreground text-sm font-semibold rounded-full px-3 py-1.5 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
             >
               Notícias
+              {hasNewNews && (
+                <span className="absolute top-1 right-1.5 h-2 w-2 rounded-full bg-destructive" />
+              )}
             </Button>
 
             {/* 3. Empresa */}
