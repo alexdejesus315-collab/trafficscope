@@ -5,11 +5,12 @@ import { BlogPost } from '../types/blog';
 import { BlogChart } from '../components/BlogChart';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 import { useAuth } from '../hooks/useAuth';
 import { isOwner } from '../lib/ownerConfig';
-import { Trash2, ArrowLeft, ArrowRight, Clock, Calendar, TrendingUp, ExternalLink, BookOpen } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
+import { Trash2, ArrowLeft, ArrowRight, Clock, Calendar, TrendingUp, ExternalLink, BookOpen, PenSquare } from 'lucide-react';import { useLanguage } from '../context/LanguageContext';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import ArticleEditor from '../components/ArticleEditor';
 import { getBlogCategoryLabel } from '../lib/blogCategoryLabels';function extractFirstImage(content: string): string | null {
   const match = content.match(/!\[([^\]]*)\]\(([^)]+)\)/);
   return match ? match[2] : null;
@@ -24,6 +25,7 @@ export default function BlogPostDetail() {
   const [translated, setTranslated] = useState<{ title: string; excerpt: string; content: string } | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
   const showDeleteButton = isOwner(user?.id);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     supabase.from('blog_posts').select('*').eq('slug', slug).single()
@@ -66,6 +68,26 @@ export default function BlogPostDetail() {
       navigate('/blog');
     } else {
       alert(data.error || t('blog.deleteError'));
+    }
+  };
+
+  const handleSaveEdit = async ({ title, markdown, sources }: { title: string; markdown: string; sources: { title: string; url: string }[] }) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const res = await fetch(`/api/blog/${slug}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session?.access_token}`,
+      },
+      body: JSON.stringify({ title, content: markdown, sources }),
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      setPost(data.post);
+      setIsEditing(false);
+    } else {
+      throw new Error(data.error || 'Falha ao guardar alterações.');
     }
   };
 
@@ -115,13 +137,22 @@ export default function BlogPostDetail() {
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
             {showDeleteButton && (
-              <button
-                onClick={handleDelete}
-                className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-destructive transition-colors"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                {t('blogPost.deleteButton', 'Eliminar')}
-              </button>
+              <>
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+                >
+                  <PenSquare className="h-3.5 w-3.5" />
+                  Editar
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-destructive transition-colors"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  {t('blogPost.deleteButton', 'Eliminar')}
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -214,7 +245,7 @@ export default function BlogPostDetail() {
 
         {/* Article body */}
         <article className="prose prose-lg max-w-none text-foreground prose-headings:text-foreground prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3 prose-p:text-muted-foreground prose-p:leading-relaxed prose-strong:text-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-primary prose-blockquote:bg-muted/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-li:text-muted-foreground prose-table:text-sm prose-th:bg-muted prose-th:font-semibold prose-td:border-border">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayContent}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{displayContent}</ReactMarkdown>
         </article>
 
         {/* CTA */}
@@ -291,6 +322,17 @@ export default function BlogPostDetail() {
           </div>
         )}
       </main>
+
+      {isEditing && (
+        <ArticleEditor
+          initialContent={post.content}
+          initialTitle={post.title}
+          initialSources={post.sources || []}
+          onSave={handleSaveEdit}
+          onClose={() => setIsEditing(false)}
+          heading="Editar artigo"
+        />
+      )}
     </div>
   );
 }

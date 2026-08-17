@@ -10,6 +10,7 @@ import { supabaseAdmin } from './src/lib/supabaseAdmin';
 import { OWNER_USER_ID } from './src/lib/ownerConfig';
 import googleTrends from 'google-trends-api';
 import fs from 'fs';
+import multer from "multer";
 
 const paddle = new Paddle(process.env.PADDLE_API_KEY!);
 
@@ -878,6 +879,39 @@ async function startServer() {
     apiKey: process.env.GROQ_API_KEY || "",
   });
 
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
+
+  app.post("/api/upload-image", upload.single("image"), async (req, res) => {
+    try {
+      const user = await getUserFromRequest(req);
+      if (!user || user.id !== OWNER_USER_ID) {
+        return res.status(403).json({ error: "Acesso negado." });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: "Nenhuma imagem enviada." });
+      }
+
+      const ext = req.file.originalname.split(".").pop() || "jpg";
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+      const { error } = await supabaseAdmin.storage
+        .from("article-images")
+        .upload(fileName, req.file.buffer, { contentType: req.file.mimetype });
+
+      if (error) throw error;
+
+      const { data: publicUrlData } = supabaseAdmin.storage
+        .from("article-images")
+        .getPublicUrl(fileName);
+
+      return res.json({ success: true, url: publicUrlData.publicUrl });
+    } catch (err: any) {
+      console.error("Erro ao fazer upload de imagem:", err);
+      return res.status(500).json({ error: "Falha ao fazer upload da imagem." });
+    }
+  });
+
   // Health check endpoint
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
@@ -1537,6 +1571,50 @@ Responda APENAS com este JSON, sem texto antes ou depois:
     }
   });
 
+  // ===== NOVO: Editar artigo do Blog (só o dono) =====
+  app.put("/api/blog/:slug", async (req, res) => {
+    try {
+      const user = await getUserFromRequest(req);
+      if (!user || user.id !== OWNER_USER_ID) {
+        return res.status(403).json({ error: "Acesso negado." });
+      }
+
+      const { slug } = req.params;
+      const { title, excerpt, content, category, sources } = req.body as {
+        title?: string;
+        excerpt?: string;
+        content?: string;
+        category?: string;
+        sources?: { title: string; url: string }[];
+      };
+
+      const updateFields: Record<string, any> = {};
+      if (title !== undefined) updateFields.title = title;
+      if (excerpt !== undefined) updateFields.excerpt = excerpt;
+      if (content !== undefined) updateFields.content = content;
+      if (category !== undefined) updateFields.category = category;
+      if (sources !== undefined) updateFields.sources = sources;
+
+      if (Object.keys(updateFields).length === 0) {
+        return res.status(400).json({ error: "Nenhum campo para atualizar." });
+      }
+
+      const { data: updated, error } = await supabaseAdmin
+        .from("blog_posts")
+        .update(updateFields)
+        .eq("slug", slug)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return res.json({ success: true, post: updated });
+    } catch (err: any) {
+      console.error("Erro ao editar artigo do blog:", err);
+      return res.status(500).json({ error: "Falha ao editar artigo." });
+    }
+  });
+
   // ===== NOVO: Geração individual de notícia (busca 1 + reescreve com IA) =====
   app.post("/api/news/generate", async (req, res) => {
     try {
@@ -1725,6 +1803,49 @@ Responda APENAS com um objeto JSON válido, sem texto antes ou depois:
   });
 
 
+// ===== NOVO: Editar item de notícia (só o dono) =====
+  app.put("/api/news/:id", async (req, res) => {
+    try {
+      const user = await getUserFromRequest(req);
+      if (!user || user.id !== OWNER_USER_ID) {
+        return res.status(403).json({ error: "Acesso negado." });
+      }
+
+      const { id } = req.params;
+      const { headline, summary, content, category, cover_image } = req.body as {
+        headline?: string;
+        summary?: string;
+        content?: string;
+        category?: string;
+        cover_image?: string;
+      };
+
+      const updateFields: Record<string, any> = {};
+      if (headline !== undefined) updateFields.headline = headline;
+      if (summary !== undefined) updateFields.summary = summary;
+      if (content !== undefined) updateFields.content = content;
+      if (category !== undefined) updateFields.category = category;
+      if (cover_image !== undefined) updateFields.cover_image = cover_image;
+
+      if (Object.keys(updateFields).length === 0) {
+        return res.status(400).json({ error: "Nenhum campo para atualizar." });
+      }
+
+      const { data: updated, error } = await supabaseAdmin
+        .from("news_items")
+        .update(updateFields)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return res.json({ success: true, item: updated });
+    } catch (err: any) {
+      console.error("Erro ao editar item de notícia:", err);
+      return res.status(500).json({ error: "Falha ao editar item." });
+    }
+  });
 
 
   // ===== NOVO: Tradução sob demanda dos artigos do Blog (com cache) =====

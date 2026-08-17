@@ -4,11 +4,12 @@ import { supabase } from '../lib/supabaseClient';
 import { NewsItem } from '../types/news';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 import { useAuth } from '../hooks/useAuth';
 import { isOwner } from '../lib/ownerConfig';
-import { Trash2, ArrowLeft, Calendar, ExternalLink, Radio, PlayCircle, Newspaper, ArrowRight } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
+import { Trash2, ArrowLeft, Calendar, ExternalLink, Radio, PlayCircle, Newspaper, ArrowRight, PenSquare } from 'lucide-react';import { useLanguage } from '../context/LanguageContext';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import ArticleEditor from '../components/ArticleEditor';
 import { getCategoryLabel } from '../lib/newsCategoryLabels';export default function NoticiaDetail() {
   const { slug } = useParams();
   const { user } = useAuth();
@@ -19,6 +20,7 @@ import { getCategoryLabel } from '../lib/newsCategoryLabels';export default func
   const [translated, setTranslated] = useState<{ headline: string; summary: string; content: string } | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
   const showDeleteButton = isOwner(user?.id);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     fetch(`/api/news/${slug}`)
@@ -64,6 +66,26 @@ import { getCategoryLabel } from '../lib/newsCategoryLabels';export default func
       navigate('/noticias');
     } else {
       alert(data.error || t('news.deleteError'));
+    }
+  };
+
+  const handleSaveEdit = async ({ title, markdown }: { title: string; markdown: string }) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const res = await fetch(`/api/news/${item?.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session?.access_token}`,
+      },
+      body: JSON.stringify({ headline: title, content: markdown }),
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      setItem(data.item);
+      setIsEditing(false);
+    } else {
+      throw new Error(data.error || 'Falha ao guardar alterações.');
     }
   };
 
@@ -113,13 +135,22 @@ import { getCategoryLabel } from '../lib/newsCategoryLabels';export default func
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
             {showDeleteButton && (
-            <button
-              onClick={handleDelete}
-              className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-destructive transition-colors"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              {t('newsDetail.deleteButton')}
-            </button>
+            <>
+              <button
+                onClick={() => setIsEditing(true)}
+                className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+              >
+                <PenSquare className="h-3.5 w-3.5" />
+                Editar
+              </button>
+              <button
+                onClick={handleDelete}
+                className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-destructive transition-colors"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                {t('newsDetail.deleteButton')}
+              </button>
+            </>
             )}
           </div>
         </div>
@@ -204,7 +235,7 @@ import { getCategoryLabel } from '../lib/newsCategoryLabels';export default func
 
         {/* Article body */}
         <article className="prose prose-lg max-w-none text-foreground prose-headings:text-foreground prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3 prose-p:text-muted-foreground prose-p:leading-relaxed prose-strong:text-foreground prose-a:text-red-500 prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-red-500 prose-blockquote:bg-red-500/5 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-li:text-muted-foreground">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayContent}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{displayContent}</ReactMarkdown>
         </article>
 
         {/* CTA Discreto */}
@@ -240,6 +271,17 @@ import { getCategoryLabel } from '../lib/newsCategoryLabels';export default func
           </div>
         </div>
       </main>
+
+      {isEditing && (
+        <ArticleEditor
+          initialContent={item.content}
+          initialTitle={item.headline}
+          showSources={false}
+          onSave={handleSaveEdit}
+          onClose={() => setIsEditing(false)}
+          heading="Editar notícia"
+        />
+      )}
     </div>
   );
 }
