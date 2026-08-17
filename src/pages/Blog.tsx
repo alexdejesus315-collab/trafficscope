@@ -7,7 +7,7 @@ import { isOwner } from '../lib/ownerConfig';
 import { Trash2, ArrowLeft, Clock, Calendar, TrendingUp, ImageOff } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
-
+import { getBlogCategoryLabel } from '../lib/blogCategoryLabels';
 // Extrai a primeira imagem do conteúdo markdown (![alt](url))
 function extractFirstImage(content: string): string | null {
   const match = content.match(/!\[([^\]]*)\]\(([^)]+)\)/);
@@ -231,6 +231,7 @@ function FeaturedCard({
   onDelete: (s: string) => void;
   size: 'large' | 'small' | 'medium';
 }) {
+  const { language } = useLanguage();
   const displayTitle = tr?.title || post.title;
   const isLarge = size === 'large';
   const coverUrl = extractFirstImage(post.content);
@@ -264,7 +265,7 @@ function FeaturedCard({
       <div className={`absolute inset-0 flex flex-col justify-end p-6 ${!isLarge && 'p-5'}`}>
         <div className="flex items-center gap-3 mb-3">
           <span className="inline-flex items-center rounded-full bg-primary/90 px-2.5 py-0.5 text-[11px] font-semibold text-primary-foreground">
-            {post.category}
+            {getBlogCategoryLabel(post.category, language)}
           </span>
           <span className="flex items-center gap-1 text-[11px] text-white/70">
             <Calendar className="h-3 w-3" />
@@ -322,6 +323,7 @@ function PostCard({
   showDelete: boolean;
   onDelete: (s: string) => void;
 }) {
+  const { language } = useLanguage();
   const displayTitle = tr?.title || post.title;
   const displayExcerpt = tr?.excerpt || post.excerpt;
   const coverUrl = extractFirstImage(post.content);
@@ -345,7 +347,7 @@ function PostCard({
           )}
           <div className="absolute top-3 left-3">
             <span className="inline-flex items-center rounded-full bg-background/90 backdrop-blur-sm px-2.5 py-0.5 text-[11px] font-semibold text-foreground border border-border/50">
-              {post.category}
+              {getBlogCategoryLabel(post.category, language)}
             </span>
           </div>
           {showDelete && (

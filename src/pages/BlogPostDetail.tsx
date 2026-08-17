@@ -10,7 +10,7 @@ import { isOwner } from '../lib/ownerConfig';
 import { Trash2, ArrowLeft, ArrowRight, Clock, Calendar, TrendingUp, ExternalLink, BookOpen } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
-function extractFirstImage(content: string): string | null {
+import { getBlogCategoryLabel } from '../lib/blogCategoryLabels';function extractFirstImage(content: string): string | null {
   const match = content.match(/!\[([^\]]*)\]\(([^)]+)\)/);
   return match ? match[2] : null;
 }
@@ -128,23 +128,25 @@ export default function BlogPostDetail() {
       </header>
 
       {/* Hero */}
-      <div className="relative w-full h-[320px] md:h-[420px] overflow-hidden bg-muted">
-        {coverUrl ? (
-          <img
-            src={coverUrl}
-            alt={displayTitle}
-            className="h-full w-full object-cover blur-[2px] scale-105"
-          />
-        ) : (
-          <div className="h-full w-full bg-gradient-to-br from-primary/10 to-primary/5" />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
+      <div className="relative w-full overflow-hidden bg-muted">
+        <div className="absolute inset-0">
+          {coverUrl ? (
+            <img
+              src={coverUrl}
+              alt={displayTitle}
+              className="h-full w-full object-cover blur-[2px] scale-105"
+            />
+          ) : (
+            <div className="h-full w-full bg-gradient-to-br from-primary/10 to-primary/5" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
+        </div>
 
-        <div className="absolute inset-0 flex items-end">
-          <div className="max-w-4xl mx-auto px-4 w-full pb-8 md:pb-12">
+        <div className="relative min-h-[320px] md:min-h-[420px] flex items-end">
+          <div className="max-w-4xl mx-auto px-4 w-full pb-8 md:pb-12 pt-24">
             <div className="flex items-center gap-3 mb-4">
               <span className="inline-flex items-center rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
-                {post.category}
+                {getBlogCategoryLabel(post.category, language)}
               </span>
               {isTranslating && (
                 <span className="text-xs text-muted-foreground animate-pulse">{t('blogPost.translating', 'A traduzir...')}</span>

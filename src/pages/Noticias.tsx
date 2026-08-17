@@ -7,10 +7,10 @@ import { isOwner } from '../lib/ownerConfig';
 import { Trash2, ArrowLeft, Calendar, ImageOff, PlayCircle, Radio, Newspaper } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
-
+import { getCategoryLabel } from '../lib/newsCategoryLabels';
 export default function Noticias() {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [items, setItems] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const showDeleteButton = isOwner(user?.id);
@@ -41,8 +41,9 @@ export default function Noticias() {
     }
   };
 
+  const DATE_LOCALES: Record<string, string> = { pt: 'pt-PT', en: 'en-US', es: 'es-ES', fr: 'fr-FR' };
   const formatDate = (date: string) =>
-    new Date(date).toLocaleDateString('pt-PT', { day: 'numeric', month: 'long', year: 'numeric' });
+    new Date(date).toLocaleDateString(DATE_LOCALES[language] || 'pt-PT', { day: 'numeric', month: 'long', year: 'numeric' });
 
   if (loading) {
     return (
@@ -183,8 +184,8 @@ function FeaturedNewsCard({
   onDelete: (id: string) => void;
   size: 'large' | 'small' | 'medium';
 }) {
-  const isLarge = size === 'large';
-  const hasVideo = !!item.youtube_video_id;
+  const { language } = useLanguage();
+  const isLarge = size === 'large';  const hasVideo = !!item.youtube_video_id;
   const displayHeadline = translated?.headline || item.headline;
   const displaySummary = translated?.summary || item.summary;
 
@@ -228,7 +229,7 @@ function FeaturedNewsCard({
       <div className={`absolute inset-0 flex flex-col justify-end p-6 ${!isLarge && 'p-5'}`}>
         <div className="flex items-center gap-3 mb-3">
           <span className="inline-flex items-center rounded-full bg-red-500/90 px-2.5 py-0.5 text-[11px] font-semibold text-white">
-            {item.category}
+            {getCategoryLabel(item.category, language)}
           </span>
           <span className="flex items-center gap-1 text-[11px] text-white/70">
             <Calendar className="h-3 w-3" />
@@ -284,7 +285,7 @@ function NewsCard({
   showDelete: boolean;
   onDelete: (id: string) => void;
 }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const hasVideo = !!item.youtube_video_id;
   const displayHeadline = translated?.headline || item.headline;
   const displaySummary = translated?.summary || item.summary;
@@ -318,7 +319,7 @@ function NewsCard({
 
           <div className="absolute top-3 left-3">
             <span className="inline-flex items-center rounded-full bg-red-500/90 backdrop-blur-sm px-2.5 py-0.5 text-[11px] font-semibold text-white">
-              {item.category}
+              {getCategoryLabel(item.category, language)}
             </span>
           </div>
 

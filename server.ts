@@ -626,7 +626,11 @@ async function fetchUnsplashImage(query: string): Promise<{ url: string; alt: st
     `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=10&orientation=landscape`,
     { headers: { Authorization: `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}` } }
   );
-  if (!res.ok) return null;
+  if (!res.ok) {
+    const remaining = res.headers.get('x-ratelimit-remaining');
+    console.error(`Unsplash falhou [status ${res.status}] para query "${query}"${remaining !== null ? ` (pedidos restantes na hora: ${remaining})` : ''}`);
+    return null;
+  }
 
   const data = await res.json();
   const results = data.results || [];
@@ -1588,7 +1592,7 @@ Regras rigorosas:
 4. Tom jornalístico, directo, neutro. Sem sensacionalismo, sem adjetivos exagerados, sem opinião pessoal.
 5. Não repita o título no corpo do texto.
 6. Se — e só se — a notícia tiver uma conexão natural e óbvia com comportamento digital, consumo de informação online ou dinâmicas de plataformas, pode incluir uma breve frase sobre isso. Se não for relevante, ignore completamente este ponto. Não force a ligação.
-
+7. Escreva SEMPRE em Português (mesmo que TÍTULO/DESCRIÇÃO/CONTEÚDO acima estejam noutro idioma) — o texto final tem de ficar 100% em Português.
 Responda APENAS com um objeto JSON válido, sem texto antes ou depois:
 {
   "title": "título curto e claro (ajuste para clareza, mantendo os factos)",
@@ -1604,8 +1608,7 @@ Responda APENAS com um objeto JSON válido, sem texto antes ou depois:
         messages: [
           {
             role: "system",
-            content: "Você reescreve notícias reais para a TrafficScope de forma curta e factual. Responda SEMPRE apenas com JSON válido, sem texto adicional.",
-          },
+        content: "Você reescreve notícias reais para a TrafficScope de forma curta e factual. Escreva SEMPRE em Português, independentemente do idioma da notícia original (mesmo que a fonte esteja em inglês ou outro idioma, o texto reescrito tem de ficar em Português). Responda SEMPRE apenas com JSON válido, sem texto adicional.",          },
           { role: "user", content: prompt },
         ],
       });
