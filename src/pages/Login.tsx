@@ -14,7 +14,7 @@ export default function Login() {
         {/* Brand Box */}
         <div className="hidden md:flex relative w-[50%] min-h-[85vh] flex-col justify-between bg-slate-950 px-10 py-10 text-white rounded-xl shadow-xl shadow-black/5 overflow-hidden">
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-blue-900/20 rounded-full blur-3xl" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/20 rounded-full blur-3xl" />
           </div>
 
           <div className="relative inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/70">
@@ -33,7 +33,7 @@ export default function Login() {
         {/* Login Box */}
         <div className="relative overflow-hidden w-full md:w-[50%] min-h-[85vh] px-8 py-10 sm:px-12 sm:py-14 flex flex-col justify-center bg-background border border-border rounded-xl shadow-xl shadow-black/5">
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute -bottom-32 -right-20 w-[400px] h-[400px] bg-blue-100/30 rounded-full blur-3xl" />
+            <div className="absolute -bottom-32 -right-20 w-[400px] h-[400px] bg-primary/10 rounded-full blur-3xl" />
           </div>
           <div className="relative max-w-md mx-auto w-full">
             <h1 className="text-3xl font-bold tracking-tight text-foreground text-center">{t('login.welcome')}</h1>
