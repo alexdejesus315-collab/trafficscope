@@ -108,9 +108,9 @@ function NavBar() {
 function MiniCompareDemo() {
   const { t } = useLanguage();
   const domains = [
-    { d: "amazon.com", v: "2.450.000.000", w: 96, grow: "+12.4%", up: true },
-    { d: "x.com", v: "86.495.700", w: 34, grow: "+30.4%", up: true },
-    { d: "google.com", v: "56.628.720", w: 28, grow: "-2.6%", up: false },
+    { d: "google.com", v: "89.700.000.000", w: 100, grow: "+2.8%", up: true },
+    { d: "amazon.com", v: "2.450.000.000", w: 42, grow: "+12.4%", up: true },
+    { d: "x.com", v: "486.500.000", w: 22, grow: "+8.4%", up: true },
   ];
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-2xl shadow-slate-200/40 p-5 w-full max-w-md backdrop-blur-sm">
@@ -207,8 +207,7 @@ function StatsBar() {
   ];
   const { ref, visible } = useReveal();
   return (
-    <div ref={ref} className="bg-white border-y border-slate-100">
-      <div className="max-w-6xl mx-auto px-6 py-12 grid grid-cols-3 gap-6 text-center">
+<div ref={ref} className="bg-white/60 backdrop-blur-sm border-y border-slate-100">      <div className="max-w-6xl mx-auto px-6 py-12 grid grid-cols-3 gap-6 text-center">
         {stats.map((s, i) => (
           <div
             key={s.l}
@@ -266,7 +265,10 @@ function Features() {
   const { ref, visible } = useReveal();
 
   return (
-    <section id="produto" className="max-w-6xl mx-auto px-6 py-20">
+    <section id="produto" className="relative overflow-hidden max-w-6xl mx-auto px-6 py-20">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/3 -right-32 w-[500px] h-[500px] bg-blue-100/30 rounded-full blur-3xl" />
+      </div>
       <div
         ref={ref}
         className={`max-w-xl mb-14 transition-all duration-700 ${
@@ -312,6 +314,17 @@ function CompareShowcase() {
 
   const competitors = [
     {
+      domain: "google.com",
+      visits: "89.7B",
+      growth: "+2.8%",
+      up: true,
+      primary: t('landing.compareShowcase.channel.direct'),
+      share: 63.1,
+      pages: "6.2",
+      time: "9m 12s",
+      bounce: "28.4%",
+    },
+    {
       domain: "amazon.com",
       visits: "2.45B",
       growth: "+12.4%",
@@ -324,25 +337,14 @@ function CompareShowcase() {
     },
     {
       domain: "x.com",
-      visits: "86.5M",
-      growth: "+30.4%",
+      visits: "486.5M",
+      growth: "+8.4%",
       up: true,
       primary: t('landing.compareShowcase.channel.organic'),
       share: 45,
       pages: "3.0",
       time: "3m 47s",
       bounce: "35.0%",
-    },
-    {
-      domain: "google.com",
-      visits: "56.6M",
-      growth: "-2.6%",
-      up: false,
-      primary: t('landing.compareShowcase.channel.organic'),
-      share: 45,
-      pages: "4.7",
-      time: "5m 34s",
-      bounce: "36.0%",
     },
   ];
 
@@ -393,8 +395,12 @@ function CompareShowcase() {
               style={{ animationDelay: `${i * 100}ms` }}
             >
               <div className="col-span-3 flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
-                  <Globe className="h-4 w-4 text-slate-600" />
+                <div className="h-9 w-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden">
+                  <img
+                    src={`https://www.google.com/s2/favicons?domain=${c.domain}&sz=64`}
+                    alt={c.domain}
+                    className="h-5 w-5"
+                  />
                 </div>
                 <span className="text-slate-900 font-medium text-[14px]">
                   {c.domain}
@@ -445,7 +451,11 @@ function Pricing() {
   const { ref, visible } = useReveal();
 
   return (
-    <section id="precos" className="max-w-6xl mx-auto px-6 py-20">
+    <section id="precos" className="relative overflow-hidden max-w-6xl mx-auto px-6 py-20">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-20 left-1/4 w-[450px] h-[450px] bg-rose-100/25 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 -right-20 w-[400px] h-[400px] bg-blue-100/30 rounded-full blur-3xl" />
+      </div>
       <div
         ref={ref}
         className={`max-w-lg mx-auto text-center mb-14 transition-all duration-700 ${
@@ -575,7 +585,7 @@ function FinalCTA() {
 
 export default function Landing() {
   return (
-    <div className="bg-[#FAFAFA] min-h-screen">
+    <div className="bg-[#FAFAFA] min-h-screen bg-[radial-gradient(circle,_#0000000d_1px,_transparent_1px)] bg-[size:28px_28px]">
       <NavBar />
       <Hero />
       <StatsBar />

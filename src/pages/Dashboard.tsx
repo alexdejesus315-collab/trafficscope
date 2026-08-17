@@ -309,8 +309,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans antialiased selection:bg-primary selection:text-primary-foreground pb-16">
-      <Navbar
+<div className="min-h-screen bg-background text-foreground font-sans antialiased selection:bg-primary selection:text-primary-foreground pb-16 bg-[radial-gradient(circle,_#0000000d_1px,_transparent_1px)] bg-[size:28px_28px]">      <Navbar
         user={user}
         onSignOut={() => void signOut()}
         profile={profile}
