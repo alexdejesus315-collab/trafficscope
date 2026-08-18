@@ -1,5 +1,5 @@
 import "dotenv/config";
-import express from "express";
+import express, { Request, Response } from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import Groq from "groq-sdk";
@@ -892,8 +892,17 @@ async function startServer() {
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
-  app.post("/api/upload-image", upload.single("image"), async (req, res) => {
-    try {
+const handleMulterError = (err: any, req: any, res: any, next: any) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ error: 'Imagem demasiado grande. O limite é 5MB.' });
+    }
+    return res.status(400).json({ error: 'Falha ao processar o ficheiro enviado.' });
+  }
+  next(err);
+};
+
+app.post("/api/upload-image", upload.single("image"), handleMulterError, async (req: Request, res: Response) => {   try {
       const user = await getUserFromRequest(req);
       if (!user || user.id !== OWNER_USER_ID) {
         return res.status(403).json({ error: "Acesso negado." });
