@@ -12,7 +12,7 @@ import TurndownService from 'turndown';
 import { supabase } from '../lib/supabaseClient';
 import {
   Bold, Italic, Heading2, Heading3, List, ListOrdered, Quote, Link as LinkIcon,
-  Image as ImageIcon, X, Check, Loader2, Palette, Highlighter,
+  Image as ImageIcon, X, Check, Loader2, Palette, Highlighter, Trash2,
 } from 'lucide-react';
 
 const turndownService = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' });
@@ -44,12 +44,13 @@ interface ArticleEditorProps {
   showSources?: boolean;
   showVideoField?: boolean;
   initialVideoUrl?: string;
-  onSave: (data: { title: string; markdown: string; sources: ArticleSource[]; youtubeUrl?: string }) => Promise<void>;
+  initialCoverImage?: string;
+  onSave: (data: { title: string; markdown: string; sources: ArticleSource[]; youtubeUrl?: string; coverImage?: string }) => Promise<void>;
   onClose: () => void;
   heading?: string;
 }
 
-export default function ArticleEditor({ initialContent, initialTitle, initialSources = [], showSources = true, showVideoField = false, initialVideoUrl = '', onSave, onClose, heading = 'Editar artigo' }: ArticleEditorProps) {
+export default function ArticleEditor({ initialContent, initialTitle, initialSources = [], showSources = true, showVideoField = false, initialVideoUrl = '', initialCoverImage = '', onSave, onClose, heading = 'Editar artigo' }: ArticleEditorProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [articleTitle, setArticleTitle] = useState(initialTitle);
@@ -57,6 +58,10 @@ export default function ArticleEditor({ initialContent, initialTitle, initialSou
   const [linkUrl, setLinkUrl] = useState('');
   const [sources, setSources] = useState<ArticleSource[]>(initialSources);
   const [youtubeUrl, setYoutubeUrl] = useState(initialVideoUrl);
+  const [coverImage, setCoverImage] = useState(initialCoverImage);
+  const [imageEditPos, setImageEditPos] = useState<number | null>(null);
+  const [imageEditRect, setImageEditRect] = useState<{ top: number; left: number } | null>(null);
+  const coverFileInputRef = useRef<HTMLInputElement>(null);
 
   const addSource = () => setSources([...sources, { title: '', url: '' }]);
   const removeSource = (index: number) => setSources(sources.filter((_, i) => i !== index));
@@ -107,6 +112,34 @@ export default function ArticleEditor({ initialContent, initialTitle, initialSou
   };
 
   const handleImageButtonClick = () => fileInputRef.current?.click();
+  
+  const handleEditorClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'IMG' && editor) {
+      const pos = editor.view.posAtDOM(target, 0);
+      const rect = target.getBoundingClientRect();
+      setImageEditPos(pos);
+      setImageEditRect({ top: rect.top - 36, left: rect.left });
+    } else {
+      setImageEditPos(null);
+      setImageEditRect(null);
+    }
+  };
+
+  const handleDeleteImage = () => {
+    if (imageEditPos === null || !editor) return;
+    editor.chain().focus().deleteRange({ from: imageEditPos, to: imageEditPos + 1 }).run();
+    setImageEditPos(null);
+    setImageEditRect(null);
+  };
+  
+  const handleCoverFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    const url = await uploadImage(file);
+    if (url) setCoverImage(url);
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -149,8 +182,7 @@ export default function ArticleEditor({ initialContent, initialTitle, initialSou
     try {
       const html = editor.getHTML();
       const markdown = turndownService.turndown(html);
-      await onSave({ title: articleTitle.trim(), markdown, sources: sources.filter((s) => s.title.trim() && s.url.trim()), youtubeUrl: youtubeUrl.trim() });
-    } catch (err: any) {
+      await onSave({ title: articleTitle.trim(), markdown, sources: sources.filter((s) => s.title.trim() && s.url.trim()), youtubeUrl: youtubeUrl.trim(), coverImage: coverImage.trim() });    } catch (err: any) {
       alert(err.message || 'Falha ao guardar.');
     } finally {
       setIsSaving(false);
@@ -288,11 +320,22 @@ export default function ArticleEditor({ initialContent, initialTitle, initialSou
             placeholder="Título do artigo..."
             className="w-full mb-6 bg-transparent text-3xl md:text-4xl font-bold text-foreground placeholder:text-muted-foreground/40 focus:outline-none border-b border-transparent focus:border-border pb-2 transition-colors"
           />
-          <EditorContent
-            editor={editor}
-            className="prose prose-lg max-w-none text-foreground prose-headings:text-foreground prose-headings:font-bold prose-p:text-muted-foreground prose-p:leading-relaxed prose-strong:text-foreground prose-a:text-primary prose-blockquote:border-l-primary prose-blockquote:bg-muted/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-li:text-muted-foreground focus:outline-none min-h-[400px]"
-          />
-
+          <div onClick={handleEditorClick}>
+            <EditorContent
+              editor={editor}
+              className="prose prose-lg max-w-none text-foreground prose-headings:text-foreground prose-headings:font-bold prose-p:text-muted-foreground prose-p:leading-relaxed prose-strong:text-foreground prose-a:text-primary prose-blockquote:border-l-primary prose-blockquote:bg-muted/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-li:text-muted-foreground focus:outline-none min-h-[400px]"
+            />
+          </div>
+          {imageEditPos !== null && imageEditRect && (
+            <button
+              onClick={handleDeleteImage}
+              style={{ position: 'fixed', top: imageEditRect.top, left: imageEditRect.left }}
+              className="z-[110] flex items-center gap-1.5 rounded-full bg-destructive px-3 py-1.5 text-xs font-semibold text-destructive-foreground shadow-md"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Remover imagem
+            </button>
+          )}
           {showSources && (
           <div className="mt-10 pt-6 border-t border-border">
             <div className="flex items-center justify-between mb-3">
@@ -349,7 +392,32 @@ export default function ArticleEditor({ initialContent, initialTitle, initialSou
             />
           </div>
           )}
-        </div>
+
+          {showVideoField && (
+          <div className="mt-10 pt-6 border-t border-border">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">Imagem de capa</h3>
+              {coverImage && (
+                <button onClick={() => setCoverImage('')} className="text-xs font-medium text-muted-foreground hover:text-destructive transition-colors">
+                  Remover imagem
+                </button>
+              )}
+            </div>
+            {coverImage && (
+              <img src={coverImage} alt="Capa" className="w-full max-h-48 object-cover rounded-lg border border-border mb-3" />
+            )}
+            <button
+              onClick={() => coverFileInputRef.current?.click()}
+              disabled={isUploading}
+              className="flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50"
+            >
+              {isUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImageIcon className="h-3.5 w-3.5" />}
+              {coverImage ? 'Trocar imagem' : 'Carregar imagem'}
+            </button>
+            <input ref={coverFileInputRef} type="file" accept="image/*" onChange={handleCoverFileChange} className="hidden" />
+            <p className="text-xs text-muted-foreground mt-2">Usada como capa só quando não há vídeo do YouTube preenchido acima.</p>
+          </div>
+          )}        </div>
       </div>
     </div>
   );

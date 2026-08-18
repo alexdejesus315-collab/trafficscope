@@ -11,7 +11,15 @@ import { isOwner } from '../lib/ownerConfig';
 import { Trash2, ArrowLeft, ArrowRight, Clock, Calendar, TrendingUp, ExternalLink, BookOpen, PenSquare } from 'lucide-react';import { useLanguage } from '../context/LanguageContext';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import ArticleEditor from '../components/ArticleEditor';
-import { getBlogCategoryLabel } from '../lib/blogCategoryLabels';function extractFirstImage(content: string): string | null {
+import { getBlogCategoryLabel } from '../lib/blogCategoryLabels';
+
+function stripFootnoteArtifacts(content: string): string {
+  return content
+    .replace(/\[\^\d+\]:\s*(?:\[[^\]]*\]|\S+)\s*/g, '')
+    .replace(/\[\^\d+\]/g, '')
+    .trim();
+}
+function extractFirstImage(content: string): string | null {
   const match = content.match(/!\[([^\]]*)\]\(([^)]+)\)/);
   return match ? match[2] : null;
 }
@@ -115,7 +123,7 @@ export default function BlogPostDetail() {
   const firstDomainName = post.chart_data?.[0]?.name || '';
   const displayTitle = translated?.title || post.title;
   const displayExcerpt = translated?.excerpt || post.excerpt;
-  const displayContent = translated?.content || post.content;
+  const displayContent = stripFootnoteArtifacts(translated?.content || post.content);
   const coverUrl = extractFirstImage(post.content);
 
   return (

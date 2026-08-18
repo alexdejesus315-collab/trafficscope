@@ -69,16 +69,14 @@ import { getCategoryLabel } from '../lib/newsCategoryLabels';export default func
     }
   };
 
-  const handleSaveEdit = async ({ title, markdown, youtubeUrl }: { title: string; markdown: string; youtubeUrl?: string }) => {
-    const { data: { session } } = await supabase.auth.getSession();
+  const handleSaveEdit = async ({ title, markdown, youtubeUrl, coverImage }: { title: string; markdown: string; youtubeUrl?: string; coverImage?: string }) => {    const { data: { session } } = await supabase.auth.getSession();
     const res = await fetch(`/api/news/${item?.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${session?.access_token}`,
       },
-      body: JSON.stringify({ headline: title, content: markdown, youtubeUrl }),
-    });
+      body: JSON.stringify({ headline: title, content: markdown, youtubeUrl, cover_image: coverImage }),    });
     const data = await res.json();
 
     if (data.success) {
@@ -279,11 +277,11 @@ import { getCategoryLabel } from '../lib/newsCategoryLabels';export default func
           showSources={false}
           showVideoField={true}
           initialVideoUrl={item.youtube_video_id ? `https://www.youtube.com/watch?v=${item.youtube_video_id}` : ''}
+          initialCoverImage={item.cover_image || ''}
           onSave={handleSaveEdit}
           onClose={() => setIsEditing(false)}
           heading="Editar notícia"
-        />
-      )}
+        />      )}
     </div>
   );
 }
