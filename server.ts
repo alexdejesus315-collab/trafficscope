@@ -304,6 +304,17 @@ async function fetchGNewsForCategory(query: string): Promise<any[]> {
   return data.articles || [];
 }
 
+function extractYoutubeId(url: string): string | null {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtube\.com\/embed\/|youtube\.com\/shorts\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+  ];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
+  }
+  return null;
+}
+
 async function findYoutubeCandidates(searchQuery: string): Promise<{ videoId: string; title: string }[]> {
   const apiKey = process.env.YOUTUBE_API_KEY;
   if (!apiKey) return [];
@@ -1627,7 +1638,32 @@ Responda APENAS com este JSON, sem texto antes ou depois:
         return res.status(500).json({ error: "GROQ_API_KEY não configurada no servidor." });
       }
 
-      const { categoryKey } = req.body as { categoryKey?: string };
+      const {
+        categoryKey,
+        youtubeUrl,
+        manualHeadline,
+        manualFacts,
+        manualSourceName,
+        manualSourceUrl,
+      } = req.body as {
+        categoryKey?: string;
+        youtubeUrl?: string;
+        manualHeadline?: string;
+        manualFacts?: string;
+        manualSourceName?: string;
+        manualSourceUrl?: string;
+      };
+
+      let manualVideoId: string | null = null;
+      if (youtubeUrl && youtubeUrl.trim()) {
+        manualVideoId = extractYoutubeId(youtubeUrl.trim());
+        if (!manualVideoId) {
+          return res.status(400).json({ error: "Link do YouTube inválido. Cola um link completo (ex: https://www.youtube.com/watch?v=...)." });
+        }
+      }
+
+      const isManual = !!(manualHeadline?.trim() && manualFacts?.trim() && manualSourceUrl?.trim());
+
       const category = categoryKey
         ? NEWS_CATEGORIES.find((c) => c.key === categoryKey)
         : NEWS_CATEGORIES[Math.floor(Math.random() * NEWS_CATEGORIES.length)];
@@ -1636,25 +1672,49 @@ Responda APENAS com este JSON, sem texto antes ou depois:
         return res.status(400).json({ error: "Categoria inválida." });
       }
 
-      // Busca notícias recentes já usadas (para evitar repetir)
-      const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
-      const { data: existingNews } = await supabaseAdmin
-        .from("news_items")
-        .select("headline")
-        .gte("published_at", threeDaysAgo);
-      const existingHeadlines = new Set((existingNews || []).map((n) => n.headline.trim().toLowerCase()));
+      let article: { title: string; description: string; content: string; source: { name: string }; url: string; image: string | null; publishedAt: string };
 
-      const articles = await fetchGNewsForCategory(category.query);
-      const article = articles.find((a) => !existingHeadlines.has(a.title.trim().toLowerCase()));
+      if (isManual) {
+        article = {
+          title: manualHeadline!.trim(),
+          description: manualFacts!.trim(),
+          content: "",
+          source: { name: manualSourceName?.trim() || "Fonte" },
+          url: manualSourceUrl!.trim(),
+          image: null,
+          publishedAt: new Date().toISOString(),
+        };
+      } else {
+        // Busca notícias recentes já usadas (para evitar repetir)
+        const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+        const { data: existingNews } = await supabaseAdmin
+          .from("news_items")
+          .select("headline")
+          .gte("published_at", threeDaysAgo);
+        const existingHeadlines = new Set((existingNews || []).map((n) => n.headline.trim().toLowerCase()));
 
-      if (!article) {
-        return res.status(404).json({ error: "Nenhuma notícia nova encontrada para esta categoria. Tenta novamente mais tarde ou escolhe outra categoria." });
+        const articles = await fetchGNewsForCategory(category.query);
+        const found = articles.find((a) => !existingHeadlines.has(a.title.trim().toLowerCase()));
+
+        if (!found) {
+          return res.status(404).json({ error: "Nenhuma notícia nova encontrada para esta categoria. Tenta novamente mais tarde ou escolhe outra categoria." });
+        }
+        article = found;
       }
 
-      const candidates = await findYoutubeCandidates(article.title);
-      const videoId = await pickRelevantVideo(groq, candidates, article.title, article.description);
+      let videoId: string | null = manualVideoId;
+      if (!videoId && !isManual) {
+        const candidates = await findYoutubeCandidates(article.title);
+        videoId = await pickRelevantVideo(groq, candidates, article.title, article.description);
+      }
+
+  
 
       // Reescreve a notícia com a IA — texto curto, factual, sem inventar dados
+      const relevanceRule = isManual
+        ? '1. Os factos abaixo foram escolhidos manualmente pelo editor — não avalies relevância nem decidas saltar; reescreve sempre a partir deles.'
+        : '1. Só reescreva se a notícia tiver relevância internacional real (afeta múltiplos países, mercados globais, big tech, ciência/ambiente de alcance mundial, ou segurança global). Se for notícia essencialmente doméstica de um único país (política interna, economia local, acidente regional sem repercussão alargada), responda APENAS com {"skip": true} e nada mais.';
+
       const prompt = `
 Você é um editor de resumo internacional de uma plataforma de notícias digitais. O seu trabalho é identificar notícias com verdadeiro alcance global e reescrevê-las de forma clara, curta e factual.
 
@@ -1664,7 +1724,7 @@ DESCRIÇÃO: ${article.description || ""}
 CONTEÚDO: ${article.content || ""}
 
 Regras rigorosas:
-1. Só reescreva se a notícia tiver relevância internacional real (afeta múltiplos países, mercados globais, big tech, ciência/ambiente de alcance mundial, ou segurança global). Se for notícia essencialmente doméstica de um único país (política interna, economia local, acidente regional sem repercussão alargada), responda APENAS com {"skip": true} e nada mais.
+${relevanceRule}
 2. Parafraseie completamente. NUNCA copie frases literais do original.
 3. Mantenha os factos exactamente como constam da fonte. NÃO invente números, nomes de pessoas, declarações, datas ou detalhes que não estejam no material fornecido. Se a fonte não tiver um dado específico, omita-o — não o suponha.
 4. Tom jornalístico, directo, neutro. Sem sensacionalismo, sem adjetivos exagerados, sem opinião pessoal.
@@ -1812,12 +1872,13 @@ Responda APENAS com um objeto JSON válido, sem texto antes ou depois:
       }
 
       const { id } = req.params;
-      const { headline, summary, content, category, cover_image } = req.body as {
+      const { headline, summary, content, category, cover_image, youtubeUrl } = req.body as {
         headline?: string;
         summary?: string;
         content?: string;
         category?: string;
         cover_image?: string;
+        youtubeUrl?: string;
       };
 
       const updateFields: Record<string, any> = {};
@@ -1826,6 +1887,17 @@ Responda APENAS com um objeto JSON válido, sem texto antes ou depois:
       if (content !== undefined) updateFields.content = content;
       if (category !== undefined) updateFields.category = category;
       if (cover_image !== undefined) updateFields.cover_image = cover_image;
+      if (youtubeUrl !== undefined) {
+        if (!youtubeUrl.trim()) {
+          updateFields.youtube_video_id = null;
+        } else {
+          const id = extractYoutubeId(youtubeUrl.trim());
+          if (!id) {
+            return res.status(400).json({ error: "Link do YouTube inválido." });
+          }
+          updateFields.youtube_video_id = id;
+        }
+      }
 
       if (Object.keys(updateFields).length === 0) {
         return res.status(400).json({ error: "Nenhum campo para atualizar." });

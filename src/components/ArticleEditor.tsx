@@ -42,18 +42,21 @@ interface ArticleEditorProps {
   initialTitle: string;
   initialSources?: ArticleSource[];
   showSources?: boolean;
-  onSave: (data: { title: string; markdown: string; sources: ArticleSource[] }) => Promise<void>;
+  showVideoField?: boolean;
+  initialVideoUrl?: string;
+  onSave: (data: { title: string; markdown: string; sources: ArticleSource[]; youtubeUrl?: string }) => Promise<void>;
   onClose: () => void;
   heading?: string;
 }
 
-export default function ArticleEditor({ initialContent, initialTitle, initialSources = [], showSources = true, onSave, onClose, heading = 'Editar artigo' }: ArticleEditorProps) {
+export default function ArticleEditor({ initialContent, initialTitle, initialSources = [], showSources = true, showVideoField = false, initialVideoUrl = '', onSave, onClose, heading = 'Editar artigo' }: ArticleEditorProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [articleTitle, setArticleTitle] = useState(initialTitle);
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
   const [sources, setSources] = useState<ArticleSource[]>(initialSources);
+  const [youtubeUrl, setYoutubeUrl] = useState(initialVideoUrl);
 
   const addSource = () => setSources([...sources, { title: '', url: '' }]);
   const removeSource = (index: number) => setSources(sources.filter((_, i) => i !== index));
@@ -146,7 +149,7 @@ export default function ArticleEditor({ initialContent, initialTitle, initialSou
     try {
       const html = editor.getHTML();
       const markdown = turndownService.turndown(html);
-      await onSave({ title: articleTitle.trim(), markdown, sources: sources.filter((s) => s.title.trim() && s.url.trim()) });
+      await onSave({ title: articleTitle.trim(), markdown, sources: sources.filter((s) => s.title.trim() && s.url.trim()), youtubeUrl: youtubeUrl.trim() });
     } catch (err: any) {
       alert(err.message || 'Falha ao guardar.');
     } finally {
@@ -331,6 +334,19 @@ export default function ArticleEditor({ initialContent, initialTitle, initialSou
                 <p className="text-sm text-muted-foreground">Nenhuma fonte adicionada.</p>
               )}
             </div>
+          </div>
+          )}
+
+          {showVideoField && (
+          <div className="mt-10 pt-6 border-t border-border">
+            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-3">Vídeo do YouTube</h3>
+            <input
+              type="text"
+              value={youtubeUrl}
+              onChange={(e) => setYoutubeUrl(e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=... (deixa vazio para remover)"
+              className="w-full bg-card border border-border rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-primary"
+            />
           </div>
           )}
         </div>
