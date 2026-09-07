@@ -5,7 +5,7 @@ import {
   Activity, LogOut, ChevronDown, Info, HelpCircle, Shield, FileText, Mail,
   Instagram, Linkedin, Twitter, Facebook, Zap, Battery, BatteryWarning,
   BatteryCharging, UserCircle, TestTube2, ShoppingCart, Search, ArrowRight,
-  Bell, CheckCheck, History, PenSquare,
+  Bell, CheckCheck, History, PenSquare, Menu, X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserProfile, UserMode } from '../types/domain';
@@ -54,6 +54,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   const notifToggleRef = useRef<HTMLButtonElement>(null);
   const generateBtnRef = useRef<HTMLButtonElement>(null);
   const generateMenuRef = useRef<HTMLDivElement>(null);
+  const mobileMoreToggleRef = useRef<HTMLButtonElement>(null);
+  const mobileMoreDropdownRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
   const showGenerateButton = isOwner(user?.id);
@@ -64,6 +66,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
   const [isGenerateNewsModalOpen, setIsGenerateNewsModalOpen] = useState(false);
   const [isGenerateMenuOpen, setIsGenerateMenuOpen] = useState(false);
+  const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false);
   const { notifications, unreadCount, isLoadingMore, hasMore, loadMore, markAsRead, markAllAsRead } = useNotifications(user?.id);
 
   const [lastSeenBlog, setLastSeenBlog] = useState<string | null>(() =>
@@ -180,6 +183,25 @@ export const Navbar: React.FC<NavbarProps> = ({
     };
   }, [isGenerateMenuOpen]);
 
+  useEffect(() => {
+    if (!isMobileMoreOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (mobileMoreToggleRef.current?.contains(e.target as Node)) return;
+      if (mobileMoreDropdownRef.current && !mobileMoreDropdownRef.current.contains(e.target as Node)) {
+        setIsMobileMoreOpen(false);
+      }
+    }
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === 'Escape') setIsMobileMoreOpen(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isMobileMoreOpen]);
+
   const credits = profile?.credits ?? 0;
   const mode = profile?.mode ?? 'test';
   const totalSearches = profile?.totalSearches ?? 0;
@@ -203,7 +225,9 @@ export const Navbar: React.FC<NavbarProps> = ({
         </a>
 
         <div className="flex items-center gap-2 sm:gap-4 min-w-0">
-          <LanguageSwitcher />
+          <div className="hidden sm:block">
+            <LanguageSwitcher />
+          </div>
 
           <div className="flex items-center gap-1 sm:gap-2 relative min-w-0">
             {/* 1. Blog */}
@@ -224,7 +248,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               variant="ghost"
               size="sm"
               onClick={handleNoticiasClick}
-              className="relative !text-sidebar-foreground text-sm font-semibold rounded-full px-3 py-1.5 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+              className="hidden sm:inline-flex relative !text-sidebar-foreground text-sm font-semibold rounded-full px-3 py-1.5 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
             >
               Notícias
               {hasNewNews && (
@@ -233,7 +257,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </Button>
 
             {/* 3. Empresa */}
-            <div className="relative w-fit">
+            <div className="relative w-fit hidden sm:block">
               <Button
                 ref={companyToggleRef}
                 variant="ghost"
@@ -396,10 +420,68 @@ export const Navbar: React.FC<NavbarProps> = ({
               size="icon-sm"
               onClick={() => navigate('/history')}
               title={t('nav.history')}
-              className="!text-sidebar-foreground rounded-full hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+              className="hidden sm:inline-flex !text-sidebar-foreground rounded-full hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
             >
               <History className="h-4 w-4" />
             </Button>
+
+                        {/* Menu "mais" (mobile only) */}
+            <div className="relative sm:hidden">
+              <Button
+                ref={mobileMoreToggleRef}
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => setIsMobileMoreOpen((v) => !v)}
+                title={t('nav.company')}
+                className="!text-sidebar-foreground rounded-full hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+              >
+                {isMobileMoreOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+              </Button>
+
+              {isMobileMoreOpen && (
+                <div
+                  ref={mobileMoreDropdownRef}
+                  className="absolute top-[calc(100%+10px)] right-0 w-[260px]
+                           bg-popover rounded-2xl
+                           border border-border
+                           shadow-[0_8px_30px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)]
+                           overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150 p-2"
+                >
+                  <div className="px-2 pt-1 pb-2">
+                    <LanguageSwitcher />
+                  </div>
+
+                  <button
+                    onClick={() => { setIsMobileMoreOpen(false); handleNoticiasClick(); }}
+                    className="w-full flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-accent/50 transition-colors"
+                  >
+                    Notícias
+                  </button>
+
+                  <button
+                    onClick={() => { setIsMobileMoreOpen(false); navigate('/history'); }}
+                    className="w-full flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-accent/50 transition-colors"
+                  >
+                    <History className="h-4 w-4" />
+                    {t('nav.history')}
+                  </button>
+
+                  <div className="mt-1 pt-1 border-t border-border">
+                    {COMPANY_LINKS.map(({ to, icon: Icon, label }) => (
+                      <Link
+                        key={to}
+                        to={to}
+                        onClick={() => setIsMobileMoreOpen(false)}
+                        className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-accent/50 transition-colors"
+                      >
+                        <Icon className="h-4 w-4" />
+                        {label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Gerar conteúdo (só owner) */}
             {showGenerateButton && (
