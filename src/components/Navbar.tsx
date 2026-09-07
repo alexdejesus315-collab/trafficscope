@@ -569,7 +569,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             {user && onSignOut && (
-              <div className="flex items-center gap-1.5 rounded-xl border border-sidebar-border bg-sidebar-accent px-2 py-1.5 shadow-2xs shrink-0">
+              <div className="hidden sm:flex items-center gap-1.5 rounded-xl border border-sidebar-border bg-sidebar-accent px-2 py-1.5 shadow-2xs shrink-0">
                 {user.user_metadata?.avatar_url ? (
                   <img src={user.user_metadata.avatar_url} alt={user.email ?? 'Avatar'} className="h-7 w-7 rounded-full" />
                 ) : (
@@ -592,7 +592,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {isProfileOpen && (
               <div
                 ref={profileDropdownRef}
-                className="absolute top-[calc(100%+10px)] right-0 w-[340px] 
+                className="absolute top-[calc(100%+10px)] right-0 w-[340px] max-w-[calc(100vw-2rem)]
                            bg-popover rounded-2xl 
                            border border-border
                            shadow-[0_8px_30px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)]
@@ -604,6 +604,32 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </div>
 
                 <div className="p-5 space-y-5">
+                  {user && onSignOut && (
+                    <div className="flex sm:hidden items-center justify-between gap-3 -mt-1 -mx-1 px-1 pb-1 border-b border-border">
+                      <div className="flex items-center gap-2 min-w-0">
+                        {user.user_metadata?.avatar_url ? (
+                          <img src={user.user_metadata.avatar_url} alt={user.email ?? 'Avatar'} className="h-8 w-8 rounded-full shrink-0" />
+                        ) : (
+                          <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-semibold text-foreground shrink-0">
+                            {user.email?.[0]?.toUpperCase() ?? 'U'}
+                          </div>
+                        )}
+                        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setIsProfileOpen(false);
+                          void onSignOut();
+                        }}
+                        className="flex items-center gap-1.5 shrink-0 text-xs font-medium text-muted-foreground hover:text-destructive transition-colors py-1.5 px-2 rounded-lg hover:bg-destructive/10"
+                        aria-label={t('nav.signOut')}
+                      >
+                        <LogOut className="h-3.5 w-3.5" />
+                        {t('nav.signOut')}
+                      </button>
+                    </div>
+                  )}
+
                   <div className="space-y-2">
                     <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                       {t('nav.searchMode.title')}
