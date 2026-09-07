@@ -213,7 +213,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     <header className="sticky top-0 z-[60] bg-sidebar/95 backdrop-blur-md text-sidebar-foreground shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity shrink-0">
-          <div>
+          <span className="sm:hidden flex h-9 w-9 items-center justify-center rounded-full bg-sidebar-accent shrink-0">
+            <Activity className="h-4 w-4 text-sidebar-foreground" />
+          </span>
+          <div className="hidden sm:block">
             <div className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.3em] text-sidebar-foreground">
               <Activity className="h-4 w-4 text-sidebar-foreground" />
               TrafficScope
@@ -222,6 +225,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               {t('nav.tagline')}
             </p>
           </div>
+          <span className="sr-only">TrafficScope</span>
         </a>
 
         <div className="flex items-center gap-2 sm:gap-4 min-w-0">
@@ -235,7 +239,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               variant="ghost"
               size="sm"
               onClick={handleBlogClick}
-              className="relative !text-sidebar-foreground text-sm font-semibold rounded-full px-3 py-1.5 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+              className="relative !bg-primary/15 !text-primary text-sm font-bold rounded-full px-3 py-1.5 hover:!bg-primary/25 transition-all duration-200"
             >
               {t('nav.blog')}
               {hasNewBlogPost && (
@@ -248,7 +252,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               variant="ghost"
               size="sm"
               onClick={handleNoticiasClick}
-              className="hidden sm:inline-flex relative !text-sidebar-foreground text-sm font-semibold rounded-full px-3 py-1.5 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+              className="relative !bg-primary/15 !text-primary text-sm font-bold rounded-full px-3 py-1.5 hover:!bg-primary/25 transition-all duration-200"
             >
               Notícias
               {hasNewNews && (
@@ -450,13 +454,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <div className="px-2 pt-1 pb-2">
                     <LanguageSwitcher />
                   </div>
-
-                  <button
-                    onClick={() => { setIsMobileMoreOpen(false); handleNoticiasClick(); }}
-                    className="w-full flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-accent/50 transition-colors"
-                  >
-                    Notícias
-                  </button>
 
                   <button
                     onClick={() => { setIsMobileMoreOpen(false); navigate('/history'); }}
