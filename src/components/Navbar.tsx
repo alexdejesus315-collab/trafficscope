@@ -533,27 +533,41 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Perfil */}
             <div ref={profileToggleRef} className="flex items-center shrink-0">
-              {/* Mobile: apenas o avatar do utilizador */}
+              {/* Mobile: apenas o avatar do utilizador, com anel de destaque */}
               <button
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 aria-label={t('nav.profile')}
-                className="sm:hidden flex h-9 w-9 items-center justify-center rounded-full overflow-hidden border border-sidebar-border shrink-0 hover:brightness-95 transition-all"
+                className="sm:hidden relative flex h-9 w-9 items-center justify-center shrink-0 group"
               >
-                {user?.user_metadata?.avatar_url ? (
-                  <img
-                    src={user.user_metadata.avatar_url}
-                    alt={user.email ?? 'Avatar'}
-                    className="h-full w-full object-cover"
-                  />
-                ) : user?.email ? (
-                  <span className="flex h-full w-full items-center justify-center bg-sidebar-accent text-xs font-semibold text-sidebar-accent-foreground">
-                    {user.email[0].toUpperCase()}
-                  </span>
-                ) : (
-                  <span className="flex h-full w-full items-center justify-center bg-sidebar-accent">
-                    <UserCircle className="h-4 w-4 text-sidebar-accent-foreground" />
-                  </span>
-                )}
+                <span
+                  className={`absolute inset-0 rounded-full transition-all duration-300 animate-pulse ${
+                    isTest
+                      ? 'bg-gradient-to-tr from-amber-400 via-amber-300 to-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.55)]'
+                      : 'bg-gradient-to-tr from-emerald-400 via-emerald-300 to-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.55)]'
+                  } group-active:scale-95`}
+                />
+                <span className="absolute inset-[2px] rounded-full bg-sidebar overflow-hidden flex items-center justify-center">
+                  {user?.user_metadata?.avatar_url ? (
+                    <img
+                      src={user.user_metadata.avatar_url}
+                      alt={user.email ?? 'Avatar'}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : user?.email ? (
+                    <span className="flex h-full w-full items-center justify-center bg-sidebar-accent text-xs font-semibold text-sidebar-accent-foreground">
+                      {user.email[0].toUpperCase()}
+                    </span>
+                  ) : (
+                    <span className="flex h-full w-full items-center justify-center bg-sidebar-accent">
+                      <UserCircle className="h-4 w-4 text-sidebar-accent-foreground" />
+                    </span>
+                  )}
+                </span>
+                <span
+                  className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-sidebar ${
+                    isTest ? 'bg-amber-400' : 'bg-emerald-400'
+                  }`}
+                />
               </button>
 
               {/* sm e acima: pílula completa (modo/créditos + perfil) */}
