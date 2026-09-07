@@ -532,37 +532,63 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
 
             {/* Perfil */}
-            <div ref={profileToggleRef} className="flex items-center rounded-full border border-sidebar-border overflow-hidden shadow-2xs shrink-0">
+            <div ref={profileToggleRef} className="flex items-center shrink-0">
+              {/* Mobile: apenas o avatar do utilizador */}
               <button
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all hover:brightness-95 ${
-                  isTest
-                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300'
-                    : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300'
-                }`}
+                aria-label={t('nav.profile')}
+                className="sm:hidden flex h-9 w-9 items-center justify-center rounded-full overflow-hidden border border-sidebar-border shrink-0 hover:brightness-95 transition-all"
               >
-                {isTest ? (
-                  <>
-                    <TestTube2 className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">{t('nav.testMode')}</span>
-                  </>
+                {user?.user_metadata?.avatar_url ? (
+                  <img
+                    src={user.user_metadata.avatar_url}
+                    alt={user.email ?? 'Avatar'}
+                    className="h-full w-full object-cover"
+                  />
+                ) : user?.email ? (
+                  <span className="flex h-full w-full items-center justify-center bg-sidebar-accent text-xs font-semibold text-sidebar-accent-foreground">
+                    {user.email[0].toUpperCase()}
+                  </span>
                 ) : (
-                  <>
-                    <BatteryIcon className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">{t('nav.creditsShort', undefined, { count: credits })}</span>
-                  </>
+                  <span className="flex h-full w-full items-center justify-center bg-sidebar-accent">
+                    <UserCircle className="h-4 w-4 text-sidebar-accent-foreground" />
+                  </span>
                 )}
               </button>
 
-              <div className="w-px h-5 bg-sidebar-border/60" />
+              {/* sm e acima: pílula completa (modo/créditos + perfil) */}
+              <div className="hidden sm:flex items-center rounded-full border border-sidebar-border overflow-hidden shadow-2xs">
+                <button
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all hover:brightness-95 ${
+                    isTest
+                      ? 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300'
+                      : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300'
+                  }`}
+                >
+                  {isTest ? (
+                    <>
+                      <TestTube2 className="h-3.5 w-3.5" />
+                      <span>{t('nav.testMode')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <BatteryIcon className="h-3.5 w-3.5" />
+                      <span>{t('nav.creditsShort', undefined, { count: credits })}</span>
+                    </>
+                  )}
+                </button>
 
-              <button
-                onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-sidebar-accent-foreground bg-sidebar-accent hover:bg-sidebar-accent/80 transition-colors"
-              >
-                <UserCircle className="h-4 w-4" />
-                <span className="hidden md:inline">{t('nav.profile')}</span>
-              </button>
+                <div className="w-px h-5 bg-sidebar-border/60" />
+
+                <button
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-sidebar-accent-foreground bg-sidebar-accent hover:bg-sidebar-accent/80 transition-colors"
+                >
+                  <UserCircle className="h-4 w-4" />
+                  <span className="hidden md:inline">{t('nav.profile')}</span>
+                </button>
+              </div>
             </div>
 
             {user && onSignOut && (
