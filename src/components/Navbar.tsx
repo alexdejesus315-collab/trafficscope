@@ -229,7 +229,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </a>
 
         <div className="flex items-center gap-2 sm:gap-4 min-w-0">
-          <div className="hidden sm:block">
+          <div className="hidden lg:block">
             <LanguageSwitcher />
           </div>
 
@@ -261,7 +261,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </Button>
 
             {/* 3. Empresa */}
-            <div className="relative w-fit hidden sm:block">
+            <div className="relative w-fit hidden lg:block">
               <Button
                 ref={companyToggleRef}
                 variant="ghost"
@@ -424,13 +424,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               size="icon-sm"
               onClick={() => navigate('/history')}
               title={t('nav.history')}
-              className="hidden sm:inline-flex !text-sidebar-foreground rounded-full hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+              className="hidden lg:inline-flex !text-sidebar-foreground rounded-full hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
             >
               <History className="h-4 w-4" />
             </Button>
 
-                        {/* Menu "mais" (mobile only) */}
-            <div className="relative sm:hidden">
+                        {/* Menu "mais" (mobile/tablet) */}
+            <div className="relative lg:hidden">
               <Button
                 ref={mobileMoreToggleRef}
                 variant="ghost"
@@ -533,11 +533,11 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Perfil */}
             <div ref={profileToggleRef} className="flex items-center shrink-0">
-              {/* Mobile: apenas o avatar do utilizador, com anel de destaque */}
+              {/* Mobile/tablet: apenas o avatar do utilizador, com anel de destaque */}
               <button
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 aria-label={t('nav.profile')}
-                className="sm:hidden relative flex h-9 w-9 items-center justify-center shrink-0 group"
+                className="lg:hidden relative flex h-9 w-9 items-center justify-center shrink-0 group"
               >
                 <span
                   className={`absolute inset-0 rounded-full transition-all duration-300 animate-pulse ${
@@ -570,8 +570,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 />
               </button>
 
-              {/* sm e acima: pílula completa (modo/créditos + perfil) */}
-              <div className="hidden sm:flex items-center rounded-full border border-sidebar-border overflow-hidden shadow-2xs">
+              {/* lg e acima: pílula completa (modo/créditos + perfil) */}
+              <div className="hidden lg:flex items-center rounded-full border border-sidebar-border overflow-hidden shadow-2xs">
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all hover:brightness-95 ${
@@ -606,7 +606,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             {user && onSignOut && (
-              <div className="hidden sm:flex items-center gap-1.5 rounded-xl border border-sidebar-border bg-sidebar-accent px-2 py-1.5 shadow-2xs shrink-0">
+              <div className="hidden lg:flex items-center gap-1.5 rounded-xl border border-sidebar-border bg-sidebar-accent px-2 py-1.5 shadow-2xs shrink-0">
                 {user.user_metadata?.avatar_url ? (
                   <img src={user.user_metadata.avatar_url} alt={user.email ?? 'Avatar'} className="h-7 w-7 rounded-full" />
                 ) : (
@@ -642,7 +642,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
                 <div className="p-5 space-y-5">
                   {user && onSignOut && (
-                    <div className="flex sm:hidden items-center justify-between gap-3 -mt-1 -mx-1 px-1 pb-1 border-b border-border">
+                    <div className="flex lg:hidden items-center justify-between gap-3 -mt-1 -mx-1 px-1 pb-1 border-b border-border">
                       <div className="flex items-center gap-2 min-w-0">
                         {user.user_metadata?.avatar_url ? (
                           <img src={user.user_metadata.avatar_url} alt={user.email ?? 'Avatar'} className="h-8 w-8 rounded-full shrink-0" />
