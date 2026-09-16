@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { Activity } from 'lucide-react';
 import { useAuth } from './hooks/useAuth';
 import { LanguageProvider } from './context/LanguageContext';
+import { AdSlot } from './components/AdSlot';
 
 const Landing = lazy(() => import('./pages/Landing'));
 const Login = lazy(() => import('./pages/Login'));
@@ -55,7 +56,8 @@ export default function App() {
           <Route path="/termos-de-uso" element={<TermosDeUso />} />
           <Route path="/suporte" element={<Suporte />} />
         </Routes>
-      </Suspense>
+        </Suspense>
+      <AdSlot />
     </LanguageProvider>
   );
 }

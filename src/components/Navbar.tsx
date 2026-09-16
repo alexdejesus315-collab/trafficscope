@@ -14,7 +14,8 @@ import { isOwner } from '../lib/ownerConfig';
 import { useNotifications } from '../hooks/useNotifications';
 import { GenerateArticleModal } from './GenerateArticleModal';
 import { GenerateNewsModal } from './GenerateNewsModal';
-import { Newspaper } from 'lucide-react';
+import { AdManagerModal } from './AdManagerModal';
+import { Newspaper, Megaphone } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { LanguageSwitcher } from './LanguageSwitcher';
 
@@ -65,6 +66,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
   const [isGenerateNewsModalOpen, setIsGenerateNewsModalOpen] = useState(false);
+const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
   const [isGenerateMenuOpen, setIsGenerateMenuOpen] = useState(false);
   const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false);
   const { notifications, unreadCount, isLoadingMore, hasMore, loadMore, markAsRead, markAllAsRead } = useNotifications(user?.id);
@@ -513,6 +515,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <Newspaper className="h-4 w-4" />
                       Gerar Notícia
                     </button>
+                    <button
+                      onClick={() => { setIsGenerateMenuOpen(false); setIsAdManagerOpen(true); }}
+                      className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent/50 transition-colors"
+                    >
+                      <Megaphone className="h-4 w-4" />
+                      Gerir Anúncios
+                    </button>
                   </div>
                 )}
 
@@ -526,6 +535,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                   open={isGenerateNewsModalOpen}
                   onOpenChange={setIsGenerateNewsModalOpen}
                   onGenerated={(slug) => navigate(`/noticias/${slug}`)}
+                  anchorRef={generateBtnRef}
+                />
+                <AdManagerModal
+                  open={isAdManagerOpen}
+                  onOpenChange={setIsAdManagerOpen}
                   anchorRef={generateBtnRef}
                 />
               </div>

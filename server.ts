@@ -1814,6 +1814,149 @@ Responda APENAS com um objeto JSON válido, sem texto antes ou depois:
     }
   });
 
+    // ===== NOVO: Espaço de Anúncios (links de afiliado) =====
+
+  // Listagem pública — anúncios ativos, em ordem, para o widget flutuante
+  app.get("/api/ads/active", async (req, res) => {
+    try {
+      const { data, error } = await supabaseAdmin
+        .from("ads")
+        .select("*")
+        .eq("active", true)
+        .order("display_order", { ascending: true });
+      if (error) throw error;
+      return res.json({ success: true, ads: data });
+    } catch (err: any) {
+      console.error("Erro ao buscar anúncios:", err);
+      return res.status(500).json({ error: "Falha ao buscar anúncios." });
+    }
+  });
+
+  // Listagem completa (só Admin) — para o painel de gestão, inclui inativos
+  app.get("/api/ads", async (req, res) => {
+    try {
+      const user = await getUserFromRequest(req);
+      if (!user || user.id !== OWNER_USER_ID) {
+        return res.status(403).json({ error: "Acesso negado." });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from("ads")
+        .select("*")
+        .order("display_order", { ascending: true });
+      if (error) throw error;
+
+      return res.json({ success: true, ads: data });
+    } catch (err: any) {
+      console.error("Erro ao listar anúncios (admin):", err);
+      return res.status(500).json({ error: "Falha ao listar anúncios." });
+    }
+  });
+
+  // Criar anúncio (só Admin) — aceita upload de ficheiro (imagem/gif/vídeo) OU um media_url direto
+  app.post("/api/ads", upload.single("media"), handleMulterError, async (req: Request, res: Response) => {
+    try {
+      const user = await getUserFromRequest(req);
+      if (!user || user.id !== OWNER_USER_ID) {
+        return res.status(403).json({ error: "Acesso negado." });
+      }
+
+      const { title, link_url, media_type, display_order } = req.body;
+      let media_url = req.body.media_url;
+
+      if (req.file) {
+        const ext = req.file.originalname.split(".").pop() || "jpg";
+        const fileName = `ads/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+        const { error: uploadError } = await supabaseAdmin.storage
+          .from("article-images")
+          .upload(fileName, req.file.buffer, { contentType: req.file.mimetype });
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = supabaseAdmin.storage
+          .from("article-images")
+          .getPublicUrl(fileName);
+        media_url = publicUrlData.publicUrl;
+      }
+
+      if (!media_url || !link_url || !media_type) {
+        return res.status(400).json({ error: "media (ficheiro ou media_url), link_url e media_type são obrigatórios." });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from("ads")
+        .insert({
+          title: title || null,
+          media_type,
+          media_url,
+          link_url,
+          display_order: display_order ? Number(display_order) : 0,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+
+      return res.json({ success: true, ad: data });
+    } catch (err: any) {
+      console.error("Erro ao criar anúncio:", err);
+      return res.status(500).json({ error: "Falha ao criar anúncio." });
+    }
+  });
+
+  // Ativar/desativar/editar/reordenar (só Admin)
+  app.patch("/api/ads/:id", async (req, res) => {
+    try {
+      const user = await getUserFromRequest(req);
+      if (!user || user.id !== OWNER_USER_ID) {
+        return res.status(403).json({ error: "Acesso negado." });
+      }
+
+      const { active, display_order, title, media_type, media_url, link_url } = req.body;
+      const updates: Record<string, unknown> = {};
+      if (active !== undefined) updates.active = active;
+      if (display_order !== undefined) updates.display_order = display_order;
+      if (title !== undefined) updates.title = title;
+      if (media_type !== undefined) updates.media_type = media_type;
+      if (media_url !== undefined) updates.media_url = media_url;
+      if (link_url !== undefined) updates.link_url = link_url;
+
+      if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ error: "Nenhum campo para atualizar." });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from("ads")
+        .update(updates)
+        .eq("id", req.params.id)
+        .select()
+        .single();
+      if (error) throw error;
+
+      return res.json({ success: true, ad: data });
+    } catch (err: any) {
+      console.error("Erro ao atualizar anúncio:", err);
+      return res.status(500).json({ error: "Falha ao atualizar anúncio." });
+    }
+  });
+
+  // Remover anúncio (só Admin)
+  app.delete("/api/ads/:id", async (req, res) => {
+    try {
+      const user = await getUserFromRequest(req);
+      if (!user || user.id !== OWNER_USER_ID) {
+        return res.status(403).json({ error: "Acesso negado." });
+      }
+
+      const { error } = await supabaseAdmin.from("ads").delete().eq("id", req.params.id);
+      if (error) throw error;
+
+      return res.json({ success: true });
+    } catch (err: any) {
+      console.error("Erro ao remover anúncio:", err);
+      return res.status(500).json({ error: "Falha ao remover anúncio." });
+    }
+  });
+
   // ===== NOVO: Listagem pública de notícias =====
   app.get("/api/news", async (req, res) => {
     try {
