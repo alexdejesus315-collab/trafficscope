@@ -20,7 +20,7 @@ export function CompanyPagePanel({ title, children }: CompanyPagePanelProps) {
 
   return (
     <div
-      className={`min-h-screen bg-background transition-opacity duration-200 ease-out ${
+      className={`min-h-screen bg-background text-white transition-opacity duration-200 ease-out ${
         isVisible ? 'opacity-100' : 'opacity-0'
       }`}
     >
@@ -30,12 +30,12 @@ export function CompanyPagePanel({ title, children }: CompanyPagePanelProps) {
           <div className="flex items-center gap-3">
             <Link
               to="/"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-white hover:text-white hover:bg-muted transition-colors"
               aria-label={t('companyPanel.back', 'Voltar')}
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
-            <a href="/" className="text-xl font-bold tracking-tight text-foreground">
+            <a href="/" className="text-xl font-bold tracking-tight text-white">
               TrafficScope
             </a>
           </div>
@@ -44,11 +44,11 @@ export function CompanyPagePanel({ title, children }: CompanyPagePanelProps) {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-10 md:py-14">
-        <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-8">
+        <h1 className="text-3xl md:text-4xl font-bold text-white mb-8">
           {title}
         </h1>
 
-        <div className="prose prose-sm max-w-none text-muted-foreground prose-headings:text-foreground prose-headings:font-semibold prose-h2:text-lg prose-strong:text-foreground">
+        <div className="prose prose-sm max-w-none text-white/80 prose-headings:text-white prose-headings:font-semibold prose-h2:text-lg prose-strong:text-white">
           {children}
         </div>
       </main>

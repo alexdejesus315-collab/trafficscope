@@ -51,7 +51,7 @@ function Logo({ dark = false }) {
       <div className="leading-none">
         <div
           className={`font-semibold tracking-[0.18em] text-[13px] ${
-            dark ? "text-white" : "text-foreground"
+            "text-white"
           }`}
         >
           TRAFFICSCOPE
@@ -81,7 +81,7 @@ function NavBar() {
     >
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         <Logo />
-          <nav className="hidden md:flex items-center gap-1 text-[14px] text-muted-foreground">
+          <nav className="hidden md:flex items-center gap-1 text-[14px] text-white">
           <a href="#produto" className="rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200">{t('landing.nav.product')}</a>
           <a href="#comparar" className="rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200">{t('landing.nav.compare')}</a>
           <a href="#precos" className="rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200">{t('landing.nav.pricing')}</a>
@@ -166,20 +166,20 @@ function Hero() {
 <div className="inline-flex items-center gap-2 text-[12px] font-medium text-primary bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-full mb-6">            <Activity className="h-3.5 w-3.5" />
             {t('landing.hero.badge')}
           </div>
-          <h1 className="text-[40px] sm:text-[52px] leading-[1.05] font-semibold text-foreground tracking-tight mb-5">
+          <h1 className="text-[40px] sm:text-[52px] leading-[1.05] font-semibold text-white tracking-tight mb-5">
             {t('landing.hero.title')}
           </h1>
-          <p className="text-[17px] text-muted-foreground leading-relaxed mb-8 max-w-md">
+          <p className="text-[17px] text-white/80 leading-relaxed mb-8 max-w-md">
             {t('landing.hero.subtitle')}
           </p>
           <div className="flex flex-wrap items-center gap-4">
 <a href="/login" className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-3.5 rounded-xl transition-all hover:-translate-y-0.5 active:translate-y-0">              {t('landing.hero.ctaPrimary')} <ArrowRight className="h-4 w-4" />
             </a>
-            <a href="#comparar" className="inline-flex items-center gap-2 text-foreground font-medium px-6 py-3.5 rounded-xl hover:bg-card transition-all">
+            <a href="#comparar" className="inline-flex items-center gap-2 text-white font-medium px-6 py-3.5 rounded-xl hover:bg-card transition-all">
               {t('landing.hero.ctaSecondary')}
             </a>
           </div>
-          <p className="text-[12px] text-muted-foreground mt-4">
+          <p className="text-[12px] text-white/70 mt-4">
             {t('landing.hero.footnote')}
           </p>
         </div>
@@ -265,10 +265,10 @@ function Features() {
           visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
         }`}
       >
-        <h2 className="text-[30px] font-semibold text-foreground mb-3">
+        <h2 className="text-[30px] font-semibold text-white mb-3">
           {t('landing.features.title')}
         </h2>
-        <p className="text-muted-foreground text-[17px] leading-relaxed">
+        <p className="text-white/80 text-[17px] leading-relaxed">
           {t('landing.features.subtitle')}
         </p>
       </div>
@@ -353,10 +353,10 @@ function CompareShowcase() {
           <div className="text-[12px] font-medium text-primary uppercase tracking-widest mb-3">
             {t('landing.compareShowcase.label')}
           </div>
-          <h2 className="text-[30px] font-semibold text-foreground mb-3">
+          <h2 className="text-[30px] font-semibold text-white mb-3">
             {t('landing.compareShowcase.title')}
           </h2>
-          <p className="text-muted-foreground text-[17px] leading-relaxed">
+          <p className="text-white/80 text-[17px] leading-relaxed">
             {t('landing.compareShowcase.subtitle')}
           </p>
         </div>
@@ -444,10 +444,10 @@ function Pricing() {
           visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
         }`}
       >
-          <h2 className="text-[30px] font-semibold text-foreground mb-3">
+          <h2 className="text-[30px] font-semibold text-white mb-3">
           {t('landing.pricing.title')}
         </h2>
-          <p className="text-muted-foreground text-[17px] leading-relaxed">
+          <p className="text-white/80 text-[17px] leading-relaxed">
           {t('landing.pricing.subtitle')}
         </p>
       </div>
@@ -547,10 +547,10 @@ function FinalCTA() {
           <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-primary text-primary-foreground mb-6">
             <ShieldCheck className="h-6 w-6" />
           </div>
-          <h2 className="text-[32px] font-semibold text-foreground mb-4">
+          <h2 className="text-[32px] font-semibold text-white mb-4">
             {t('landing.finalCta.title')}
           </h2>
-          <p className="text-muted-foreground mb-10 max-w-md mx-auto text-[17px] leading-relaxed">
+          <p className="text-white/80 mb-10 max-w-md mx-auto text-[17px] leading-relaxed">
             {t('landing.finalCta.subtitle')}
           </p>
           <a href="/login" className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 py-4 rounded-xl transition-all hover:-translate-y-0.5 active:translate-y-0">

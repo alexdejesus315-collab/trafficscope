@@ -101,7 +101,7 @@ import { getCategoryLabel } from '../lib/newsCategoryLabels';export default func
 
   if (!item) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3 text-muted-foreground">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3 text-white/80">
         <Newspaper className="h-12 w-12 text-muted-foreground/20" />
         <p>{t('newsDetail.notFound')}</p>
         <Link to="/noticias" className="text-primary text-sm font-semibold hover:underline">{t('newsDetail.backToNews')}</Link>
@@ -115,18 +115,18 @@ import { getCategoryLabel } from '../lib/newsCategoryLabels';export default func
   const displayContent = translated?.content || item.content;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-white">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
               to="/noticias"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-white hover:text-white hover:bg-muted transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
-            <a href="/" className="text-xl font-bold tracking-tight text-foreground">
+            <a href="/" className="text-xl font-bold tracking-tight text-white">
               TrafficScope <span className="text-primary font-light">{t('news.header.title')}</span>
             </a>
           </div>
@@ -176,24 +176,24 @@ import { getCategoryLabel } from '../lib/newsCategoryLabels';export default func
                 <Radio className="h-3 w-3" />
                 {getCategoryLabel(item.category, language)}
               </span>
-              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1 text-xs text-white/70">
                 <Calendar className="h-3.5 w-3.5" />
                 {formatDate(item.published_at)}
               </span>
               {isTranslating && (
-                <span className="text-xs text-muted-foreground animate-pulse">{t('newsDetail.translating')}</span>
+                <span className="text-xs text-white/70 animate-pulse">{t('newsDetail.translating')}</span>
               )}
             </div>
 
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight max-w-3xl">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight max-w-3xl">
               {displayHeadline}
             </h1>
 
-            <p className="mt-3 text-base md:text-lg text-muted-foreground max-w-2xl line-clamp-2">
+            <p className="mt-3 text-base md:text-lg text-white/80 max-w-2xl line-clamp-2">
               {displaySummary}
             </p>
 
-            <div className="flex items-center gap-4 mt-5 text-xs text-muted-foreground">
+            <div className="flex items-center gap-4 mt-5 text-xs text-white/70">
               <span className="flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-red-500" />
                 {t('newsDetail.source')}: {item.source_name}
@@ -232,13 +232,13 @@ import { getCategoryLabel } from '../lib/newsCategoryLabels';export default func
         )}
 
         {/* Article body */}
-        <article className="prose prose-lg max-w-none text-foreground prose-headings:text-foreground prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3 prose-p:text-muted-foreground prose-p:leading-relaxed prose-strong:text-foreground prose-a:text-red-500 prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-red-500 prose-blockquote:bg-red-500/5 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-li:text-muted-foreground">
+        <article className="prose prose-lg max-w-none text-white/80 prose-headings:text-white prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3 prose-p:text-white/80 prose-p:leading-relaxed prose-strong:text-white prose-a:text-red-500 prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-red-500 prose-blockquote:bg-red-500/5 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-li:text-white/80">
           <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{displayContent}</ReactMarkdown>
         </article>
 
         {/* CTA Discreto */}
         <div className="mt-14 pt-6 border-t border-border/50">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-white/80">
             {t('newsDetail.statsVia')}{' '}
             <Link to="/" className="text-red-500/80 hover:text-red-500 font-medium transition-colors">
               TrafficScope →

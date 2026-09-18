@@ -48,16 +48,16 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
     const suggestedDomains = ['google.com', 'amazon.com', 'netflix.com'];
 
     return (
-      <div className="bg-background text-foreground min-h-[60vh] flex items-center justify-center px-4">
+      <div className="bg-background text-white min-h-[60vh] flex items-center justify-center px-4">
         <div className="w-full max-w-2xl text-center">
           <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 mb-5">
             <Activity className="h-6 w-6 text-primary" />
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
             {t('domainInput.hero.title')}
           </h1>
-          <p className="text-sm sm:text-base text-muted-foreground mt-3">
+          <p className="text-sm sm:text-base text-white/80 mt-3">
             {t('domainInput.hero.subtitle')}
           </p>
 
@@ -84,7 +84,7 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
           </form>
 
           <div className="flex flex-wrap items-center justify-center gap-2 mt-5">
-            <span className="text-xs text-muted-foreground">{t('domainInput.hero.suggestedLabel')}</span>
+            <span className="text-xs text-white/70">{t('domainInput.hero.suggestedLabel')}</span>
             {suggestedDomains.map((d) => (
               <button
                 key={d}
@@ -103,15 +103,15 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
 
   // Com domínios ativos: barra compacta no topo, como antes.
   return (
-    <div className="bg-background pt-6 pb-6 text-foreground">
+    <div className="bg-background pt-6 pb-6 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 flex flex-col items-center text-center">
 
         {/* Title */}
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
             {t('domainInput.bar.title')}
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+          <p className="text-xs sm:text-sm text-white/80 mt-1">
             {t('domainInput.hero.subtitle')}
           </p>
         </div>

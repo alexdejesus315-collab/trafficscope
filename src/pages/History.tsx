@@ -78,7 +78,7 @@ export default function History() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans antialiased pb-16">
+    <div className="min-h-screen bg-background text-white font-sans antialiased pb-16">
       <Navbar
         user={user}
         onSignOut={() => void signOut()}

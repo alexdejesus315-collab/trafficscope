@@ -57,7 +57,7 @@ export default function Noticias() {
   const listItems = items.slice(3);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-white">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -68,7 +68,7 @@ export default function Noticias() {
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
-            <a href="/" className="text-xl font-bold tracking-tight text-foreground">
+            <a href="/" className="text-xl font-bold tracking-tight text-white">
               TrafficScope <span className="text-primary font-light">{t('news.header.title')}</span>
             </a>
           </div>
@@ -82,7 +82,7 @@ export default function Noticias() {
           <section className="mb-16">
             <div className="flex items-center gap-2 mb-6">
               <Radio className="h-4 w-4 text-red-500" />
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-white/80">
                 {t('news.section.latest')}
               </h2>
             </div>
@@ -135,7 +135,7 @@ export default function Noticias() {
           <section>
             <div className="flex items-center gap-2 mb-8">
               <div className="h-px flex-1 bg-border" />
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground px-4">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-white/80 px-4">
                 {t('news.section.all')}
               </h2>
               <div className="h-px flex-1 bg-border" />
@@ -156,7 +156,7 @@ export default function Noticias() {
         )}
 
         {items.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-32 text-center text-muted-foreground">
+          <div className="flex flex-col items-center justify-center py-32 text-center text-white/80">
             <Newspaper className="h-12 w-12 text-muted-foreground/20 mb-4" />
             <p className="text-lg font-medium">{t('news.empty.title')}</p>
             <p className="text-sm mt-1">{t('news.empty.subtitle')}</p>

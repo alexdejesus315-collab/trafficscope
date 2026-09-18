@@ -127,18 +127,18 @@ export default function BlogPostDetail() {
   const coverUrl = extractFirstImage(post.content);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-white">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
               to="/blog"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-white hover:text-white hover:bg-muted transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
-            <a href="/" className="text-xl font-bold tracking-tight text-foreground">
+            <a href="/" className="text-xl font-bold tracking-tight text-white">
               TrafficScope <span className="text-primary font-light">Blog</span>
             </a>
           </div>
@@ -188,19 +188,19 @@ export default function BlogPostDetail() {
                 {getBlogCategoryLabel(post.category, language)}
               </span>
               {isTranslating && (
-                <span className="text-xs text-muted-foreground animate-pulse">{t('blogPost.translating', 'A traduzir...')}</span>
+                <span className="text-xs text-white/70 animate-pulse">{t('blogPost.translating', 'A traduzir...')}</span>
               )}
             </div>
 
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight max-w-3xl">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight max-w-3xl">
               {displayTitle}
             </h1>
 
-            <p className="mt-3 text-base md:text-lg text-muted-foreground max-w-2xl">
+            <p className="mt-3 text-base md:text-lg text-white/80 max-w-2xl">
               {displayExcerpt}
             </p>
 
-            <div className="flex items-center gap-4 mt-5 text-xs text-muted-foreground">
+            <div className="flex items-center gap-4 mt-5 text-xs text-white/70">
               <span className="flex items-center gap-1.5">
                 <Calendar className="h-3.5 w-3.5" />
                 {formatDate(post.created_at)}
@@ -252,7 +252,7 @@ export default function BlogPostDetail() {
         )}
 
         {/* Article body */}
-        <article className="prose prose-lg max-w-none text-foreground prose-headings:text-foreground prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3 prose-p:text-muted-foreground prose-p:leading-relaxed prose-strong:text-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-primary prose-blockquote:bg-muted/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-li:text-muted-foreground prose-table:text-sm prose-th:bg-muted prose-th:font-semibold prose-td:border-border">
+        <article className="prose prose-lg max-w-none text-white/80 prose-headings:text-white prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3 prose-p:text-white/80 prose-p:leading-relaxed prose-strong:text-white prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-primary prose-blockquote:bg-muted/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-li:text-white/80 prose-table:text-sm prose-th:bg-muted prose-th:font-semibold prose-td:border-border">
           <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{displayContent}</ReactMarkdown>
         </article>
 
@@ -308,7 +308,7 @@ export default function BlogPostDetail() {
         {/* Sources */}
         {post.sources && post.sources.length > 0 && (
           <div className="mt-14 pt-8 border-t border-border">
-            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
+            <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
               {t('blogPost.sources')}
             </h3>
             <ul className="space-y-2">
@@ -318,7 +318,7 @@ export default function BlogPostDetail() {
                     href={s.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+                    className="inline-flex items-center gap-2 text-sm text-white/80 hover:text-primary transition-colors"
                   >
                     <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
                     {s.title}

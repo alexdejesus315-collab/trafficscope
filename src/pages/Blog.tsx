@@ -88,7 +88,7 @@ export default function Blog() {
   const listPosts = posts.slice(3);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-white">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -99,7 +99,7 @@ export default function Blog() {
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
-            <a href="/" className="text-xl font-bold tracking-tight text-foreground">
+            <a href="/" className="text-xl font-bold tracking-tight text-white">
               TrafficScope <span className="text-primary font-light">Blog</span>
             </a>
           </div>
@@ -118,7 +118,7 @@ export default function Blog() {
           <section className="mb-16">
             <div className="flex items-center gap-2 mb-6">
               <TrendingUp className="h-4 w-4 text-primary" />
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-white/80">
                 {t('blog.featured', 'Em destaque')}
               </h2>
             </div>
@@ -179,7 +179,7 @@ export default function Blog() {
           <section>
             <div className="flex items-center gap-2 mb-8">
               <div className="h-px flex-1 bg-border" />
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground px-4">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-white/80 px-4">
                 {t('blog.allPosts', 'Todos os artigos')}
               </h2>
               <div className="h-px flex-1 bg-border" />
@@ -202,7 +202,7 @@ export default function Blog() {
         )}
 
         {posts.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-32 text-center text-muted-foreground">
+          <div className="flex flex-col items-center justify-center py-32 text-center text-white/80">
             <p className="text-lg font-medium">{t('blog.empty.title', 'Nenhum artigo publicado')}</p>
             <p className="text-sm mt-1">{t('blog.empty.subtitle', 'Volte mais tarde para novos conteúdos')}</p>
           </div>
