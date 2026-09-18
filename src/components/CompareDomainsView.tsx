@@ -33,7 +33,7 @@ export const CompareDomainsView: React.FC<CompareDomainsViewProps> = ({
     <div className="space-y-6">
 
       {/* Compare Header */}
-      <Card className="p-5 hover:shadow-md transition-shadow duration-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <Card className="p-5 transition-shadow duration-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <GitCompare className="h-5 w-5 text-foreground" />
@@ -52,7 +52,7 @@ export const CompareDomainsView: React.FC<CompareDomainsViewProps> = ({
       </Card>
 
       {/* Comparative Bar Chart */}
-      <Card className="p-5 space-y-3 hover:shadow-md transition-shadow duration-200">
+      <Card className="p-5 space-y-3 transition-shadow duration-200">
         <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
           {t('compare.chartTitle')}
         </h3>
@@ -73,7 +73,7 @@ export const CompareDomainsView: React.FC<CompareDomainsViewProps> = ({
       </Card>
 
       {/* Side-by-Side Comparative Matrix Table */}
-      <Card className="p-5 space-y-4 overflow-x-auto hover:shadow-md transition-shadow duration-200">
+      <Card className="p-5 space-y-4 overflow-x-auto transition-shadow duration-200">
         <table className="w-full text-left text-xs text-muted-foreground">
           <thead className="bg-muted/60 text-muted-foreground">
             <tr>

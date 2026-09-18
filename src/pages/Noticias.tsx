@@ -192,7 +192,7 @@ function FeaturedNewsCard({
   return (
     <Link
       to={`/noticias/${item.slug}`}
-      className={`group relative block overflow-hidden rounded-2xl bg-card border border-border transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${
+      className={`group relative block overflow-hidden rounded-2xl bg-card transition-all duration-300 hover:-translate-y-0.5 ${
         isLarge ? 'h-[420px] lg:h-full' : 'h-[200px]'
       }`}
     >
@@ -205,7 +205,7 @@ function FeaturedNewsCard({
             className="h-full w-full object-cover opacity-40 group-hover:opacity-50 group-hover:scale-105 transition-all duration-500"
           />
         ) : (
-          <div className="h-full w-full bg-gradient-to-br from-red-500/10 to-orange-500/5" />
+          <div className="h-full w-full bg-muted" />
         )}
         <div className={`absolute inset-0 ${
           isLarge
@@ -220,7 +220,7 @@ function FeaturedNewsCard({
           <div className={`rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center transition-transform duration-300 group-hover:scale-110 ${
             isLarge ? 'h-16 w-16' : 'h-10 w-10'
           }`}>
-            <PlayCircle className={`text-white drop-shadow-lg ${isLarge ? 'h-8 w-8' : 'h-5 w-5'}`} />
+            <PlayCircle className={`text-white ${isLarge ? 'h-8 w-8' : 'h-5 w-5'}`} />
           </div>
         </div>
       )}
@@ -263,7 +263,7 @@ function FeaturedNewsCard({
             e.preventDefault();
             onDelete(item.id);
           }}
-          className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white/70 hover:text-destructive hover:bg-destructive/20 backdrop-blur-sm transition-colors z-10"
+          className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 text-white/70 hover:text-destructive hover:bg-destructive/20 backdrop-blur-sm transition-colors z-10"
         >
           <Trash2 className="h-3.5 w-3.5" />
         </button>
@@ -292,7 +292,7 @@ function NewsCard({
 
   return (
     <article className="group flex flex-col">
-      <Link to={`/noticias/${item.slug}`} className="block overflow-hidden rounded-2xl bg-card border border-border hover:shadow-md transition-all duration-300 hover:-translate-y-0.5">
+      <Link to={`/noticias/${item.slug}`} className="block overflow-hidden rounded-2xl bg-card transition-all duration-300 hover:-translate-y-0.5">
         {/* Thumbnail */}
         <div className="relative h-48 overflow-hidden bg-muted">
           {item.cover_image ? (
@@ -302,7 +302,7 @@ function NewsCard({
               className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
           ) : (
-            <div className="h-full w-full bg-gradient-to-br from-red-500/5 to-orange-500/10 flex flex-col items-center justify-center gap-2">
+            <div className="h-full w-full bg-muted flex flex-col items-center justify-center gap-2">
               <ImageOff className="h-8 w-8 text-red-500/20" />
               <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{t('news.noImage')}</span>
             </div>
@@ -312,7 +312,7 @@ function NewsCard({
           {hasVideo && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
               <div className="rounded-full bg-white/10 backdrop-blur-sm p-2">
-                <PlayCircle className="h-6 w-6 text-white drop-shadow-lg" />
+                <PlayCircle className="h-6 w-6 text-white" />
               </div>
             </div>
           )}

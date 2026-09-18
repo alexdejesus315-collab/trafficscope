@@ -52,7 +52,7 @@ export const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
         </div>
 
         {/* Card Único */}
-        <Card className="p-6 flex flex-col justify-between space-y-6 border-2 border-primary/30 bg-primary/5 relative overflow-hidden hover:shadow-md transition-shadow duration-200">
+        <Card className="p-6 flex flex-col justify-between space-y-6 border-2 border-primary/30 bg-primary/5 relative overflow-hidden transition-shadow duration-200">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">

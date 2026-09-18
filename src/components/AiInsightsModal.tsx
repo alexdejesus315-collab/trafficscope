@@ -238,7 +238,7 @@ export const AiInsightsModal: React.FC<AiInsightsModalProps> = ({
   return (
     <div
       className={cn(
-        'fixed inset-y-0 right-0 z-[70] flex w-full flex-col border-l border-border bg-background shadow-2xl transition-transform duration-300 ease-out sm:w-1/2',
+        'fixed inset-y-0 right-0 z-[70] flex w-full flex-col border-l border-border bg-background transition-transform duration-300 ease-out sm:w-1/2',
         isOpen ? 'translate-x-0' : 'translate-x-full pointer-events-none'
       )}
     >
@@ -303,7 +303,7 @@ export const AiInsightsModal: React.FC<AiInsightsModalProps> = ({
 
       {/* Input */}
       <div className="px-4 pb-4 pt-2 shrink-0">
-        <div className="mx-auto flex max-w-2xl items-end gap-2 rounded-3xl bg-background px-4 py-2.5 shadow-sm focus-within:ring-1 focus-within:ring-ring">
+        <div className="mx-auto flex max-w-2xl items-end gap-2 rounded-3xl bg-background px-4 py-2.5 focus-within:ring-1 focus-within:ring-ring">
           <textarea
             ref={textareaRef}
             rows={1}

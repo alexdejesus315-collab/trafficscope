@@ -212,7 +212,7 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
   const BatteryIcon = credits === 0 ? BatteryWarning : credits <= 3 ? Battery : BatteryCharging;
 
   return (
-    <header className="sticky top-0 z-[60] bg-sidebar/95 backdrop-blur-md text-sidebar-foreground shadow-md">
+    <header className="sticky top-0 z-[60] bg-sidebar/95 backdrop-blur-md text-sidebar-foreground">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity shrink-0">
           <span className="sm:hidden flex h-9 w-9 items-center justify-center rounded-full bg-sidebar-accent shrink-0">
@@ -585,7 +585,7 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
               </button>
 
               {/* lg e acima: pílula completa (modo/créditos + perfil) */}
-              <div className="hidden lg:flex items-center rounded-full border border-sidebar-border overflow-hidden shadow-2xs">
+              <div className="hidden lg:flex items-center rounded-full border border-sidebar-border overflow-hidden">
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all hover:brightness-95 ${
@@ -620,7 +620,7 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
             </div>
 
             {user && onSignOut && (
-              <div className="hidden lg:flex items-center gap-1.5 rounded-xl border border-sidebar-border bg-sidebar-accent px-2 py-1.5 shadow-2xs shrink-0">
+              <div className="hidden lg:flex items-center gap-1.5 rounded-xl border border-sidebar-border bg-sidebar-accent px-2 py-1.5 shrink-0">
                 {user.user_metadata?.avatar_url ? (
                   <img src={user.user_metadata.avatar_url} alt={user.email ?? 'Avatar'} className="h-7 w-7 rounded-full" />
                 ) : (

@@ -265,7 +265,7 @@ export function AdManagerModal({ open, onOpenChange, anchorRef }: AdManagerModal
           type="button"
           onClick={() => { resetForm(); setTab('list'); }}
           className={`flex-1 rounded-md py-1.5 text-xs font-semibold transition-colors ${
-            tab === 'list' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'
+            tab === 'list' ? 'bg-background text-foreground' : 'text-muted-foreground'
           }`}
         >
           Anúncios ({ads.length})
@@ -274,7 +274,7 @@ export function AdManagerModal({ open, onOpenChange, anchorRef }: AdManagerModal
           type="button"
           onClick={() => { resetForm(); setTab('add'); }}
           className={`flex-1 rounded-md py-1.5 text-xs font-semibold transition-colors ${
-            tab === 'add' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'
+            tab === 'add' ? 'bg-background text-foreground' : 'text-muted-foreground'
           }`}
         >
           Adicionar
@@ -371,7 +371,7 @@ export function AdManagerModal({ open, onOpenChange, anchorRef }: AdManagerModal
                   onClick={() => setMediaType(type)}
                   disabled={isSubmitting}
                   className={`flex-1 rounded-md py-1.5 text-xs font-semibold capitalize transition-colors ${
-                    mediaType === type ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'
+                    mediaType === type ? 'bg-background text-foreground' : 'text-muted-foreground'
                   }`}
                 >
                   {type}

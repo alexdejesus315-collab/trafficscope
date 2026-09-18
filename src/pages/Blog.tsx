@@ -239,7 +239,7 @@ function FeaturedCard({
   return (
     <Link
       to={`/blog/${post.slug}`}
-      className={`group relative block overflow-hidden rounded-2xl bg-card border border-border transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${
+      className={`group relative block overflow-hidden rounded-2xl bg-card transition-all duration-300 hover:-translate-y-0.5 ${
         isLarge ? 'h-[420px] lg:h-full' : 'h-[200px]'
       }`}
     >
@@ -252,7 +252,7 @@ function FeaturedCard({
             className="h-full w-full object-cover opacity-40 group-hover:opacity-50 group-hover:scale-105 transition-all duration-500"
           />
         ) : (
-          <div className="h-full w-full bg-gradient-to-br from-primary/10 to-primary/5" />
+          <div className="h-full w-full bg-muted" />
         )}
         <div className={`absolute inset-0 ${
           isLarge
@@ -299,7 +299,7 @@ function FeaturedCard({
             e.preventDefault();
             onDelete(post.slug);
           }}
-          className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white/70 hover:text-destructive hover:bg-destructive/20 backdrop-blur-sm transition-colors z-10"
+          className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 text-white/70 hover:text-destructive hover:bg-destructive/20 backdrop-blur-sm transition-colors z-10"
         >
           <Trash2 className="h-3.5 w-3.5" />
         </button>
@@ -330,7 +330,7 @@ function PostCard({
 
   return (
     <article className="group flex flex-col">
-      <Link to={`/blog/${post.slug}`} className="block overflow-hidden rounded-2xl bg-card border border-border hover:shadow-md transition-all duration-300 hover:-translate-y-0.5">
+      <Link to={`/blog/${post.slug}`} className="block overflow-hidden rounded-2xl bg-card transition-all duration-300 hover:-translate-y-0.5">
         {/* Thumbnail */}
         <div className="relative h-48 overflow-hidden bg-muted">
           {coverUrl ? (
@@ -340,13 +340,13 @@ function PostCard({
               className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
           ) : (
-            <div className="h-full w-full bg-gradient-to-br from-primary/5 to-primary/10 flex flex-col items-center justify-center gap-2">
+            <div className="h-full w-full bg-muted flex flex-col items-center justify-center gap-2">
               <ImageOff className="h-8 w-8 text-primary/20" />
               <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Sem imagem</span>
             </div>
           )}
           <div className="absolute top-3 left-3">
-            <span className="inline-flex items-center rounded-full bg-background/90 backdrop-blur-sm px-2.5 py-0.5 text-[11px] font-semibold text-foreground border border-border/50">
+            <span className="inline-flex items-center rounded-full bg-background/90 backdrop-blur-sm px-2.5 py-0.5 text-[11px] font-semibold text-foreground">
               {getBlogCategoryLabel(post.category, language)}
             </span>
           </div>

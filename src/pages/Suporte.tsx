@@ -20,7 +20,7 @@ export default function Suporte() {
         {t('support.intro')}
       </p>
 
-      <div className="bg-card border border-border rounded-2xl p-5 shadow-2xs">
+      <div className="bg-card border border-border rounded-2xl p-5">
         <form className="space-y-4">
           <div>
             <label htmlFor="nome" className="block text-xs font-medium text-foreground mb-1">

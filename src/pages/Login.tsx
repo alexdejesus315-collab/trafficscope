@@ -12,7 +12,7 @@ export default function Login() {
 <div className="min-h-screen bg-muted flex items-center justify-center p-6 bg-[radial-gradient(circle,_#0000000d_1px,_transparent_1px)] bg-[size:28px_28px]">      <div className="flex w-full max-w-5xl gap-4">
 
         {/* Brand Box */}
-        <div className="hidden md:flex relative w-[50%] min-h-[85vh] flex-col justify-between bg-slate-950 px-10 py-10 text-white rounded-xl shadow-xl shadow-black/5 overflow-hidden">
+        <div className="hidden md:flex relative w-[50%] min-h-[85vh] flex-col justify-between bg-slate-950 px-10 py-10 text-white rounded-xl overflow-hidden">
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/20 rounded-full blur-3xl" />
           </div>
@@ -31,7 +31,7 @@ export default function Login() {
         </div>
 
         {/* Login Box */}
-        <div className="relative overflow-hidden w-full md:w-[50%] min-h-[85vh] px-8 py-10 sm:px-12 sm:py-14 flex flex-col justify-center bg-background border border-border rounded-xl shadow-xl shadow-black/5">
+        <div className="relative overflow-hidden w-full md:w-[50%] min-h-[85vh] px-8 py-10 sm:px-12 sm:py-14 flex flex-col justify-center bg-background border border-border rounded-xl">
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute -bottom-32 -right-20 w-[400px] h-[400px] bg-primary/10 rounded-full blur-3xl" />
           </div>

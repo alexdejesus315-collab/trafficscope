@@ -71,7 +71,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
           <div className="relative z-10 flex items-center gap-4">
             <div
-              className="h-16 w-16 rounded-2xl flex items-center justify-center shadow-lg border-2"
+              className="h-16 w-16 rounded-2xl flex items-center justify-center border-2"
               style={{ borderColor: level.color, backgroundColor: `color-mix(in srgb, ${level.color} 20%, transparent)` }}
             >
               <LevelIcon className="h-8 w-8" style={{ color: level.color }} />
@@ -176,7 +176,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-muted/50 rounded-xl p-3 text-center shadow-2xs hover:shadow-md transition-shadow duration-200">
+            <div className="bg-muted/50 rounded-xl p-3 text-center transition-shadow duration-200">
               <Search className="h-4 w-4 text-primary mx-auto mb-1" />
               <div className="text-lg font-bold font-mono">{totalSearches}</div>
               <div className="text-[10px] text-muted-foreground font-medium">{t('profile.stats.searches')}</div>
@@ -193,7 +193,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               onClose();
               onOpenBuyCredits();
             }}
-            className="w-full gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-bold shadow-lg shadow-primary/20"
+            className="w-full gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-bold"
           >
             <ShoppingCart className="h-4 w-4" />
             {t('profile.buyCredits')}

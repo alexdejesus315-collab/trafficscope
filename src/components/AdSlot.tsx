@@ -160,7 +160,7 @@ export function AdSlot() {
         onClick={handleClick}
         role="button"
         tabIndex={0}
-        className="group relative flex items-center gap-3 pl-2 pr-3 py-2 rounded-full shadow-xl cursor-pointer w-[210px] hover:w-[340px] transition-[width,transform] duration-300 ease-out hover:scale-[1.02]"
+        className="group relative flex items-center gap-3 pl-2 pr-3 py-2 rounded-full cursor-pointer w-[210px] hover:w-[340px] transition-[width,transform] duration-300 ease-out hover:scale-[1.02]"
         style={{ backgroundColor: rgbStr(themeColor) }}
       >
         <button

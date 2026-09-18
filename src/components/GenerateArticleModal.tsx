@@ -105,7 +105,7 @@ export function GenerateArticleModal({ open, onOpenChange, onGenerated, anchorRe
           type="button"
           onClick={() => setMode('auto')}
           className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium transition-colors ${
-            mode === 'auto' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+            mode === 'auto' ? 'bg-card text-foreground' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <Wand2 className="h-3.5 w-3.5" />
@@ -115,7 +115,7 @@ export function GenerateArticleModal({ open, onOpenChange, onGenerated, anchorRe
           type="button"
           onClick={() => setMode('manual')}
           className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium transition-colors ${
-            mode === 'manual' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+            mode === 'manual' ? 'bg-card text-foreground' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <PenLine className="h-3.5 w-3.5" />

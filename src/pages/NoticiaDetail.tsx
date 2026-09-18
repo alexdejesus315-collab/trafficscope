@@ -164,7 +164,7 @@ import { getCategoryLabel } from '../lib/newsCategoryLabels';export default func
               className="h-full w-full object-cover blur-[2px] scale-105"
             />
           ) : (
-            <div className="h-full w-full bg-gradient-to-br from-red-500/10 to-orange-500/5" />
+            <div className="h-full w-full bg-muted" />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
         </div>
@@ -213,7 +213,7 @@ import { getCategoryLabel } from '../lib/newsCategoryLabels';export default func
       <main className="max-w-4xl mx-auto px-4 py-10 md:py-14">
         {/* Video Embed */}
         {hasVideo && (
-          <div className="aspect-video w-full overflow-hidden rounded-2xl mb-10 bg-muted border border-border shadow-sm">
+          <div className="aspect-video w-full overflow-hidden rounded-2xl mb-10 bg-muted">
             <iframe
               src={`https://www.youtube.com/embed/${item.youtube_video_id}`}
               title={displayHeadline}
@@ -226,7 +226,7 @@ import { getCategoryLabel } from '../lib/newsCategoryLabels';export default func
 
         {/* Cover image if no video */}
         {!hasVideo && item.cover_image && (
-          <div className="aspect-video w-full overflow-hidden rounded-2xl mb-10 bg-muted border border-border shadow-sm">
+          <div className="aspect-video w-full overflow-hidden rounded-2xl mb-10 bg-muted">
             <img src={item.cover_image} alt={displayHeadline} className="h-full w-full object-cover" />
           </div>
         )}
@@ -247,7 +247,7 @@ import { getCategoryLabel } from '../lib/newsCategoryLabels';export default func
         </div>
 
         {/* Source CTA */}
-        <div className="mt-6 p-6 md:p-8 rounded-2xl bg-gradient-to-br from-muted/50 to-muted/30 border border-border">
+        <div className="mt-6 p-6 md:p-8 rounded-2xl bg-secondary">
           <div className="flex items-start gap-4">
             <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
               <ExternalLink className="h-5 w-5 text-muted-foreground" />

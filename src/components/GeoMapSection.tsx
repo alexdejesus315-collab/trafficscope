@@ -26,7 +26,7 @@ export const GeoMapSection: React.FC<GeoMapSectionProps> = ({ metrics }) => {
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow duration-200">
+    <Card className="transition-shadow duration-200">
       <CardContent className="space-y-4">
 
         {/* Header */}
@@ -67,7 +67,7 @@ export const GeoMapSection: React.FC<GeoMapSectionProps> = ({ metrics }) => {
           {/* Countries Grid & List */}
           <div className="lg:col-span-7 space-y-3">
             {countries.map((c) => (
-              <div key={c.code} className="bg-muted p-3 rounded-xl flex items-center justify-between shadow-2xs hover:shadow-md transition-shadow duration-200">
+              <div key={c.code} className="bg-muted p-3 rounded-xl flex items-center justify-between transition-shadow duration-200">
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{c.flag}</span>
                   <div>

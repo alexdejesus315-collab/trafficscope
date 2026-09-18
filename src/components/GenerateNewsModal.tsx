@@ -127,7 +127,7 @@ export function GenerateNewsModal({ open, onOpenChange, onGenerated, anchorRef }
           onClick={() => setMode('auto')}
           disabled={isLoading}
           className={`flex-1 rounded-md py-1.5 text-xs font-semibold transition-colors ${
-            mode === 'auto' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'
+            mode === 'auto' ? 'bg-background text-foreground' : 'text-muted-foreground'
           }`}
         >
           Automático
@@ -137,7 +137,7 @@ export function GenerateNewsModal({ open, onOpenChange, onGenerated, anchorRef }
           onClick={() => setMode('manual')}
           disabled={isLoading}
           className={`flex-1 rounded-md py-1.5 text-xs font-semibold transition-colors ${
-            mode === 'manual' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'
+            mode === 'manual' ? 'bg-background text-foreground' : 'text-muted-foreground'
           }`}
         >
           Manual

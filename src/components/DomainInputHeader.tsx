@@ -62,7 +62,7 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
           </p>
 
           <form onSubmit={handleSearchSubmit} className="relative mt-8">
-            <div className="relative flex items-center bg-card rounded-2xl shadow-md p-1.5 transition-shadow focus-within:shadow-lg focus-within:ring-2 focus-within:ring-primary/30">
+            <div className="relative flex items-center bg-card rounded-2xl p-1.5 transition-shadow focus-within:ring-2 focus-within:ring-primary/30">
               <Search className="absolute left-5 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
               <Input
                 type="text"
@@ -90,7 +90,7 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
                 key={d}
                 type="button"
                 onClick={() => onAddDomain(d)}
-                className="text-xs font-mono px-3 py-1 rounded-full bg-card text-muted-foreground shadow-sm hover:text-primary hover:shadow-md transition-all"
+                className="text-xs font-mono px-3 py-1 rounded-full bg-card text-muted-foreground hover:text-primary transition-all"
               >
                 {d}
               </button>
@@ -103,7 +103,7 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
 
   // Com domínios ativos: barra compacta no topo, como antes.
   return (
-    <div className="bg-background pt-6 pb-6 text-foreground shadow-sm">
+    <div className="bg-background pt-6 pb-6 text-foreground">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 flex flex-col items-center text-center">
 
         {/* Title */}
@@ -118,7 +118,7 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
 
         {/* Input Form Bar */}
         <form onSubmit={handleSearchSubmit} className="relative w-full max-w-4xl">
-          <div className="relative flex items-center bg-card rounded-2xl shadow-md p-1 transition-shadow focus-within:shadow-lg focus-within:ring-2 focus-within:ring-primary/30">
+          <div className="relative flex items-center bg-card rounded-2xl p-1 transition-shadow focus-within:ring-2 focus-within:ring-primary/30">
             <Search className="absolute left-5 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
             <Input
               type="text"
@@ -157,7 +157,7 @@ export const DomainInputHeader: React.FC<DomainInputHeaderProps> = ({
                 className={cn(
                   'inline-flex items-center gap-4 pl-1 pr-0.2 py-0.1 rounded-full font-mono text-xs font-semibold transition-all duration-200 cursor-pointer',
                   isActive
-                    ? 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/80'
+                    ? 'bg-primary text-primary-foreground hover:bg-primary/80'
                     : 'text-muted-foreground hover:bg-primary/20 hover:text-primary'
                 )}
               >

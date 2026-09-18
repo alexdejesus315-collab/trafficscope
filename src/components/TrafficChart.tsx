@@ -42,7 +42,7 @@ export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow duration-200">
+    <Card className="transition-shadow duration-200">
       <CardContent className="space-y-4">
 
         {/* Header & Chart Controls */}

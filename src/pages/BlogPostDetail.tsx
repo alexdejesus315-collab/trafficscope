@@ -176,7 +176,7 @@ export default function BlogPostDetail() {
               className="h-full w-full object-cover blur-[2px] scale-105"
             />
           ) : (
-            <div className="h-full w-full bg-gradient-to-br from-primary/10 to-primary/5" />
+            <div className="h-full w-full bg-muted" />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
         </div>
@@ -222,7 +222,7 @@ export default function BlogPostDetail() {
       <main className="max-w-4xl mx-auto px-4 py-10 md:py-14">
         {/* Companies cited */}
         {post.chart_data && post.chart_data.length > 0 && (
-          <div className="flex flex-wrap items-center gap-3 mb-10 p-4 rounded-2xl bg-card border border-border">
+          <div className="flex flex-wrap items-center gap-3 mb-10 p-4 rounded-2xl bg-card">
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               {t('blogPost.citedCompanies')}
             </span>
@@ -230,7 +230,7 @@ export default function BlogPostDetail() {
               {post.chart_data.map((d: any) => (
                 <div
                   key={d.name}
-                  className="flex items-center gap-2 rounded-full bg-muted px-3 py-1.5 border border-border/50"
+                  className="flex items-center gap-2 rounded-full bg-muted px-3 py-1.5"
                 >
                   <img
                     src={`https://www.google.com/s2/favicons?domain=${d.name}&sz=64`}
@@ -257,7 +257,7 @@ export default function BlogPostDetail() {
         </article>
 
         {/* CTA */}
-        <div className="mt-14 p-6 md:p-8 rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20">
+        <div className="mt-14 p-6 md:p-8 rounded-2xl bg-secondary">
           <div className="flex items-start gap-4">
             <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
               <TrendingUp className="h-5 w-5 text-primary" />
@@ -281,12 +281,12 @@ export default function BlogPostDetail() {
 
         {/* Affiliate */}
         {post.affiliate_link && (
-          <div className="mt-6 p-6 rounded-2xl bg-card border border-border flex items-center gap-4">
+          <div className="mt-6 p-6 rounded-2xl bg-card flex items-center gap-4">
             {firstDomainName && (
               <img
                 src={`https://www.google.com/s2/favicons?domain=${firstDomainName}&sz=128`}
                 alt={firstDomainName}
-                className="h-12 w-12 rounded-xl border border-border bg-background object-contain shrink-0"
+                className="h-12 w-12 rounded-xl bg-background object-contain shrink-0"
               />
             )}
             <div className="min-w-0 flex-1">

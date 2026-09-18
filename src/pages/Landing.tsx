@@ -75,8 +75,8 @@ function NavBar() {
     <header
       className={`sticky top-0 z-30 transition-all duration-300 border-b ${
         scrolled
-          ? "bg-white/80 backdrop-blur-xl border-slate-100 shadow-sm"
-          : "bg-white/60 backdrop-blur-md border-transparent"
+          ? "bg-background/80 backdrop-blur-xl border-border"
+          : "bg-background/60 backdrop-blur-md border-transparent"
       }`}
     >
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -90,7 +90,7 @@ function NavBar() {
         </nav>
         <div className="flex items-center gap-3">
   <LanguageSwitcher />
-  <a href="/login" className="inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 text-[14px] font-medium pl-3 pr-4 py-2 rounded-full shadow-sm transition-all hover:shadow-md hover:-translate-y-px active:translate-y-0">
+  <a href="/login" className="inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 text-[14px] font-medium pl-3 pr-4 py-2 rounded-full transition-all hover:-translate-y-px active:translate-y-0">
     <svg className="h-4 w-4" viewBox="0 0 48 48">
       <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12 c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24 c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
       <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039 l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
@@ -113,7 +113,7 @@ function MiniCompareDemo() {
     { d: "x.com", v: "486.500.000", w: 22, grow: "+8.4%", up: true },
   ];
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-2xl shadow-slate-200/40 p-5 w-full max-w-md backdrop-blur-sm">
+    <div className="bg-card rounded-2xl p-5 w-full max-w-md backdrop-blur-sm">
       <div className="flex items-center gap-2 text-slate-400 text-[12px] mb-5">
         <GitCompare className="h-3.5 w-3.5" />
         <span>
@@ -140,7 +140,7 @@ function MiniCompareDemo() {
                 <span className="text-slate-400 text-[12px]">{r.v} {t('landing.hero.demo.visitsPerMonth')}</span>
               </div>
             </div>
-            <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+            <div className="h-2 rounded-full bg-muted overflow-hidden">
               <div
                 className="h-full rounded-full bg-primary transition-all duration-1000 ease-out"
                 style={{ width: `${r.w}%` }}
@@ -149,7 +149,7 @@ function MiniCompareDemo() {
           </div>
         ))}
       </div>
-      <div className="mt-5 pt-4 border-t border-slate-50 flex items-center justify-between text-[11px] text-slate-400">
+      <div className="mt-5 pt-4 border-t border-border flex items-center justify-between text-[11px] text-slate-400">
         <span>{t('landing.hero.demo.primaryChannel')}</span>
         <span className="text-slate-600 font-medium">{t('landing.hero.demo.channels')}</span>
       </div>
@@ -160,12 +160,7 @@ function MiniCompareDemo() {
 function Hero() {
   const { t } = useLanguage();
   return (
-    <section className="relative overflow-hidden bg-[#FAFAFA]">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-blue-100/40 rounded-full blur-3xl" />
-        <div className="absolute top-20 -left-20 w-[400px] h-[400px] bg-rose-100/30 rounded-full blur-3xl" />
-      </div>
-
+    <section className="relative overflow-hidden bg-background">
       <div className="relative max-w-6xl mx-auto px-6 pt-20 pb-16 grid md:grid-cols-2 gap-14 items-center">
         <div>
 <div className="inline-flex items-center gap-2 text-[12px] font-medium text-primary bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-full mb-6">            <Activity className="h-3.5 w-3.5" />
@@ -178,9 +173,9 @@ function Hero() {
             {t('landing.hero.subtitle')}
           </p>
           <div className="flex flex-wrap items-center gap-4">
-<a href="/login" className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-3.5 rounded-xl transition-all hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-0.5 active:translate-y-0">              {t('landing.hero.ctaPrimary')} <ArrowRight className="h-4 w-4" />
+<a href="/login" className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-3.5 rounded-xl transition-all hover:-translate-y-0.5 active:translate-y-0">              {t('landing.hero.ctaPrimary')} <ArrowRight className="h-4 w-4" />
             </a>
-            <a href="#comparar" className="inline-flex items-center gap-2 text-slate-700 font-medium px-6 py-3.5 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-white transition-all">
+            <a href="#comparar" className="inline-flex items-center gap-2 text-slate-700 font-medium px-6 py-3.5 rounded-xl hover:bg-card transition-all">
               {t('landing.hero.ctaSecondary')}
             </a>
           </div>
@@ -205,7 +200,7 @@ function StatsBar() {
   ];
   const { ref, visible } = useReveal();
   return (
-<div ref={ref} className="bg-white/60 backdrop-blur-sm border-y border-slate-100">      <div className="max-w-6xl mx-auto px-6 py-12 grid grid-cols-3 gap-6 text-center">
+<div ref={ref} className="bg-secondary backdrop-blur-sm border-y border-border">      <div className="max-w-6xl mx-auto px-6 py-12 grid grid-cols-3 gap-6 text-center">
         {stats.map((s, i) => (
           <div
             key={s.l}
@@ -264,9 +259,6 @@ function Features() {
 
   return (
     <section id="produto" className="relative overflow-hidden max-w-6xl mx-auto px-6 py-20">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/3 -right-32 w-[500px] h-[500px] bg-primary/10 rounded-full blur-3xl" />
-      </div>
       <div
         ref={ref}
         className={`max-w-xl mb-14 transition-all duration-700 ${
@@ -285,7 +277,7 @@ function Features() {
         {items.map((it, i) => (
           <div
             key={it.title}
-            className={`group p-6 rounded-2xl border border-slate-100 bg-white hover:border-primary/30 hover:shadow-xl hover:shadow-slate-200/30 transition-all duration-500 hover:-translate-y-1 ${
+            className={`group p-6 rounded-2xl bg-card transition-all duration-500 hover:-translate-y-1 ${
               visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
             }`}
             style={{ transitionDelay: `${i * 80}ms` }}
@@ -350,12 +342,8 @@ function CompareShowcase() {
     <section
       id="comparar"
       ref={ref}
-      className="bg-slate-950 py-20 relative overflow-hidden"
+      className="bg-background py-20 relative overflow-hidden"
     >
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/20 rounded-full blur-3xl" />
-      </div>
-
       <div className="relative max-w-6xl mx-auto px-6">
         <div
           className={`max-w-xl mb-14 transition-all duration-700 ${
@@ -365,20 +353,20 @@ function CompareShowcase() {
           <div className="text-[12px] font-medium text-primary uppercase tracking-widest mb-3">
             {t('landing.compareShowcase.label')}
           </div>
-          <h2 className="text-[30px] font-semibold text-white mb-3">
+          <h2 className="text-[30px] font-semibold text-foreground mb-3">
             {t('landing.compareShowcase.title')}
           </h2>
-          <p className="text-slate-400 text-[17px] leading-relaxed">
+          <p className="text-muted-foreground text-[17px] leading-relaxed">
             {t('landing.compareShowcase.subtitle')}
           </p>
         </div>
 
         <div
-          className={`bg-white rounded-2xl border border-slate-800 overflow-hidden shadow-2xl transition-all duration-700 delay-200 ${
+          className={`bg-card rounded-2xl overflow-hidden transition-all duration-700 delay-200 ${
             visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
-          <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-slate-50 border-b border-slate-100 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+          <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-secondary border-b border-border text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
             <div className="col-span-3">{t('landing.compareShowcase.table.domain')}</div>
             <div className="col-span-2 text-right">{t('landing.compareShowcase.table.monthlyTraffic')}</div>
             <div className="col-span-2 text-right">{t('landing.compareShowcase.table.growth')}</div>
@@ -389,22 +377,22 @@ function CompareShowcase() {
           {competitors.map((c, i) => (
             <div
               key={c.domain}
-              className="grid grid-cols-12 gap-4 px-6 py-5 border-b border-slate-50 last:border-0 items-center hover:bg-slate-50/50 transition-colors"
+              className="grid grid-cols-12 gap-4 px-6 py-5 border-b border-border last:border-0 items-center hover:bg-muted/50 transition-colors"
               style={{ animationDelay: `${i * 100}ms` }}
             >
               <div className="col-span-3 flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden">
+                <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center shrink-0 overflow-hidden">
                   <img
                     src={`https://www.google.com/s2/favicons?domain=${c.domain}&sz=64`}
                     alt={c.domain}
                     className="h-5 w-5"
                   />
                 </div>
-                <span className="text-slate-900 font-medium text-[14px]">
+                <span className="text-foreground font-medium text-[14px]">
                   {c.domain}
                 </span>
               </div>
-              <div className="col-span-2 text-right text-slate-900 font-semibold text-[14px]">
+              <div className="col-span-2 text-right text-foreground font-semibold text-[14px]">
                 {c.visits}
               </div>
               <div className="col-span-2 text-right">
@@ -423,10 +411,10 @@ function CompareShowcase() {
                   {c.growth}
                 </span>
               </div>
-              <div className="col-span-2 text-right text-[13px] text-slate-600">
+              <div className="col-span-2 text-right text-[13px] text-muted-foreground">
                 {c.primary} ({c.share}%)
               </div>
-              <div className="col-span-3 text-right hidden sm:block text-[12px] text-slate-500">
+              <div className="col-span-3 text-right hidden sm:block text-[12px] text-muted-foreground">
                 {c.time} · {c.pages} {t('landing.compareShowcase.pagesAbbr')} · {c.bounce} {t('landing.compareShowcase.bounceLabel')}
               </div>
             </div>
@@ -434,7 +422,7 @@ function CompareShowcase() {
         </div>
 
         <div className="mt-8 flex justify-center">
-          <a href="/login" className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-3 rounded-xl transition-all hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5">
+          <a href="/login" className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-3 rounded-xl transition-all hover:-translate-y-0.5">
             <MousePointerClick className="h-4 w-4" />
             {t('landing.compareShowcase.cta')}
           </a>
@@ -450,10 +438,6 @@ function Pricing() {
 
   return (
     <section id="precos" className="relative overflow-hidden max-w-6xl mx-auto px-6 py-20">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-20 left-1/4 w-[450px] h-[450px] bg-rose-100/25 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 -right-20 w-[400px] h-[400px] bg-primary/10 rounded-full blur-3xl" />
-      </div>
       <div
         ref={ref}
         className={`max-w-lg mx-auto text-center mb-14 transition-all duration-700 ${
@@ -470,7 +454,7 @@ function Pricing() {
 
       <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
         <div
-          className={`rounded-2xl p-8 border border-slate-100 bg-white hover:border-slate-200 transition-all duration-500 hover:shadow-xl hover:shadow-slate-200/20 hover:-translate-y-1 ${
+          className={`rounded-2xl p-8 bg-card transition-all duration-500 hover:-translate-y-1 ${
             visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
           }`}
           style={{ transitionDelay: "100ms" }}
@@ -498,13 +482,13 @@ function Pricing() {
               </li>
             ))}
           </ul>
-          <a href="/login" className="block text-center font-medium px-4 py-3 rounded-xl border border-slate-200 hover:border-slate-300 text-slate-700 hover:bg-slate-50 transition-all">
+          <a href="/login" className="block text-center font-medium px-4 py-3 rounded-xl border border-slate-200 hover:border-slate-300 text-slate-700 hover:bg-muted transition-all">
             {t('landing.pricing.test.cta')}
           </a>
         </div>
 
         <div
-          className={`relative rounded-2xl p-8 border-2 border-primary bg-primary/5 transition-all duration-500 hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1 ${
+          className={`relative rounded-2xl p-8 border-2 border-primary bg-primary/5 transition-all duration-500 hover:-translate-y-1 ${
             visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
           }`}
           style={{ transitionDelay: "200ms" }}
@@ -539,7 +523,7 @@ function Pricing() {
               </li>
             ))}
           </ul>
-          <a href="/login" className="block text-center font-medium px-4 py-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground transition-all hover:shadow-lg hover:shadow-primary/25">
+          <a href="/login" className="block text-center font-medium px-4 py-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground transition-all">
             {t('landing.pricing.real.cta')}
           </a>
         </div>
@@ -552,10 +536,7 @@ function FinalCTA() {
   const { t } = useLanguage();
   const { ref, visible } = useReveal();
   return (
-    <section className="relative overflow-hidden bg-[#FAFAFA]">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -bottom-40 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/15 rounded-full blur-3xl" />
-      </div>
+    <section className="relative overflow-hidden bg-background">
       <div className="relative max-w-6xl mx-auto px-6 py-20 text-center">
         <div
           ref={ref}
@@ -563,7 +544,7 @@ function FinalCTA() {
             visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
           }`}
         >
-          <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-primary text-primary-foreground mb-6 shadow-lg shadow-primary/20">
+          <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-primary text-primary-foreground mb-6">
             <ShieldCheck className="h-6 w-6" />
           </div>
           <h2 className="text-[32px] font-semibold text-slate-950 mb-4">
@@ -572,7 +553,7 @@ function FinalCTA() {
           <p className="text-slate-600 mb-10 max-w-md mx-auto text-[17px] leading-relaxed">
             {t('landing.finalCta.subtitle')}
           </p>
-          <a href="/login" className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 py-4 rounded-xl transition-all hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-0.5 active:translate-y-0">
+          <a href="/login" className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 py-4 rounded-xl transition-all hover:-translate-y-0.5 active:translate-y-0">
             {t('landing.finalCta.cta')} <ArrowRight className="h-4 w-4" />
           </a>
         </div>
@@ -583,7 +564,7 @@ function FinalCTA() {
 
 export default function Landing() {
   return (
-    <div className="bg-[#FAFAFA] min-h-screen bg-[radial-gradient(circle,_#0000000d_1px,_transparent_1px)] bg-[size:28px_28px]">
+    <div className="bg-background min-h-screen">
       <NavBar />
       <Hero />
       <StatsBar />

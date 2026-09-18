@@ -67,7 +67,7 @@ export const TrafficSources: React.FC<TrafficSourcesProps> = ({ metrics }) => {
     const name = data?.name || '';
     const value = data?.value || 0;
     return (
-      <div className="bg-popover border border-border rounded-xl px-3 py-2 shadow-lg">
+      <div className="bg-popover border border-border rounded-xl px-3 py-2">
         <p className="text-xs font-semibold text-popover-foreground">{getSourceName(name)}</p>
         <p className="text-[11px] text-muted-foreground">{value}% {t('trafficSources.donut.participation')}</p>
       </div>
@@ -75,7 +75,7 @@ export const TrafficSources: React.FC<TrafficSourcesProps> = ({ metrics }) => {
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow duration-200">
+    <Card className="transition-shadow duration-200">
       <CardContent className="space-y-4">
 
         {/* Header */}
