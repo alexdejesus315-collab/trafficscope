@@ -63,13 +63,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto p-0 gap-0">
-        <div className="relative bg-gradient-to-br from-foreground via-foreground/90 to-foreground text-background p-6 rounded-t-lg overflow-hidden">
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-2 right-2 w-24 h-24 rounded-full bg-primary blur-3xl" />
-            <div className="absolute bottom-2 left-2 w-20 h-20 rounded-full bg-primary blur-3xl" />
-          </div>
-
-          <div className="relative z-10 flex items-center gap-4">
+        <div className="relative bg-card text-foreground p-6 rounded-t-lg overflow-hidden">
+          <div className="flex items-center gap-4">
             <div
               className="h-16 w-16 rounded-2xl flex items-center justify-center border-2"
               style={{ borderColor: level.color, backgroundColor: `color-mix(in srgb, ${level.color} 20%, transparent)` }}
@@ -181,7 +176,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               <div className="text-lg font-bold font-mono">{totalSearches}</div>
               <div className="text-[10px] text-muted-foreground font-medium">{t('profile.stats.searches')}</div>
             </div>
-            <div className="bg-muted/50 rounded-xl p-3 text-center hover:border-primary/30 transition-colors">
+            <div className="bg-muted/50 rounded-xl p-3 text-center transition-colors">
               <ShoppingCart className="h-4 w-4 text-primary mx-auto mb-1" />
               <div className="text-lg font-bold font-mono">{totalPurchases * 10}</div>
               <div className="text-[10px] text-muted-foreground font-medium">{t('profile.stats.creditsPurchased')}</div>

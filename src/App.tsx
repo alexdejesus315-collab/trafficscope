@@ -21,10 +21,10 @@ const NoticiaDetail = lazy(() => import('./pages/NoticiaDetail'));
 
 function PageFallback() {
   return (
-    <div className="min-h-screen bg-[#FFFFFF] flex items-center justify-center">
+    <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="flex flex-col items-center gap-3">
-        <div className="h-12 w-20 rounded-xl bg-[#000000] flex items-center justify-center animate-pulse">
-          <Activity className="h-6 w-6 text-white" />
+        <div className="h-12 w-20 rounded-xl bg-card flex items-center justify-center animate-pulse">
+          <Activity className="h-6 w-6 text-foreground" />
         </div>
         <p className="text-sm text-gray-500">A carregar...</p>
       </div>

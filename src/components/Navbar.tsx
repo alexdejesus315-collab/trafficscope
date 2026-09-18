@@ -281,8 +281,7 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
                   ref={companyDropdownRef}
                   className="absolute top-[calc(100%+10px)] left-1/2 -translate-x-1/2 w-[300px]
                            bg-popover rounded-2xl
-                           border border-border
-                           shadow-[0_8px_30px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)]
+
                            overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150 p-2"
                 >
                   <p className="px-2 pt-1 pb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -343,8 +342,7 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
                   ref={notifDropdownRef}
                   className="absolute top-[calc(100%+10px)] left-1/2 -translate-x-1/2 w-[360px] max-h-[420px]
                            bg-popover rounded-2xl
-                           border border-border
-                           shadow-[0_8px_30px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)]
+
                            overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150
                            flex flex-col"
                 >
@@ -449,8 +447,7 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
                   ref={mobileMoreDropdownRef}
                   className="absolute top-[calc(100%+10px)] right-0 w-[260px]
                            bg-popover rounded-2xl
-                           border border-border
-                           shadow-[0_8px_30px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)]
+
                            overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150 p-2"
                 >
                   <div className="px-2 pt-1 pb-2">
@@ -499,7 +496,7 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
                 {isGenerateMenuOpen && (
                   <div
                     ref={generateMenuRef}
-                    className="absolute top-[calc(100%+10px)] left-1/2 -translate-x-1/2 w-[190px] bg-popover rounded-xl border border-border shadow-[0_8px_30px_rgba(0,0,0,0.12)] overflow-hidden z-50 p-1.5"
+                    className="absolute top-[calc(100%+10px)] left-1/2 -translate-x-1/2 w-[190px] bg-popover rounded-xl overflow-hidden z-50 p-1.5"
                   >
                     <button
                       onClick={() => { setIsGenerateMenuOpen(false); setIsGenerateModalOpen(true); }}
@@ -556,8 +553,8 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
                 <span
                   className={`absolute inset-0 rounded-full transition-all duration-300 animate-pulse ${
                     isTest
-                      ? 'bg-gradient-to-tr from-amber-400 via-amber-300 to-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.55)]'
-                      : 'bg-gradient-to-tr from-emerald-400 via-emerald-300 to-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.55)]'
+                      ? 'bg-amber-400'
+                      : 'bg-emerald-400'
                   } group-active:scale-95`}
                 />
                 <span className="absolute inset-[2px] rounded-full bg-sidebar overflow-hidden flex items-center justify-center">
@@ -645,8 +642,7 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
                 ref={profileDropdownRef}
                 className="absolute top-[calc(100%+10px)] right-0 w-[340px] max-w-[calc(100vw-2rem)]
                            bg-popover rounded-2xl 
-                           border border-border
-                           shadow-[0_8px_30px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)]
+
                            overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150"
               >
                 <div className="bg-primary p-4 flex items-center gap-2">
@@ -780,8 +776,6 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
                     }}
                     className="group relative w-full flex items-center gap-2.5 py-0 px-2 rounded-lg 
                                bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm 
-                               shadow-[0_0_20px_rgba(42,127,175,0.35),0_4px_12px_rgba(42,127,175,0.25)]
-                               hover:shadow-[0_0_32px_rgba(42,127,175,0.5),0_6px_16px_rgba(42,127,175,0.35)]
                                transition-all duration-300 active:scale-[0.98] overflow-hidden"
                   >
                     <ShoppingCart className="h-4 w-4" />

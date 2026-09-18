@@ -171,7 +171,7 @@ export function AdSlot() {
           <X className="h-3 w-3" />
         </button>
 
-        <div className="h-10 w-10 rounded-full overflow-hidden shrink-0 bg-black/10 border-2" style={{ borderColor: rgbStr(themeColor, 0.4) }}>
+        <div className="h-10 w-10 rounded-full overflow-hidden shrink-0 bg-black/10" style={{ borderColor: rgbStr(themeColor, 0.4) }}>
           {currentAd.media_type === 'video' ? (
             <video
               key={currentAd.id}

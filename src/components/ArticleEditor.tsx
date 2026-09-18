@@ -251,7 +251,7 @@ export default function ArticleEditor({ initialContent, initialTitle, initialSou
             <LinkIcon className="h-4 w-4" />
           </button>
           {showLinkInput && (
-            <div className="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg p-2 flex items-center gap-1.5 z-30">
+            <div className="absolute top-full left-0 mt-1 bg-card rounded-lg p-2 flex items-center gap-1.5 z-30">
               <input
                 type="text"
                 value={linkUrl}
@@ -286,7 +286,7 @@ export default function ArticleEditor({ initialContent, initialTitle, initialSou
           <button className={toolbarButtonClass(editor.isActive('highlight'))} title="Marca-texto">
             <Highlighter className="h-4 w-4" />
           </button>
-<div className="hidden group-hover:flex absolute top-full left-0 mt-1 bg-card border border-border rounded-lg p-1.5 gap-1 z-30">            {['#FEF08A', '#BBF7D0', '#BFDBFE', '#FBCFE8'].map((color) => (
+<div className="hidden group-hover:flex absolute top-full left-0 mt-1 bg-card rounded-lg p-1.5 gap-1 z-30">            {['#FEF08A', '#BBF7D0', '#BFDBFE', '#FBCFE8'].map((color) => (
               <button
                 key={color}
                 onClick={() => editor.chain().focus().toggleHighlight({ color }).run()}

@@ -51,11 +51,7 @@ export const LanguageSwitcher: React.FC = () => {
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="absolute top-[calc(100%+10px)] left-1/2 -translate-x-1/2 w-[200px]
-                     bg-popover rounded-2xl
-                     border border-border
-                     shadow-[0_8px_30px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)]
-                     overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150"
+          className="absolute top-[calc(100%+10px)] left-1/2 -translate-x-1/2 w-[200px] bg-popover rounded-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150"
         >
           {LANGUAGES.map((lang) => (
             <button

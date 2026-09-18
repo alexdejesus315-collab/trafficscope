@@ -51,7 +51,7 @@ function Logo({ dark = false }) {
       <div className="leading-none">
         <div
           className={`font-semibold tracking-[0.18em] text-[13px] ${
-            dark ? "text-white" : "text-slate-950"
+            dark ? "text-white" : "text-foreground"
           }`}
         >
           TRAFFICSCOPE
@@ -81,7 +81,7 @@ function NavBar() {
     >
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         <Logo />
-        <nav className="hidden md:flex items-center gap-1 text-[14px] text-slate-600">
+          <nav className="hidden md:flex items-center gap-1 text-[14px] text-muted-foreground">
           <a href="#produto" className="rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200">{t('landing.nav.product')}</a>
           <a href="#comparar" className="rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200">{t('landing.nav.compare')}</a>
           <a href="#precos" className="rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200">{t('landing.nav.pricing')}</a>
@@ -114,7 +114,7 @@ function MiniCompareDemo() {
   ];
   return (
     <div className="bg-card rounded-2xl p-5 w-full max-w-md backdrop-blur-sm">
-      <div className="flex items-center gap-2 text-slate-400 text-[12px] mb-5">
+      <div className="flex items-center gap-2 text-muted-foreground text-[12px] mb-5">
         <GitCompare className="h-3.5 w-3.5" />
         <span>
           {t('landing.hero.demo.label')}
@@ -124,7 +124,7 @@ function MiniCompareDemo() {
         {domains.map((r) => (
           <div key={r.d}>
             <div className="flex items-center justify-between text-[13px] mb-1.5">
-              <span className="text-slate-700 font-medium">
+              <span className="text-foreground font-medium">
                 {r.d}
               </span>
               <div className="flex items-center gap-2">
@@ -137,7 +137,7 @@ function MiniCompareDemo() {
                 >
                   {r.grow}
                 </span>
-                <span className="text-slate-400 text-[12px]">{r.v} {t('landing.hero.demo.visitsPerMonth')}</span>
+                <span className="text-muted-foreground text-[12px]">{r.v} {t('landing.hero.demo.visitsPerMonth')}</span>
               </div>
             </div>
             <div className="h-2 rounded-full bg-muted overflow-hidden">
@@ -149,9 +149,9 @@ function MiniCompareDemo() {
           </div>
         ))}
       </div>
-      <div className="mt-5 pt-4 border-t border-border flex items-center justify-between text-[11px] text-slate-400">
+      <div className="mt-5 pt-4 border-t border-border flex items-center justify-between text-[11px] text-muted-foreground">
         <span>{t('landing.hero.demo.primaryChannel')}</span>
-        <span className="text-slate-600 font-medium">{t('landing.hero.demo.channels')}</span>
+        <span className="text-foreground font-medium">{t('landing.hero.demo.channels')}</span>
       </div>
     </div>
   );
@@ -166,20 +166,20 @@ function Hero() {
 <div className="inline-flex items-center gap-2 text-[12px] font-medium text-primary bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-full mb-6">            <Activity className="h-3.5 w-3.5" />
             {t('landing.hero.badge')}
           </div>
-          <h1 className="text-[40px] sm:text-[52px] leading-[1.05] font-semibold text-slate-950 tracking-tight mb-5">
+          <h1 className="text-[40px] sm:text-[52px] leading-[1.05] font-semibold text-foreground tracking-tight mb-5">
             {t('landing.hero.title')}
           </h1>
-          <p className="text-[17px] text-slate-600 leading-relaxed mb-8 max-w-md">
+          <p className="text-[17px] text-muted-foreground leading-relaxed mb-8 max-w-md">
             {t('landing.hero.subtitle')}
           </p>
           <div className="flex flex-wrap items-center gap-4">
 <a href="/login" className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-3.5 rounded-xl transition-all hover:-translate-y-0.5 active:translate-y-0">              {t('landing.hero.ctaPrimary')} <ArrowRight className="h-4 w-4" />
             </a>
-            <a href="#comparar" className="inline-flex items-center gap-2 text-slate-700 font-medium px-6 py-3.5 rounded-xl hover:bg-card transition-all">
+            <a href="#comparar" className="inline-flex items-center gap-2 text-foreground font-medium px-6 py-3.5 rounded-xl hover:bg-card transition-all">
               {t('landing.hero.ctaSecondary')}
             </a>
           </div>
-          <p className="text-[12px] text-slate-400 mt-4">
+          <p className="text-[12px] text-muted-foreground mt-4">
             {t('landing.hero.footnote')}
           </p>
         </div>
@@ -209,10 +209,10 @@ function StatsBar() {
             }`}
             style={{ transitionDelay: `${i * 120}ms` }}
           >
-            <div className="text-[28px] sm:text-[36px] font-semibold text-slate-950">
+            <div className="text-[28px] sm:text-[36px] font-semibold text-foreground">
               {s.n}
             </div>
-            <div className="text-[13px] text-slate-500 mt-1">{s.l}</div>
+            <div className="text-[13px] text-muted-foreground mt-1">{s.l}</div>
           </div>
         ))}
       </div>
@@ -265,10 +265,10 @@ function Features() {
           visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
         }`}
       >
-        <h2 className="text-[30px] font-semibold text-slate-950 mb-3">
+        <h2 className="text-[30px] font-semibold text-foreground mb-3">
           {t('landing.features.title')}
         </h2>
-        <p className="text-slate-600 text-[17px] leading-relaxed">
+        <p className="text-muted-foreground text-[17px] leading-relaxed">
           {t('landing.features.subtitle')}
         </p>
       </div>
@@ -285,10 +285,10 @@ function Features() {
             <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center mb-5 group-hover:scale-105 transition-transform duration-300">
               <it.icon className="h-5 w-5 text-primary" />
             </div>
-            <h3 className="text-[16px] font-semibold text-slate-950 mb-2">
+            <h3 className="text-[16px] font-semibold text-foreground mb-2">
               {it.title}
             </h3>
-            <p className="text-[14px] text-slate-500 leading-relaxed">
+            <p className="text-[14px] text-muted-foreground leading-relaxed">
               {it.desc}
             </p>
           </div>
@@ -444,10 +444,10 @@ function Pricing() {
           visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
         }`}
       >
-        <h2 className="text-[30px] font-semibold text-slate-950 mb-3">
+          <h2 className="text-[30px] font-semibold text-foreground mb-3">
           {t('landing.pricing.title')}
         </h2>
-        <p className="text-slate-600 text-[17px] leading-relaxed">
+          <p className="text-muted-foreground text-[17px] leading-relaxed">
           {t('landing.pricing.subtitle')}
         </p>
       </div>
@@ -463,10 +463,10 @@ function Pricing() {
             <FlaskConical className="h-3.5 w-3.5" />
             {t('landing.pricing.test.badge')}
           </div>
-          <div className="text-[32px] font-semibold text-slate-950 mb-2">
+          <div className="text-[32px] font-semibold text-foreground mb-2">
             {t('landing.pricing.test.price')}
           </div>
-          <p className="text-[14px] text-slate-500 mb-8 leading-relaxed">
+          <p className="text-[14px] text-muted-foreground mb-8 leading-relaxed">
             {t('landing.pricing.test.desc')}
           </p>
           <ul className="space-y-3 mb-8">
@@ -476,13 +476,13 @@ function Pricing() {
               t('landing.pricing.test.feature3'),
               t('landing.pricing.test.feature4'),
             ].map((f) => (
-              <li key={f} className="flex items-center gap-2 text-[14px] text-slate-600">
+              <li key={f} className="flex items-center gap-2 text-[14px] text-muted-foreground">
                 <Zap className="h-4 w-4 text-amber-500 shrink-0" />
                 {f}
               </li>
             ))}
           </ul>
-          <a href="/login" className="block text-center font-medium px-4 py-3 rounded-xl border border-slate-200 hover:border-slate-300 text-slate-700 hover:bg-muted transition-all">
+          <a href="/login" className="block text-center font-medium px-4 py-3 rounded-xl border border-slate-200 hover:border-slate-300 text-foreground hover:bg-muted transition-all">
             {t('landing.pricing.test.cta')}
           </a>
         </div>
@@ -502,12 +502,12 @@ function Pricing() {
             {t('landing.pricing.real.badge')}
           </div>
           <div className="flex items-baseline gap-1 mb-2">
-            <span className="text-[32px] font-semibold text-slate-950">
+            <span className="text-[32px] font-semibold text-foreground">
               2€
             </span>
-            <span className="text-slate-500 text-[14px]">{t('landing.pricing.real.priceSuffix')}</span>
+            <span className="text-muted-foreground text-[14px]">{t('landing.pricing.real.priceSuffix')}</span>
           </div>
-          <p className="text-[14px] text-slate-500 mb-8 leading-relaxed">
+          <p className="text-[14px] text-muted-foreground mb-8 leading-relaxed">
             {t('landing.pricing.real.desc')}
           </p>
           <ul className="space-y-3 mb-8">
@@ -517,7 +517,7 @@ function Pricing() {
               t('landing.pricing.real.feature3'),
               t('landing.pricing.real.feature4'),
             ].map((f) => (
-              <li key={f} className="flex items-center gap-2 text-[14px] text-slate-700">
+              <li key={f} className="flex items-center gap-2 text-[14px] text-foreground">
                 <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
                 {f}
               </li>
@@ -547,10 +547,10 @@ function FinalCTA() {
           <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-primary text-primary-foreground mb-6">
             <ShieldCheck className="h-6 w-6" />
           </div>
-          <h2 className="text-[32px] font-semibold text-slate-950 mb-4">
+          <h2 className="text-[32px] font-semibold text-foreground mb-4">
             {t('landing.finalCta.title')}
           </h2>
-          <p className="text-slate-600 mb-10 max-w-md mx-auto text-[17px] leading-relaxed">
+          <p className="text-muted-foreground mb-10 max-w-md mx-auto text-[17px] leading-relaxed">
             {t('landing.finalCta.subtitle')}
           </p>
           <a href="/login" className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 py-4 rounded-xl transition-all hover:-translate-y-0.5 active:translate-y-0">

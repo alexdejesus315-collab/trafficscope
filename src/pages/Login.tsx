@@ -9,35 +9,28 @@ export default function Login() {
   const { t } = useLanguage();
 
   return (
-<div className="min-h-screen bg-muted flex items-center justify-center p-6 bg-[radial-gradient(circle,_#0000000d_1px,_transparent_1px)] bg-[size:28px_28px]">      <div className="flex w-full max-w-5xl gap-4">
+<div className="min-h-screen bg-muted flex items-center justify-center p-6">      <div className="flex w-full max-w-5xl gap-4">
 
         {/* Brand Box */}
-        <div className="hidden md:flex relative w-[50%] min-h-[85vh] flex-col justify-between bg-slate-950 px-10 py-10 text-white rounded-xl overflow-hidden">
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/20 rounded-full blur-3xl" />
-          </div>
-
-          <div className="relative inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/70">
-            <Activity className="h-4 w-4 text-white" />
+        <div className="hidden md:flex relative w-[50%] min-h-[85vh] flex-col justify-between bg-card px-10 py-10 text-foreground rounded-xl overflow-hidden">
+          <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+            <Activity className="h-4 w-4 text-foreground" />
             TrafficScope
           </div>
 
-          <div className="relative space-y-4">
-            <p className="text-xl font-semibold leading-snug tracking-tight text-white">
+          <div className="space-y-4">
+            <p className="text-xl font-semibold leading-snug tracking-tight text-foreground">
               {t('login.tagline')}
             </p>
-            <p className="text-xs text-white/60"></p>
+            <p className="text-xs text-muted-foreground"></p>
           </div>
         </div>
 
         {/* Login Box */}
-        <div className="relative overflow-hidden w-full md:w-[50%] min-h-[85vh] px-8 py-10 sm:px-12 sm:py-14 flex flex-col justify-center bg-background border border-border rounded-xl">
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute -bottom-32 -right-20 w-[400px] h-[400px] bg-primary/10 rounded-full blur-3xl" />
-          </div>
+        <div className="relative overflow-hidden w-full md:w-[50%] min-h-[85vh] px-8 py-10 sm:px-12 sm:py-14 flex flex-col justify-center bg-[#26332E] rounded-xl">
           <div className="relative max-w-md mx-auto w-full">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground text-center">{t('login.welcome')}</h1>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground text-center">
+            <h1 className="text-3xl font-bold tracking-tight text-white text-center">{t('login.welcome')}</h1>
+            <p className="mt-3 text-sm leading-6 text-white/70 text-center">
               {t('login.subtitle')}
             </p>
 
@@ -57,8 +50,8 @@ export default function Login() {
                 {t('login.googleButton')}
               </Button>
 
-              <p className="text-center text-xs leading-5 text-muted-foreground">
-                {t('login.footer.termsPrefix')} <span className="font-semibold text-foreground underline cursor-pointer">{t('login.footer.terms')}</span> {t('login.footer.and')} <span className="font-semibold text-foreground underline cursor-pointer">{t('login.footer.privacy')}</span>.
+              <p className="text-center text-xs leading-5 text-white/60">
+                {t('login.footer.termsPrefix')} <span className="font-semibold text-white/80 underline cursor-pointer">{t('login.footer.terms')}</span> {t('login.footer.and')} <span className="font-semibold text-white/80 underline cursor-pointer">{t('login.footer.privacy')}</span>.
               </p>
             </div>
           </div>

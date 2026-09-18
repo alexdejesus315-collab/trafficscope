@@ -11,7 +11,7 @@ export function BlogChart({ data, type }: BlogChartProps) {
   if (!data?.length) return null;
 
   return (
-    <div className="w-full h-72 my-6 bg-card border border-border rounded-2xl p-4">
+    <div className="w-full h-72 my-6 bg-card rounded-2xl p-4">
       <ResponsiveContainer width="100%" height="100%">
         {type === 'bar' ? (
           <BarChart data={data}>

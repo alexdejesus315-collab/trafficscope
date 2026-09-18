@@ -29,7 +29,7 @@ export default function Faq() {
           return (
             <div
               key={i}
-              className="bg-card border border-border rounded-2xl overflow-hidden transition-shadow"
+                className="bg-card rounded-2xl overflow-hidden transition-shadow"
             >
               <button
                 onClick={() => setOpenIndex(isOpen ? null : i)}

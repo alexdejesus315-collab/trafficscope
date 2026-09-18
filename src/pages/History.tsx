@@ -113,7 +113,7 @@ export default function History() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {items.map((item) => (
-              <div key={item.id} className="bg-card rounded-2xl p-4 border border-border space-y-3">
+              <div key={item.id} className="bg-card rounded-2xl p-4 space-y-3">
                 <div className="flex items-center gap-3">
                   <img
                     src={item.result.logo}
