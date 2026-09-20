@@ -88,7 +88,7 @@ export default function Blog() {
   const listPosts = posts.slice(3);
 
   return (
-    <div className="min-h-screen bg-background text-white">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -99,7 +99,7 @@ export default function Blog() {
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
-            <a href="/" className="text-xl font-bold tracking-tight text-white">
+            <a href="/" className="text-xl font-bold tracking-tight text-foreground">
               TrafficScope <span className="text-primary font-light">Blog</span>
             </a>
           </div>
@@ -118,7 +118,7 @@ export default function Blog() {
           <section className="mb-16">
             <div className="flex items-center gap-2 mb-6">
               <TrendingUp className="h-4 w-4 text-primary" />
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-white/80">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                 {t('blog.featured', 'Em destaque')}
               </h2>
             </div>
@@ -179,7 +179,7 @@ export default function Blog() {
           <section>
             <div className="flex items-center gap-2 mb-8">
               <div className="h-px flex-1 bg-border" />
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-white/80 px-4">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground px-4">
                 {t('blog.allPosts', 'Todos os artigos')}
               </h2>
               <div className="h-px flex-1 bg-border" />
@@ -202,7 +202,7 @@ export default function Blog() {
         )}
 
         {posts.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-32 text-center text-white/80">
+          <div className="flex flex-col items-center justify-center py-32 text-center text-muted-foreground">
             <p className="text-lg font-medium">{t('blog.empty.title', 'Nenhum artigo publicado')}</p>
             <p className="text-sm mt-1">{t('blog.empty.subtitle', 'Volte mais tarde para novos conteúdos')}</p>
           </div>
@@ -256,8 +256,8 @@ function FeaturedCard({
         )}
         <div className={`absolute inset-0 ${
           isLarge
-            ? 'bg-gradient-to-t from-black/80 via-black/50 to-black/20'
-            : 'bg-gradient-to-r from-black/70 via-black/50 to-transparent'
+            ? 'bg-gradient-to-t from-foreground/80 via-foreground/50 to-foreground/20'
+            : 'bg-gradient-to-r from-foreground/70 via-foreground/50 to-transparent'
         }`} />
       </div>
 
@@ -267,25 +267,25 @@ function FeaturedCard({
           <span className="inline-flex items-center rounded-full bg-primary/90 px-2.5 py-0.5 text-[11px] font-semibold text-primary-foreground">
             {getBlogCategoryLabel(post.category, language)}
           </span>
-          <span className="flex items-center gap-1 text-[11px] text-white/70">
+          <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
             <Calendar className="h-3 w-3" />
             {formatDate(post.created_at)}
           </span>
         </div>
 
-        <h3 className={`font-bold text-white leading-tight group-hover:text-primary-foreground/90 transition-colors ${
+        <h3 className={`font-bold text-foreground leading-tight group-hover:text-primary-foreground/90 transition-colors ${
           isLarge ? 'text-2xl lg:text-3xl' : 'text-lg'
         }`}>
           {displayTitle}
         </h3>
 
         {isLarge && (
-          <p className="mt-2 text-sm text-white/70 line-clamp-2 max-w-lg">
+          <p className="mt-2 text-sm text-muted-foreground line-clamp-2 max-w-lg">
             {tr?.excerpt || post.excerpt}
           </p>
         )}
 
-        <div className="flex items-center gap-3 mt-3 text-[11px] text-white/60">
+        <div className="flex items-center gap-3 mt-3 text-[11px] text-muted-foreground">
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
             {readingTime(post.content)}
@@ -299,7 +299,7 @@ function FeaturedCard({
             e.preventDefault();
             onDelete(post.slug);
           }}
-          className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 text-white/70 hover:text-destructive hover:bg-destructive/20 backdrop-blur-sm transition-colors z-10"
+          className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 text-muted-foreground hover:text-destructive hover:bg-destructive/20 backdrop-blur-sm transition-colors z-10"
         >
           <Trash2 className="h-3.5 w-3.5" />
         </button>

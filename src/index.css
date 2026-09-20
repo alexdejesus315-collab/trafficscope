@@ -3,25 +3,26 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #98C3B2;
-  --foreground: #17231D;
-  --card: #BAD7CC;
-  --card-foreground: #17231D;
+  --background: #DAF5EE;
+  --footer: color-mix(in oklch, var(--background), var(--foreground) 10%);
+  --foreground: #123832;
+  --card: #ECFAF7;
+  --card-foreground: #123832;
   --popover: #FFFFFF;
-  --popover-foreground: #17231D;
-  --primary: #3D6B54;
+  --popover-foreground: #123832;
+  --primary: #2AC6B2;
   --primary-foreground: oklch(1.0000 0 0);
-  --secondary: #DDEBE5;
-  --secondary-foreground: #26332E;
-  --muted: #DDEBE5;
-  --muted-foreground: #40534A;
+  --secondary: #F8FDFC;
+  --secondary-foreground: #1D4F47;
+  --muted: #F8FDFC;
+  --muted-foreground: #2F6B60;
   --accent: oklch(0.9514 0.0250 236.8242);
   --accent-foreground: oklch(0.3791 0.1378 265.5222);
   --destructive: oklch(0.6368 0.2078 25.3313);
   --destructive-foreground: oklch(1.0000 0 0);
-  --border: oklch(0.9276 0.0058 264.5313);
+  --border: #DAF5EE;
   --input: #FFFFFF;
-  --ring: #3D6B54;
+  --ring: #2AC6B2;
   --chart-1: oklch(0.6231 0.1880 259.8145);
   --chart-2: oklch(0.5461 0.2152 262.8809);
   --chart-3: oklch(0.4882 0.2172 264.3763);
@@ -59,6 +60,7 @@
 
 .dark {
   --background: oklch(0.2046 0 0);
+  --footer: color-mix(in oklch, var(--background), var(--foreground) 10%);
   --foreground: oklch(0.9219 0 0);
   --card: oklch(0.2686 0 0);
   --card-foreground: oklch(0.9219 0 0);
@@ -112,6 +114,7 @@
 
 @theme inline {
   --color-background: var(--background);
+  --color-footer: var(--footer);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);

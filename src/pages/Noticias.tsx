@@ -57,7 +57,7 @@ export default function Noticias() {
   const listItems = items.slice(3);
 
   return (
-    <div className="min-h-screen bg-background text-white">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -68,7 +68,7 @@ export default function Noticias() {
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
-            <a href="/" className="text-xl font-bold tracking-tight text-white">
+            <a href="/" className="text-xl font-bold tracking-tight text-foreground">
               TrafficScope <span className="text-primary font-light">{t('news.header.title')}</span>
             </a>
           </div>
@@ -82,7 +82,7 @@ export default function Noticias() {
           <section className="mb-16">
             <div className="flex items-center gap-2 mb-6">
               <Radio className="h-4 w-4 text-red-500" />
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-white/80">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                 {t('news.section.latest')}
               </h2>
             </div>
@@ -135,7 +135,7 @@ export default function Noticias() {
           <section>
             <div className="flex items-center gap-2 mb-8">
               <div className="h-px flex-1 bg-border" />
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-white/80 px-4">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground px-4">
                 {t('news.section.all')}
               </h2>
               <div className="h-px flex-1 bg-border" />
@@ -156,7 +156,7 @@ export default function Noticias() {
         )}
 
         {items.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-32 text-center text-white/80">
+          <div className="flex flex-col items-center justify-center py-32 text-center text-muted-foreground">
             <Newspaper className="h-12 w-12 text-muted-foreground/20 mb-4" />
             <p className="text-lg font-medium">{t('news.empty.title')}</p>
             <p className="text-sm mt-1">{t('news.empty.subtitle')}</p>
@@ -209,18 +209,18 @@ function FeaturedNewsCard({
         )}
         <div className={`absolute inset-0 ${
           isLarge
-            ? 'bg-gradient-to-t from-black/80 via-black/50 to-black/20'
-            : 'bg-gradient-to-r from-black/70 via-black/50 to-transparent'
+            ? 'bg-gradient-to-t from-foreground/80 via-foreground/50 to-foreground/20'
+            : 'bg-gradient-to-r from-foreground/70 via-foreground/50 to-transparent'
         }`} />
       </div>
 
       {/* Video Play Icon Overlay */}
       {hasVideo && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[1]">
-          <div className={`rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center transition-transform duration-300 group-hover:scale-110 ${
+          <div className={`rounded-full bg-card/10 backdrop-blur-sm flex items-center justify-center transition-transform duration-300 group-hover:scale-110 ${
             isLarge ? 'h-16 w-16' : 'h-10 w-10'
           }`}>
-            <PlayCircle className={`text-white ${isLarge ? 'h-8 w-8' : 'h-5 w-5'}`} />
+            <PlayCircle className={`text-card-foreground ${isLarge ? 'h-8 w-8' : 'h-5 w-5'}`} />
           </div>
         </div>
       )}
@@ -228,28 +228,28 @@ function FeaturedNewsCard({
       {/* Content */}
       <div className={`absolute inset-0 flex flex-col justify-end p-6 ${!isLarge && 'p-5'}`}>
         <div className="flex items-center gap-3 mb-3">
-          <span className="inline-flex items-center rounded-full bg-red-500/90 px-2.5 py-0.5 text-[11px] font-semibold text-white">
+          <span className="inline-flex items-center rounded-full bg-red-500/90 px-2.5 py-0.5 text-[11px] font-semibold text-destructive-foreground">
             {getCategoryLabel(item.category, language)}
           </span>
-          <span className="flex items-center gap-1 text-[11px] text-white/70">
+          <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
             <Calendar className="h-3 w-3" />
             {formatDate(item.published_at)}
           </span>
         </div>
 
-        <h3 className={`font-bold text-white leading-tight group-hover:text-red-100 transition-colors ${
+        <h3 className={`font-bold text-foreground leading-tight group-hover:text-red-100 transition-colors ${
           isLarge ? 'text-2xl lg:text-3xl' : 'text-lg'
         }`}>
           {displayHeadline}
         </h3>
 
         {isLarge && (
-          <p className="mt-2 text-sm text-white/70 line-clamp-2 max-w-lg">
+          <p className="mt-2 text-sm text-muted-foreground line-clamp-2 max-w-lg">
             {displaySummary}
           </p>
         )}
 
-        <div className="flex items-center gap-3 mt-3 text-[11px] text-white/60">
+        <div className="flex items-center gap-3 mt-3 text-[11px] text-muted-foreground">
           <span className="flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-red-400 animate-pulse" />
             {item.source_name}
@@ -263,7 +263,7 @@ function FeaturedNewsCard({
             e.preventDefault();
             onDelete(item.id);
           }}
-          className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 text-white/70 hover:text-destructive hover:bg-destructive/20 backdrop-blur-sm transition-colors z-10"
+          className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 text-muted-foreground hover:text-destructive hover:bg-destructive/20 backdrop-blur-sm transition-colors z-10"
         >
           <Trash2 className="h-3.5 w-3.5" />
         </button>
@@ -310,15 +310,15 @@ function NewsCard({
           
           {/* Video Badge */}
           {hasVideo && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
-              <div className="rounded-full bg-white/10 backdrop-blur-sm p-2">
-                <PlayCircle className="h-6 w-6 text-white" />
+            <div className="absolute inset-0 flex items-center justify-center bg-foreground/20 group-hover:bg-foreground/30 transition-colors">
+              <div className="rounded-full bg-card/10 backdrop-blur-sm p-2">
+                <PlayCircle className="h-6 w-6 text-card-foreground" />
               </div>
             </div>
           )}
 
           <div className="absolute top-3 left-3">
-            <span className="inline-flex items-center rounded-full bg-red-500/90 backdrop-blur-sm px-2.5 py-0.5 text-[11px] font-semibold text-white">
+            <span className="inline-flex items-center rounded-full bg-red-500/90 backdrop-blur-sm px-2.5 py-0.5 text-[11px] font-semibold text-destructive-foreground">
               {getCategoryLabel(item.category, language)}
             </span>
           </div>

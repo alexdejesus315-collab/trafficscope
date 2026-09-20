@@ -9,10 +9,11 @@ export default function Login() {
   const { t } = useLanguage();
 
   return (
-<div className="min-h-screen bg-muted flex items-center justify-center p-6">      <div className="flex w-full max-w-5xl gap-4">
+    <div className="min-h-screen bg-muted flex items-center justify-center p-6">
+      <div className="flex w-full max-w-5xl gap-4">
 
         {/* Brand Box */}
-        <div className="hidden md:flex relative w-[50%] min-h-[85vh] flex-col justify-between bg-card px-10 py-10 text-foreground rounded-xl overflow-hidden">
+        <div className="hidden md:flex relative w-[50%] min-h-[85vh] flex-col justify-between bg-card px-10 py-10 text-card-foreground rounded-xl overflow-hidden">
           <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
             <Activity className="h-4 w-4 text-foreground" />
             TrafficScope
@@ -27,10 +28,10 @@ export default function Login() {
         </div>
 
         {/* Login Box */}
-        <div className="relative overflow-hidden w-full md:w-[50%] min-h-[85vh] px-8 py-10 sm:px-12 sm:py-14 flex flex-col justify-center bg-[#26332E] rounded-xl">
+        <div className="relative overflow-hidden w-full md:w-[50%] min-h-[85vh] px-8 py-10 sm:px-12 sm:py-14 flex flex-col justify-center bg-secondary text-secondary-foreground rounded-xl">
           <div className="relative max-w-md mx-auto w-full">
-            <h1 className="text-3xl font-bold tracking-tight text-white text-center">{t('login.welcome')}</h1>
-            <p className="mt-3 text-sm leading-6 text-white/70 text-center">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground text-center">{t('login.welcome')}</h1>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground text-center">
               {t('login.subtitle')}
             </p>
 
@@ -39,7 +40,7 @@ export default function Login() {
                 type="button"
                 variant="outline"
                 onClick={() => void signInWithGoogle()}
-                className="w-full gap-2 py-3 h-auto rounded-xl"
+                className="w-full gap-2 py-3 h-auto rounded-xl bg-popover text-popover-foreground hover:bg-muted"
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -50,8 +51,8 @@ export default function Login() {
                 {t('login.googleButton')}
               </Button>
 
-              <p className="text-center text-xs leading-5 text-white/60">
-                {t('login.footer.termsPrefix')} <span className="font-semibold text-white/80 underline cursor-pointer">{t('login.footer.terms')}</span> {t('login.footer.and')} <span className="font-semibold text-white/80 underline cursor-pointer">{t('login.footer.privacy')}</span>.
+              <p className="text-center text-xs leading-5 text-muted-foreground">
+                {t('login.footer.termsPrefix')} <span className="font-semibold text-foreground underline cursor-pointer">{t('login.footer.terms')}</span> {t('login.footer.and')} <span className="font-semibold text-foreground underline cursor-pointer">{t('login.footer.privacy')}</span>.
               </p>
             </div>
           </div>

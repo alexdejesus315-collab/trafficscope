@@ -166,12 +166,12 @@ export function AdSlot() {
         <button
           onClick={handleDismiss}
           aria-label="Fechar anúncio"
-          className="absolute -top-1.5 -right-1.5 z-10 h-5 w-5 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-colors"
+          className="absolute -top-1.5 -right-1.5 z-10 h-5 w-5 rounded-full bg-foreground/60 hover:bg-foreground/80 text-background flex items-center justify-center transition-colors"
         >
           <X className="h-3 w-3" />
         </button>
 
-        <div className="h-10 w-10 rounded-full overflow-hidden shrink-0 bg-black/10" style={{ borderColor: rgbStr(themeColor, 0.4) }}>
+        <div className="h-10 w-10 rounded-full overflow-hidden shrink-0 bg-foreground/10" style={{ borderColor: rgbStr(themeColor, 0.4) }}>
           {currentAd.media_type === 'video' ? (
             <video
               key={currentAd.id}
