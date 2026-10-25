@@ -3,39 +3,45 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #DAF5EE;
-  --footer: color-mix(in oklch, var(--background), var(--foreground) 10%);
-  --foreground: #123832;
-  --card: #ECFAF7;
-  --card-foreground: #123832;
+  --background: #E4EAE9;
+  --footer: #123832;
+  --foreground: #202124;
+  --card: #FFFFFF;
+  --card-foreground: #202124;
   --popover: #FFFFFF;
-  --popover-foreground: #123832;
-  --primary: #2AC6B2;
-  --primary-foreground: oklch(1.0000 0 0);
-  --secondary: #F8FDFC;
-  --secondary-foreground: #1D4F47;
-  --muted: #F8FDFC;
-  --muted-foreground: #2F6B60;
-  --accent: oklch(0.9514 0.0250 236.8242);
-  --accent-foreground: oklch(0.3791 0.1378 265.5222);
-  --destructive: oklch(0.6368 0.2078 25.3313);
-  --destructive-foreground: oklch(1.0000 0 0);
-  --border: #DAF5EE;
-  --input: #FFFFFF;
+  --popover-foreground: #202124;
+  --primary: #202124;
+  --primary-foreground: #FFFFFF;
+  --brand: #2AC6B2;
+  --link: #1A73E8;
+  --link-hover: #174EA6;
+  --secondary: #EEF3F2;
+  --secondary-foreground: #202124;
+  --muted: #EEF3F2;
+  --muted-foreground: #5F6368;
+  --accent: #E6F4EA;
+  --accent-foreground: #202124;
+  --destructive: #D93025;
+  --destructive-foreground: #FFFFFF;
+  --border: #CBD5D3;
+  --input: #EEF3F2;
   --ring: #2AC6B2;
-  --chart-1: oklch(0.6231 0.1880 259.8145);
-  --chart-2: oklch(0.5461 0.2152 262.8809);
-  --chart-3: oklch(0.4882 0.2172 264.3763);
-  --chart-4: oklch(0.4244 0.1809 265.6377);
-  --chart-5: oklch(0.3791 0.1378 265.5222);
-  --sidebar: oklch(0.9846 0.0017 247.8389);
-  --sidebar-foreground: oklch(0.3211 0 0);
-  --sidebar-primary: oklch(0.6231 0.1880 259.8145);
-  --sidebar-primary-foreground: oklch(1.0000 0 0);
-  --sidebar-accent: oklch(0.9514 0.0250 236.8242);
-  --sidebar-accent-foreground: oklch(0.3791 0.1378 265.5222);
-  --sidebar-border: oklch(0.9276 0.0058 264.5313);
-  --sidebar-ring: oklch(0.6231 0.1880 259.8145);
+  --scrollbar-thumb: #748A85;
+  --scrollbar-thumb-hover: #5F6368;
+  --scrollbar-track: #E4EAE9;
+  --chart-1: #34A853;
+  --chart-2: #D93025;
+  --chart-3: #4285F4;
+  --chart-4: #F9AB00;
+  --chart-5: #1A73E8;
+  --sidebar: #E4EAE9;
+  --sidebar-foreground: #202124;
+  --sidebar-primary: #202124;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #E6F4EA;
+  --sidebar-accent-foreground: #202124;
+  --sidebar-border: #CBD5D3;
+  --sidebar-ring: #2AC6B2;
   --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -59,39 +65,45 @@
 }
 
 .dark {
-  --background: oklch(0.2046 0 0);
-  --footer: color-mix(in oklch, var(--background), var(--foreground) 10%);
-  --foreground: oklch(0.9219 0 0);
-  --card: oklch(0.2686 0 0);
-  --card-foreground: oklch(0.9219 0 0);
-  --popover: oklch(0.2686 0 0);
-  --popover-foreground: oklch(0.9219 0 0);
-  --primary: oklch(0.6231 0.1880 259.8145);
-  --primary-foreground: oklch(1.0000 0 0);
-  --secondary: oklch(0.2686 0 0);
-  --secondary-foreground: oklch(0.9219 0 0);
-  --muted: oklch(0.2393 0 0);
-  --muted-foreground: oklch(0.7155 0 0);
-  --accent: oklch(0.3791 0.1378 265.5222);
-  --accent-foreground: oklch(0.8823 0.0571 254.1284);
-  --destructive: oklch(0.6368 0.2078 25.3313);
-  --destructive-foreground: oklch(0.9219 0 0);
-  --border: oklch(0.3715 0 0);
-  --input: oklch(0.3715 0 0);
-  --ring: oklch(0.6231 0.1880 259.8145);
-  --chart-1: oklch(0.7137 0.1434 254.6240);
-  --chart-2: oklch(0.6231 0.1880 259.8145);
-  --chart-3: oklch(0.5461 0.2152 262.8809);
-  --chart-4: oklch(0.4882 0.2172 264.3763);
-  --chart-5: oklch(0.4244 0.1809 265.6377);
-  --sidebar: oklch(0.2046 0 0);
-  --sidebar-foreground: oklch(0.9219 0 0);
-  --sidebar-primary: oklch(0.6231 0.1880 259.8145);
-  --sidebar-primary-foreground: oklch(1.0000 0 0);
-  --sidebar-accent: oklch(0.3791 0.1378 265.5222);
-  --sidebar-accent-foreground: oklch(0.8823 0.0571 254.1284);
-  --sidebar-border: oklch(0.3715 0 0);
-  --sidebar-ring: oklch(0.6231 0.1880 259.8145);
+  --background: #1B1C1F;
+  --footer: #121315;
+  --foreground: #E8EAED;
+  --card: #2D2E31;
+  --card-foreground: #E8EAED;
+  --popover: #2D2E31;
+  --popover-foreground: #E8EAED;
+  --primary: #FFFFFF;
+  --primary-foreground: #202124;
+  --brand: #2AC6B2;
+  --link: #8AB4F8;
+  --link-hover: #AECBFA;
+  --secondary: #3C4043;
+  --secondary-foreground: #E8EAED;
+  --muted: #3C4043;
+  --muted-foreground: #9AA0A6;
+  --accent: #1E3A2A;
+  --accent-foreground: #E8EAED;
+  --destructive: #F28B82;
+  --destructive-foreground: #202124;
+  --border: #3C4043;
+  --input: #3C4043;
+  --ring: #2AC6B2;
+  --scrollbar-thumb: #74787D;
+  --scrollbar-thumb-hover: #9AA0A6;
+  --scrollbar-track: #1B1C1F;
+  --chart-1: #81C995;
+  --chart-2: #F28B82;
+  --chart-3: #8AB4F8;
+  --chart-4: #FDD663;
+  --chart-5: #AECBFA;
+  --sidebar: #202124;
+  --sidebar-foreground: #E8EAED;
+  --sidebar-primary: #FFFFFF;
+  --sidebar-primary-foreground: #202124;
+  --sidebar-accent: #3C4043;
+  --sidebar-accent-foreground: #E8EAED;
+  --sidebar-border: #3C4043;
+  --sidebar-ring: #2AC6B2;
   --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -122,6 +134,9 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-brand: var(--brand);
+  --color-link: var(--link);
+  --color-link-hover: var(--link-hover);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -172,7 +187,7 @@
   }
 
   html {
-    scrollbar-color: var(--primary) var(--secondary);
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
     scrollbar-width: thin;
   }
 
@@ -182,20 +197,25 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: var(--secondary);
+    background: var(--scrollbar-track);
   }
 
   ::-webkit-scrollbar-thumb {
-    background: var(--primary);
+    background: var(--scrollbar-thumb);
     border-radius: 999px;
+    border: 2px solid var(--scrollbar-track);
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: color-mix(in oklch, var(--primary), var(--foreground) 15%);
+    background: var(--scrollbar-thumb-hover);
   }
 
   body {
     @apply bg-background text-foreground;
+  }
+  .text-link:hover,
+  .prose a:hover {
+    color: var(--link-hover);
   }
   .prose img {
     @apply max-h-80 w-full object-cover rounded-xl;

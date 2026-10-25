@@ -74,7 +74,7 @@ export default function ArticleEditor({ initialContent, initialTitle, initialSou
     extensions: [
       StarterKit,
       Image.configure({ HTMLAttributes: { class: 'rounded-xl' } }),
-      Link.configure({ openOnClick: false, HTMLAttributes: { class: 'text-primary underline' } }),
+      Link.configure({ openOnClick: false, HTMLAttributes: { class: 'text-link underline' } }),
       Placeholder.configure({ placeholder: 'Escreve o conteúdo do artigo...' }),
       TextStyle,
       Color,
@@ -193,7 +193,7 @@ export default function ArticleEditor({ initialContent, initialTitle, initialSou
 
   const toolbarButtonClass = (isActive: boolean) =>
     `flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
-      isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+      isActive ? 'bg-brand text-[#202124]' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
     }`;
 
   return (
@@ -213,7 +213,7 @@ export default function ArticleEditor({ initialContent, initialTitle, initialSou
           <button
             onClick={handleSave}
             disabled={isSaving || isUploading}
-            className="flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-[#3C4043] dark:hover:bg-[#E8EAED] transition-colors disabled:opacity-50"
           >
             {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
             {isSaving ? 'A guardar...' : 'Guardar'}
@@ -222,7 +222,7 @@ export default function ArticleEditor({ initialContent, initialTitle, initialSou
       </div>
 
       {/* Toolbar */}
-<div className="flex items-center gap-1 px-4 md:px-6 h-14 border-b border-border shrink-0 overflow-visible relative z-20 bg-card">        <button onClick={() => editor.chain().focus().toggleBold().run()} className={toolbarButtonClass(editor.isActive('bold'))} title="Negrito">
+<div className="flex items-center gap-1 px-4 md:px-6 h-14 border-b border-border shrink-0 overflow-visible relative z-20 bg-muted">        <button onClick={() => editor.chain().focus().toggleBold().run()} className={toolbarButtonClass(editor.isActive('bold'))} title="Negrito">
           <Bold className="h-4 w-4" />
         </button>
         <button onClick={() => editor.chain().focus().toggleItalic().run()} className={toolbarButtonClass(editor.isActive('italic'))} title="Itálico">
@@ -251,7 +251,7 @@ export default function ArticleEditor({ initialContent, initialTitle, initialSou
             <LinkIcon className="h-4 w-4" />
           </button>
           {showLinkInput && (
-            <div className="absolute top-full left-0 mt-1 bg-card rounded-lg p-2 flex items-center gap-1.5 z-30">
+            <div className="absolute top-full left-0 mt-1 bg-muted rounded-lg p-2 flex items-center gap-1.5 z-30">
               <input
                 type="text"
                 value={linkUrl}
@@ -286,7 +286,7 @@ export default function ArticleEditor({ initialContent, initialTitle, initialSou
           <button className={toolbarButtonClass(editor.isActive('highlight'))} title="Marca-texto">
             <Highlighter className="h-4 w-4" />
           </button>
-<div className="hidden group-hover:flex absolute top-full left-0 mt-1 bg-card rounded-lg p-1.5 gap-1 z-30">            {['#FEF08A', '#BBF7D0', '#BFDBFE', '#FBCFE8'].map((color) => (
+<div className="hidden group-hover:flex absolute top-full left-0 mt-1 bg-muted rounded-lg p-1.5 gap-1 z-30">            {['#FEF08A', '#BBF7D0', '#BFDBFE', '#FBCFE8'].map((color) => (
               <button
                 key={color}
                 onClick={() => editor.chain().focus().toggleHighlight({ color }).run()}
@@ -318,12 +318,12 @@ export default function ArticleEditor({ initialContent, initialTitle, initialSou
             value={articleTitle}
             onChange={(e) => setArticleTitle(e.target.value)}
             placeholder="Título do artigo..."
-            className="w-full mb-6 bg-transparent text-3xl md:text-4xl font-bold text-foreground placeholder:text-muted-foreground/40 focus:outline-none border-b border-transparent focus:border-border pb-2 transition-colors"
+            className="w-full mb-6 bg-transparent text-3xl md:text-4xl font-bold text-foreground placeholder:text-muted-foreground focus:outline-none border-b border-transparent focus:border-border pb-2 transition-colors"
           />
           <div onClick={handleEditorClick}>
             <EditorContent
               editor={editor}
-              className="prose prose-lg max-w-none text-foreground prose-headings:text-foreground prose-headings:font-bold prose-p:text-muted-foreground prose-p:leading-relaxed prose-strong:text-foreground prose-a:text-primary prose-blockquote:border-l-primary prose-blockquote:bg-muted/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-li:text-muted-foreground focus:outline-none min-h-[400px]"
+              className="prose prose-lg max-w-none text-foreground prose-headings:text-foreground prose-headings:font-bold prose-p:text-muted-foreground prose-p:leading-relaxed prose-strong:text-foreground prose-a:text-link prose-blockquote:border-l-brand prose-blockquote:bg-muted/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-li:text-muted-foreground focus:outline-none min-h-[400px]"
             />
           </div>
           {imageEditPos !== null && imageEditRect && (
@@ -342,7 +342,7 @@ export default function ArticleEditor({ initialContent, initialTitle, initialSou
               <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">Fontes</h3>
               <button
                 onClick={addSource}
-                className="text-xs font-medium text-primary hover:underline"
+                className="text-xs font-medium text-link hover:underline"
               >
                 + Adicionar fonte
               </button>
@@ -355,14 +355,14 @@ export default function ArticleEditor({ initialContent, initialTitle, initialSou
                     value={source.title}
                     onChange={(e) => updateSource(i, 'title', e.target.value)}
                     placeholder="Título da fonte"
-                    className="flex-1 bg-card border border-border rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-primary"
+                    className="flex-1 bg-muted border border-border rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-primary"
                   />
                   <input
                     type="text"
                     value={source.url}
                     onChange={(e) => updateSource(i, 'url', e.target.value)}
                     placeholder="https://"
-                    className="flex-1 bg-card border border-border rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-primary"
+                    className="flex-1 bg-muted border border-border rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-primary"
                   />
                   <button
                     onClick={() => removeSource(i)}
@@ -388,7 +388,7 @@ export default function ArticleEditor({ initialContent, initialTitle, initialSou
               value={youtubeUrl}
               onChange={(e) => setYoutubeUrl(e.target.value)}
               placeholder="https://www.youtube.com/watch?v=... (deixa vazio para remover)"
-              className="w-full bg-card border border-border rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-primary"
+              className="w-full bg-muted border border-border rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none focus:border-primary"
             />
           </div>
           )}

@@ -4,6 +4,7 @@ import { Activity } from 'lucide-react';
 import { useAuth } from './hooks/useAuth';
 import { LanguageProvider } from './context/LanguageContext';
 import { AdSlot } from './components/AdSlot';
+import { SiteFooter } from './components/SiteFooter';
 
 const Landing = lazy(() => import('./pages/Landing'));
 const Login = lazy(() => import('./pages/Login'));
@@ -57,6 +58,7 @@ export default function App() {
           <Route path="/suporte" element={<Suporte />} />
         </Routes>
         </Suspense>
+      <SiteFooter />
       <AdSlot />
     </LanguageProvider>
   );

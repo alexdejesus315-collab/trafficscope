@@ -65,8 +65,8 @@ export function useNotifications(userId: string | undefined) {
   }, [userId, attachReadStatus]);
 
   // NOVO: carrega mais 20, a partir da última data já mostrada (scroll infinito)
-  const loadMore = useCallback(async () => {
-    if (!userId || isLoadingMore || !hasMore || notifications.length === 0) return;
+  const loadMore = useCallback(async (): Promise<boolean> => {
+    if (!userId || isLoadingMore || !hasMore || notifications.length === 0) return false;
 
     setIsLoadingMore(true);
     const oldest = notifications[notifications.length - 1].created_at;
@@ -82,13 +82,14 @@ export function useNotifications(userId: string | undefined) {
     if (error || !notifs) {
       console.error('Erro ao carregar mais notificações:', error);
       setIsLoadingMore(false);
-      return;
+      return false;
     }
 
     const withReadStatus = await attachReadStatus(notifs);
     setNotifications(prev => [...prev, ...withReadStatus]);
     setHasMore(notifs.length === PAGE_SIZE);
     setIsLoadingMore(false);
+    return notifs.length > 0;
   }, [userId, isLoadingMore, hasMore, notifications, attachReadStatus]);
 
   useEffect(() => {

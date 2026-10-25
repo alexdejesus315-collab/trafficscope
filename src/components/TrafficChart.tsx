@@ -49,7 +49,7 @@ export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border">
           <div>
             <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-              <BarChart2 className="h-5 w-5 text-primary" />
+              <BarChart2 className="h-5 w-5 text-brand" />
               <span>{t('trafficChart.title')}</span>
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -69,7 +69,7 @@ export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
                 onClick={() => setChartType('area')}
                 className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                   chartType === 'area'
-                    ? 'bg-background text-primary border border-border'
+                    ? 'bg-background text-foreground border border-border'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -79,7 +79,7 @@ export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
                 onClick={() => setChartType('line')}
                 className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                   chartType === 'line'
-                    ? 'bg-background text-primary border border-border'
+                    ? 'bg-background text-foreground border border-border'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -153,7 +153,7 @@ export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
         {/* Chart Legend / Summary */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2">
           {metricsList.map((m, idx) => (
-            <div key={m.domain} className="bg-muted p-3 rounded-xl border border-border flex items-center justify-between hover:border-primary/30 transition-colors">
+            <div key={m.domain} className="bg-muted p-3 rounded-xl border border-border flex items-center justify-between hover:border-brand/30 transition-colors">
               <div className="flex items-center gap-2">
                 <span
                   className="h-3 w-3 rounded-full"
@@ -165,7 +165,7 @@ export const TrafficChart: React.FC<TrafficChartProps> = ({ metricsList }) => {
                 <span className="text-xs font-extrabold text-foreground font-mono">
                   {formatNumberShort(m.monthlyVisits)}
                 </span>
-                <span className={`block text-[10px] font-bold ${m.growthRate >= 0 ? 'text-primary' : 'text-rose-600'}`}>
+                <span className={`block text-[10px] font-bold ${m.growthRate >= 0 ? 'text-[#137333] dark:text-[#81C995]' : 'text-[#B3261E] dark:text-[#F28B82]'}`}>
                   {m.growthRate >= 0 ? `+${m.growthRate}%` : `${m.growthRate}%`}
                 </span>
               </div>

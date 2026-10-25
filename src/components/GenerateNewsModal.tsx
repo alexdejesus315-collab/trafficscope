@@ -116,7 +116,7 @@ export function GenerateNewsModal({ open, onOpenChange, onGenerated, anchorRef }
                  overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150 p-4"
     >
       <div className="flex items-center gap-2 mb-3">
-        <Sparkles className="h-4 w-4 text-primary" />
+        <Sparkles className="h-4 w-4 text-brand" />
         <p className="text-sm font-semibold text-foreground">Gerar Notícia</p>
       </div>
 
@@ -152,7 +152,7 @@ export function GenerateNewsModal({ open, onOpenChange, onGenerated, anchorRef }
               onClick={() => setCategoryKey(null)}
               disabled={isLoading}
               className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-left transition-colors ${
-                categoryKey === null ? 'bg-primary/10 text-primary font-semibold' : 'text-muted-foreground hover:bg-muted'
+                categoryKey === null ? 'bg-accent text-foreground font-semibold' : 'text-muted-foreground hover:bg-muted'
               }`}
             >
               <Shuffle className="h-3.5 w-3.5" />
@@ -165,7 +165,7 @@ export function GenerateNewsModal({ open, onOpenChange, onGenerated, anchorRef }
                 onClick={() => setCategoryKey(cat.key)}
                 disabled={isLoading}
                 className={`rounded-lg px-3 py-2 text-sm text-left transition-colors ${
-                  categoryKey === cat.key ? 'bg-primary/10 text-primary font-semibold' : 'text-muted-foreground hover:bg-muted'
+                  categoryKey === cat.key ? 'bg-accent text-foreground font-semibold' : 'text-muted-foreground hover:bg-muted'
                 }`}
               >
                 {cat.label}
@@ -185,7 +185,7 @@ export function GenerateNewsModal({ open, onOpenChange, onGenerated, anchorRef }
               onChange={(e) => setManualHeadline(e.target.value)}
               disabled={isLoading}
               placeholder="Ex: UE aprova nova lei sobre IA generativa"
-              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary"
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
             />
           </div>
           <div>
@@ -196,7 +196,7 @@ export function GenerateNewsModal({ open, onOpenChange, onGenerated, anchorRef }
               disabled={isLoading}
               placeholder="Cola aqui os factos/dados principais que queres que a notícia inclua"
               rows={4}
-              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary resize-none"
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary resize-none"
             />
           </div>
           <div>
@@ -207,7 +207,7 @@ export function GenerateNewsModal({ open, onOpenChange, onGenerated, anchorRef }
               onChange={(e) => setManualSourceName(e.target.value)}
               disabled={isLoading}
               placeholder="Ex: Reuters"
-              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary"
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
             />
           </div>
           <div>
@@ -218,7 +218,7 @@ export function GenerateNewsModal({ open, onOpenChange, onGenerated, anchorRef }
               onChange={(e) => setManualSourceUrl(e.target.value)}
               disabled={isLoading}
               placeholder="https://"
-              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary"
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
             />
           </div>
         </div>
@@ -233,7 +233,7 @@ export function GenerateNewsModal({ open, onOpenChange, onGenerated, anchorRef }
         onChange={(e) => setYoutubeUrl(e.target.value)}
         disabled={isLoading}
         placeholder="Cola o link do vídeo aqui"
-        className="w-full mb-3 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary"
+        className="w-full mb-3 bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
       />
 
       {error && <p className="text-xs text-destructive mb-2">{error}</p>}

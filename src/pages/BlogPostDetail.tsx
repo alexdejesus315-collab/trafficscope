@@ -8,7 +8,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { useAuth } from '../hooks/useAuth';
 import { isOwner } from '../lib/ownerConfig';
-import { Trash2, ArrowLeft, ArrowRight, Clock, Calendar, TrendingUp, ExternalLink, BookOpen, PenSquare } from 'lucide-react';import { useLanguage } from '../context/LanguageContext';
+import { Trash2, House, Activity, ArrowRight, Clock, Calendar, TrendingUp, ExternalLink, BookOpen, PenSquare } from 'lucide-react';import { useLanguage } from '../context/LanguageContext';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import ArticleEditor from '../components/ArticleEditor';
 import { getBlogCategoryLabel } from '../lib/blogCategoryLabels';
@@ -115,7 +115,7 @@ export default function BlogPostDetail() {
   if (!post) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        <div className="h-8 w-8 rounded-full border-2 border-brand border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -130,25 +130,29 @@ export default function BlogPostDetail() {
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
-        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link
-              to="/blog"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-foreground hover:text-foreground hover:bg-muted transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-            <a href="/" className="text-xl font-bold tracking-tight text-foreground">
-              TrafficScope <span className="text-primary font-light">Blog</span>
-            </a>
-          </div>
-          <div className="flex items-center gap-3">
+        <div className="max-w-4xl mx-auto px-4 h-16 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center">
+          <a href="/" className="flex min-w-0 flex-col gap-0.5 text-foreground">
+            <span className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.1em] sm:tracking-[0.3em]">
+              <Activity className="h-4 w-4" />
+              TrafficScope
+            </span>
+            <span className="hidden sm:block text-[11px] text-muted-foreground leading-tight">{t('nav.tagline')}</span>
+          </a>
+          <Link
+            to="/"
+            aria-label="Página inicial"
+            title="Página inicial"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-foreground hover:text-foreground hover:bg-muted transition-colors"
+          >
+            <House className="h-4 w-4" />
+          </Link>
+          <div className="flex min-w-0 items-center justify-end gap-3">
             <LanguageSwitcher />
             {showDeleteButton && (
               <>
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+                  className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-link-hover transition-colors"
                 >
                   <PenSquare className="h-3.5 w-3.5" />
                   Editar
@@ -184,7 +188,7 @@ export default function BlogPostDetail() {
         <div className="relative min-h-[320px] md:min-h-[420px] flex items-end">
           <div className="max-w-4xl mx-auto px-4 w-full pb-8 md:pb-12 pt-24">
             <div className="flex items-center gap-3 mb-4">
-              <span className="inline-flex items-center rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
+              <span className="inline-flex items-center rounded-full bg-brand px-3 py-1 text-xs font-semibold text-[#202124]">
                 {getBlogCategoryLabel(post.category, language)}
               </span>
               {isTranslating && (
@@ -252,15 +256,15 @@ export default function BlogPostDetail() {
         )}
 
         {/* Article body */}
-        <article className="prose prose-lg max-w-none text-muted-foreground prose-headings:text-foreground prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3 prose-p:text-muted-foreground prose-p:leading-relaxed prose-strong:text-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-primary prose-blockquote:bg-muted/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-li:text-muted-foreground prose-table:text-sm prose-th:bg-muted prose-th:font-semibold prose-td:border-border">
+        <article className="prose prose-lg max-w-none text-muted-foreground prose-headings:text-foreground prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3 prose-p:text-muted-foreground prose-p:leading-relaxed prose-strong:text-foreground prose-a:text-link prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-brand prose-blockquote:bg-muted/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-li:text-muted-foreground prose-table:text-sm prose-th:bg-muted prose-th:font-semibold prose-td:border-border">
           <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{displayContent}</ReactMarkdown>
         </article>
 
         {/* CTA */}
         <div className="mt-14 p-6 md:p-8 rounded-2xl bg-secondary">
           <div className="flex items-start gap-4">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-              <TrendingUp className="h-5 w-5 text-primary" />
+            <div className="h-10 w-10 rounded-xl bg-brand/10 flex items-center justify-center shrink-0">
+              <TrendingUp className="h-5 w-5 text-brand" />
             </div>
             <div className="flex-1">
               <p className="text-sm md:text-base text-foreground font-medium">
@@ -270,7 +274,7 @@ export default function BlogPostDetail() {
               </p>
               <Link
                 to="/"
-                className="inline-flex items-center gap-1.5 mt-3 text-sm font-semibold text-primary hover:underline"
+                className="inline-flex items-center gap-1.5 mt-3 text-sm font-semibold text-link hover:underline"
               >
                 {t('blogPost.cta.link')}
                 <ArrowRight className="h-3.5 w-3.5" />
@@ -297,7 +301,7 @@ export default function BlogPostDetail() {
               href={post.affiliate_link}
               target="_blank"
               rel="noopener noreferrer sponsored"
-              className="inline-flex items-center gap-1.5 shrink-0 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+              className="inline-flex items-center gap-1.5 shrink-0 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-[#3C4043] dark:hover:bg-[#E8EAED] transition-colors"
             >
               {t('blogPost.affiliate.link')}
               <ExternalLink className="h-3 w-3" />
@@ -318,9 +322,9 @@ export default function BlogPostDetail() {
                     href={s.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+                    className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-link-hover transition-colors"
                   >
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-brand shrink-0" />
                     {s.title}
                     <ExternalLink className="h-3 w-3 opacity-50" />
                   </a>

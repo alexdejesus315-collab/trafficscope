@@ -255,7 +255,7 @@ export function AdManagerModal({ open, onOpenChange, anchorRef }: AdManagerModal
                  overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150 p-4"
     >
       <div className="flex items-center gap-2 mb-3">
-        <Megaphone className="h-4 w-4 text-primary" />
+        <Megaphone className="h-4 w-4 text-brand" />
         <p className="text-sm font-semibold text-foreground">Gerir Anúncios</p>
       </div>
 
@@ -322,7 +322,7 @@ export function AdManagerModal({ open, onOpenChange, anchorRef }: AdManagerModal
                     title={ad.active ? 'Desativar' : 'Ativar'}
                     className={`shrink-0 h-7 w-7 rounded-md flex items-center justify-center transition-colors ${
                       ad.active
-                        ? 'text-emerald-600 hover:bg-emerald-500/10'
+                        ? 'text-[#137333] dark:text-[#81C995] hover:bg-emerald-500/10'
                         : 'text-muted-foreground hover:bg-muted'
                     }`}
                   >
@@ -346,7 +346,7 @@ export function AdManagerModal({ open, onOpenChange, anchorRef }: AdManagerModal
       {tab === 'add' && (
         <div className="flex flex-col gap-2">
           {editingId && (
-            <p className="text-xs font-semibold text-primary mb-1">✏️ A editar anúncio existente</p>
+            <p className="text-xs font-semibold text-[#137333] mb-1">✏️ A editar anúncio existente</p>
           )}
           <div>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Título (interno, opcional)</p>
@@ -356,7 +356,7 @@ export function AdManagerModal({ open, onOpenChange, anchorRef }: AdManagerModal
               onChange={(e) => setTitle(e.target.value)}
               disabled={isSubmitting}
               placeholder="Ex: Promo Hosting XYZ"
-              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary"
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
             />
           </div>
 
@@ -385,7 +385,7 @@ export function AdManagerModal({ open, onOpenChange, anchorRef }: AdManagerModal
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isSubmitting}
-              className="w-full flex items-center justify-center gap-2 border border-dashed border-border rounded-lg px-3 py-3 text-xs text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+              className="w-full flex items-center justify-center gap-2 border border-dashed border-border rounded-lg px-3 py-3 text-xs text-muted-foreground hover:border-brand hover:text-link-hover transition-colors"
             >
               <Upload className="h-3.5 w-3.5" />
               {file ? file.name : 'Escolher ficheiro'}
@@ -413,7 +413,7 @@ export function AdManagerModal({ open, onOpenChange, anchorRef }: AdManagerModal
               onChange={(e) => setMediaUrl(e.target.value)}
               disabled={isSubmitting || !!file}
               placeholder="https://..."
-              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary disabled:opacity-40"
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary disabled:opacity-40"
             />
           </div>
 
@@ -425,7 +425,7 @@ export function AdManagerModal({ open, onOpenChange, anchorRef }: AdManagerModal
               onChange={(e) => setLinkUrl(e.target.value)}
               disabled={isSubmitting}
               placeholder="https://..."
-              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary"
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
             />
           </div>
 

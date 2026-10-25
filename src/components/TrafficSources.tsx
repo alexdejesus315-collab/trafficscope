@@ -48,7 +48,7 @@ export const TrafficSources: React.FC<TrafficSourcesProps> = ({ metrics }) => {
         return <Search className="h-4 w-4 text-emerald-600" />;
       case 'direto':
       case 'direct':
-        return <Globe className="h-4 w-4 text-primary" />;
+        return <Globe className="h-4 w-4 text-brand" />;
       case 'social':
         return <Share2 className="h-4 w-4 text-pink-600" />;
       case 'email':
@@ -82,7 +82,7 @@ export const TrafficSources: React.FC<TrafficSourcesProps> = ({ metrics }) => {
         <div className="flex items-center justify-between pb-2 border-b border-border">
           <div>
             <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-              <Compass className="h-5 w-5 text-primary" />
+              <Compass className="h-5 w-5 text-brand" />
               <span>{t('trafficSources.title')}</span>
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">

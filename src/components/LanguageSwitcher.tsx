@@ -39,7 +39,7 @@ export const LanguageSwitcher: React.FC = () => {
       <button
         ref={toggleRef}
         onClick={() => setIsOpen((v) => !v)}
-        className="flex items-center gap-1.5 !text-sidebar-foreground text-base font-semibold rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+        className="flex items-center gap-1.5 !text-sidebar-foreground text-base font-semibold rounded-full px-4 py-2 hover:!bg-muted hover:!text-link-hover transition-all duration-200"
         aria-expanded={isOpen}
         aria-label="Selecionar idioma"
       >
@@ -58,7 +58,7 @@ export const LanguageSwitcher: React.FC = () => {
               key={lang.code}
               onClick={() => handleSelect(lang.code)}
               className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left transition-colors hover:bg-accent/50 ${
-                lang.code === language ? 'bg-primary/5 font-semibold text-foreground' : 'text-foreground/80'
+                lang.code === language ? 'bg-muted font-semibold text-foreground' : 'text-foreground/80'
               }`}
             >
               <span className="text-lg leading-none">{lang.flag}</span>

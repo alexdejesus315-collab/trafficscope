@@ -40,7 +40,7 @@ export const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
         {/* Header */}
         <div className="text-center space-y-2 max-w-xl mx-auto pt-2 pb-2">
           <Badge variant="secondary" className="gap-1.5">
-            <Zap className="h-3.5 w-3.5 text-primary" />
+            <Zap className="h-3.5 w-3.5 text-brand" />
             {t('buyCredits.badge')}
           </Badge>
           <h2 className="text-2xl font-bold text-foreground">
@@ -52,11 +52,11 @@ export const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
         </div>
 
         {/* Card Único */}
-        <Card className="p-6 flex flex-col justify-between space-y-6 border-2 border-primary/30 bg-primary/5 relative overflow-hidden transition-shadow duration-200">
+        <Card className="p-6 flex flex-col justify-between space-y-6 border-2 border-brand/30 bg-card relative overflow-hidden transition-shadow duration-200">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Sparkles className="h-6 w-6 text-primary" />
+              <div className="h-12 w-12 rounded-xl bg-muted flex items-center justify-center">
+                <Sparkles className="h-6 w-6 text-brand" />
               </div>
               <div>
                 <span className="text-xs font-bold text-foreground uppercase tracking-wider block">
@@ -74,23 +74,23 @@ export const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
 
             <ul className="space-y-2.5 text-xs pt-2 border-t">
               <li className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-primary shrink-0" />
+                <Check className="h-4 w-4 text-brand shrink-0" />
                 <span className="font-semibold">{t('buyCredits.feature.searches')}</span>
               </li>
               <li className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-primary shrink-0" />
+                <Check className="h-4 w-4 text-brand shrink-0" />
                 <span>{t('buyCredits.feature.realData')}</span>
               </li>
               <li className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-primary shrink-0" />
+                <Check className="h-4 w-4 text-brand shrink-0" />
                 <span>{t('buyCredits.feature.exports')}</span>
               </li>
               <li className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-primary shrink-0" />
+                <Check className="h-4 w-4 text-brand shrink-0" />
                 <span>{t('buyCredits.feature.aiInsights')}</span>
               </li>
               <li className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-primary shrink-0" />
+                <Check className="h-4 w-4 text-brand shrink-0" />
                 <span>{t('buyCredits.feature.noExpiry')}</span>
               </li>
             </ul>
@@ -99,7 +99,7 @@ export const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({
           <Button
             onClick={handleCheckout}
             variant="default"
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold gap-2"
+            className="w-full bg-primary hover:bg-[#3C4043] dark:hover:bg-[#E8EAED] text-primary-foreground font-bold gap-2"
             size="lg"
           >
             <CreditCard className="h-4 w-4" />

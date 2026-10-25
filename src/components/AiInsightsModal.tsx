@@ -90,7 +90,7 @@ function SyntheticBadge({ className, t }: { className?: string; t: (key: string)
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-700',
+        'inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-[#8D4B00] dark:border-amber-700 dark:bg-amber-950/40 dark:text-[#FDD663]',
         className
       )}
     >
@@ -106,7 +106,7 @@ function ReportBubble({ domain, metrics, report, t }: { domain: string; metrics:
   return (
     <div className="max-w-full space-y-2 text-sm text-foreground">
       {isSynthetic && (
-        <p className="text-xs text-amber-600">
+        <p className="text-xs text-[#8D4B00] dark:text-[#FDD663]">
           {t('aiInsights.report.syntheticWarning')}
         </p>
       )}

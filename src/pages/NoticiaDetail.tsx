@@ -7,7 +7,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { useAuth } from '../hooks/useAuth';
 import { isOwner } from '../lib/ownerConfig';
-import { Trash2, ArrowLeft, Calendar, ExternalLink, Radio, PlayCircle, Newspaper, ArrowRight, PenSquare } from 'lucide-react';import { useLanguage } from '../context/LanguageContext';
+import { Trash2, House, Activity, Calendar, ExternalLink, Radio, PlayCircle, Newspaper, ArrowRight, PenSquare } from 'lucide-react';import { useLanguage } from '../context/LanguageContext';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import ArticleEditor from '../components/ArticleEditor';
 import { getCategoryLabel } from '../lib/newsCategoryLabels';export default function NoticiaDetail() {
@@ -94,7 +94,7 @@ import { getCategoryLabel } from '../lib/newsCategoryLabels';export default func
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        <div className="h-8 w-8 rounded-full border-2 border-brand border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -104,7 +104,7 @@ import { getCategoryLabel } from '../lib/newsCategoryLabels';export default func
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3 text-muted-foreground">
         <Newspaper className="h-12 w-12 text-muted-foreground/20" />
         <p>{t('newsDetail.notFound')}</p>
-        <Link to="/noticias" className="text-primary text-sm font-semibold hover:underline">{t('newsDetail.backToNews')}</Link>
+        <Link to="/noticias" className="text-link text-sm font-semibold hover:underline">{t('newsDetail.backToNews')}</Link>
       </div>
     );
   }
@@ -118,25 +118,29 @@ import { getCategoryLabel } from '../lib/newsCategoryLabels';export default func
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
-        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link
-              to="/noticias"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-foreground hover:text-foreground hover:bg-muted transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-            <a href="/" className="text-xl font-bold tracking-tight text-foreground">
-              TrafficScope <span className="text-primary font-light">{t('news.header.title')}</span>
-            </a>
-          </div>
-          <div className="flex items-center gap-3">
+        <div className="max-w-4xl mx-auto px-4 h-16 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center">
+          <a href="/" className="flex min-w-0 flex-col gap-0.5 text-foreground">
+            <span className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.1em] sm:tracking-[0.3em]">
+              <Activity className="h-4 w-4" />
+              TrafficScope
+            </span>
+            <span className="hidden sm:block text-[11px] text-muted-foreground leading-tight">{t('nav.tagline')}</span>
+          </a>
+          <Link
+            to="/"
+            aria-label="Página inicial"
+            title="Página inicial"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-foreground hover:text-foreground hover:bg-muted transition-colors"
+          >
+            <House className="h-4 w-4" />
+          </Link>
+          <div className="flex min-w-0 items-center justify-end gap-3">
             <LanguageSwitcher />
             {showDeleteButton && (
             <>
               <button
                 onClick={() => setIsEditing(true)}
-                className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+                className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-link-hover transition-colors"
               >
                 <PenSquare className="h-3.5 w-3.5" />
                 Editar
@@ -199,7 +203,7 @@ import { getCategoryLabel } from '../lib/newsCategoryLabels';export default func
                 {t('newsDetail.source')}: {item.source_name}
               </span>
               {hasVideo && (
-                <span className="flex items-center gap-1.5 text-red-500 font-medium">
+                <span className="flex items-center gap-1.5 text-destructive font-medium">
                   <PlayCircle className="h-3.5 w-3.5" />
                   {t('newsDetail.hasVideo')}
                 </span>
@@ -232,7 +236,7 @@ import { getCategoryLabel } from '../lib/newsCategoryLabels';export default func
         )}
 
         {/* Article body */}
-        <article className="prose prose-lg max-w-none text-muted-foreground prose-headings:text-foreground prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3 prose-p:text-muted-foreground prose-p:leading-relaxed prose-strong:text-foreground prose-a:text-red-500 prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-red-500 prose-blockquote:bg-red-500/5 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-li:text-muted-foreground">
+        <article className="prose prose-lg max-w-none text-muted-foreground prose-headings:text-foreground prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3 prose-p:text-muted-foreground prose-p:leading-relaxed prose-strong:text-foreground prose-a:text-link prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-brand prose-blockquote:bg-muted/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-li:text-muted-foreground">
           <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{displayContent}</ReactMarkdown>
         </article>
 
@@ -240,7 +244,7 @@ import { getCategoryLabel } from '../lib/newsCategoryLabels';export default func
         <div className="mt-14 pt-6 border-t border-border/50">
           <p className="text-sm text-muted-foreground">
             {t('newsDetail.statsVia')}{' '}
-            <Link to="/" className="text-red-500/80 hover:text-red-500 font-medium transition-colors">
+            <Link to="/" className="text-link font-medium transition-colors">
               TrafficScope →
             </Link>
           </p>
@@ -260,7 +264,7 @@ import { getCategoryLabel } from '../lib/newsCategoryLabels';export default func
                 href={item.source_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 mt-3 text-sm font-semibold text-red-500 hover:underline"
+                className="inline-flex items-center gap-1.5 mt-3 text-sm font-semibold text-link hover:underline"
               >
                 {t('newsDetail.viewOriginalSource')}: {item.source_name}
                 <ArrowRight className="h-3.5 w-3.5" />

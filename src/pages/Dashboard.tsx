@@ -17,7 +17,6 @@ import { TrafficSources } from '../components/TrafficSources';
 import { GeoMapSection } from '../components/GeoMapSection';
 import { UserProfileModal } from '../components/UserProfileModal';
 import { BuyCreditsModal } from '../components/BuyCreditsModal';
-import { SiteFooter } from '../components/SiteFooter';
 
 const AiInsightsModal = lazy(() =>
   import('../components/AiInsightsModal').then(m => ({ default: m.AiInsightsModal }))
@@ -309,7 +308,7 @@ export default function Dashboard() {
   };
 
   return (
-<div className="min-h-screen bg-background text-foreground font-sans antialiased selection:bg-primary selection:text-primary-foreground pb-16 bg-[radial-gradient(circle,_#0000000d_1px,_transparent_1px)] bg-[size:28px_28px]">
+<div className="min-h-screen bg-background text-foreground font-sans antialiased selection:bg-primary selection:text-primary-foreground">
         <Navbar
         user={user}
         onSignOut={() => void signOut()}
@@ -330,7 +329,7 @@ export default function Dashboard() {
       />
 
       {selectedDomains.length > 0 && (
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16 space-y-6">
           {isPrimaryLoading || !primaryMetrics ? (
             <DashboardSkeleton />
           ) : isCompareMode && selectedDomains.length > 1 ? (
@@ -357,7 +356,7 @@ export default function Dashboard() {
                         href={`https://${primaryMetrics.domain}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-primary transition-colors"
+                        className="text-muted-foreground hover:text-link-hover transition-colors"
                       >
                         <ExternalLink className="h-4 w-4" />
                       </a>
@@ -369,7 +368,7 @@ export default function Dashboard() {
                       )}
                     </div>
                     <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                      <span className="font-semibold text-primary">{getCategoryName(primaryMetrics.category)}</span>
+                      <span className="font-semibold text-foreground">{getCategoryName(primaryMetrics.category)}</span>
                       <span>•</span>
                       <span>{getLastUpdated(primaryMetrics.lastUpdated)}</span>
                     </div>
@@ -427,7 +426,7 @@ export default function Dashboard() {
                     }}
                     id="ai-report-banner-btn"
                     size="sm"
-                    className="gap-1.5 rounded-full hover:bg-primary/80"
+                    className="gap-1.5 rounded-full hover:bg-[#3C4043] dark:hover:bg-[#E8EAED]"
                   >
                     <Sparkles className="h-4 w-4 text-amber-300" />
                     {t('dashboard.aiInsights')}
@@ -467,7 +466,6 @@ export default function Dashboard() {
         userId={user?.id}
       />
 
-      <SiteFooter />
     </div>
   );
 }

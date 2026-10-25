@@ -103,7 +103,7 @@ export const CompareDomainsView: React.FC<CompareDomainsViewProps> = ({
                     )}
                   </div>
                   {m.domain === leaderDomain && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 mt-1">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 dark:text-[#FDD663] bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 mt-1">
                       <Crown className="h-3 w-3" /> {t('compare.trafficLeader')}
                     </span>
                   )}
@@ -129,7 +129,7 @@ export const CompareDomainsView: React.FC<CompareDomainsViewProps> = ({
               {metricsList.map((m) => (
                 <td key={m.domain} className="py-3 px-4">
                   <span className={`font-bold flex items-center gap-0.5 ${
-                    m.growthRate >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                    m.growthRate >= 0 ? 'text-[#137333] dark:text-[#81C995]' : 'text-[#B3261E] dark:text-[#F28B82]'
                   }`}>
                     {m.growthRate >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                     <span>{m.growthRate >= 0 ? `+${m.growthRate}%` : `${m.growthRate}%`}</span>

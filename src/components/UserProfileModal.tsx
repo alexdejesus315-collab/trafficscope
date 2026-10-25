@@ -149,7 +149,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   <div
                     key={mark}
                     className={`h-1.5 w-0.5 rounded-full ${
-                      credits >= mark ? 'bg-primary' : 'bg-muted-foreground/20'
+                      credits >= mark ? 'bg-brand' : 'bg-muted-foreground/20'
                     }`}
                   />
                 ))}
@@ -157,13 +157,13 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             </div>
 
             {credits === 0 && (
-              <p className="text-xs text-amber-600 font-medium flex items-center gap-1">
+              <p className="text-xs text-[#8D4B00] dark:text-[#FDD663] font-medium flex items-center gap-1">
                 <BatteryWarning className="h-3 w-3" />
                 {t('profile.credits.empty')}
               </p>
             )}
             {credits > 0 && credits <= 3 && (
-              <p className="text-xs text-amber-600 font-medium flex items-center gap-1">
+              <p className="text-xs text-[#8D4B00] dark:text-[#FDD663] font-medium flex items-center gap-1">
                 <BatteryWarning className="h-3 w-3" />
                 {t('profile.credits.low')}
               </p>
@@ -172,12 +172,12 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-muted/50 rounded-xl p-3 text-center transition-shadow duration-200">
-              <Search className="h-4 w-4 text-primary mx-auto mb-1" />
+              <Search className="h-4 w-4 text-brand mx-auto mb-1" />
               <div className="text-lg font-bold font-mono">{totalSearches}</div>
               <div className="text-[10px] text-muted-foreground font-medium">{t('profile.stats.searches')}</div>
             </div>
             <div className="bg-muted/50 rounded-xl p-3 text-center transition-colors">
-              <ShoppingCart className="h-4 w-4 text-primary mx-auto mb-1" />
+              <ShoppingCart className="h-4 w-4 text-brand mx-auto mb-1" />
               <div className="text-lg font-bold font-mono">{totalPurchases * 10}</div>
               <div className="text-[10px] text-muted-foreground font-medium">{t('profile.stats.creditsPurchased')}</div>
             </div>
@@ -188,7 +188,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               onClose();
               onOpenBuyCredits();
             }}
-            className="w-full gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-bold"
+            className="w-full gap-2 bg-primary hover:bg-[#3C4043] dark:hover:bg-[#E8EAED] text-primary-foreground font-bold"
           >
             <ShoppingCart className="h-4 w-4" />
             {t('profile.buyCredits')}

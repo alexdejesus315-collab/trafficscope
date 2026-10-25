@@ -4,14 +4,19 @@ import { supabase } from '../lib/supabaseClient';
 import { NewsItem } from '../types/news';
 import { useAuth } from '../hooks/useAuth';
 import { isOwner } from '../lib/ownerConfig';
-import { Trash2, ArrowLeft, Calendar, ImageOff, PlayCircle, Radio, Newspaper } from 'lucide-react';
+import { Trash2, House, Activity, Calendar, ImageOff, PlayCircle, Radio, Newspaper } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { getCategoryLabel } from '../lib/newsCategoryLabels';
+import { Pagination } from '../components/Pagination';
+
+const NEWS_PER_PAGE = 9;
+
 export default function Noticias() {
   const { user } = useAuth();
   const { t, language } = useLanguage();
   const [items, setItems] = useState<NewsItem[]>([]);
+  const [listPage, setListPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const showDeleteButton = isOwner(user?.id);
 
@@ -48,31 +53,40 @@ export default function Noticias() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        <div className="h-8 w-8 rounded-full border-2 border-brand border-t-transparent animate-spin" />
       </div>
     );
   }
 
   const heroItems = items.slice(0, 3);
   const listItems = items.slice(3);
+  const totalPages = Math.ceil(listItems.length / NEWS_PER_PAGE);
+  const currentPage = Math.min(listPage, Math.max(totalPages, 1));
+  const visibleItems = listItems.slice((currentPage - 1) * NEWS_PER_PAGE, currentPage * NEWS_PER_PAGE);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link
-              to="/"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-            <a href="/" className="text-xl font-bold tracking-tight text-foreground">
-              TrafficScope <span className="text-primary font-light">{t('news.header.title')}</span>
-            </a>
+        <div className="max-w-6xl mx-auto px-4 h-16 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center">
+          <a href="/" className="flex min-w-0 flex-col gap-0.5 text-foreground">
+            <span className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.1em] sm:tracking-[0.3em]">
+              <Activity className="h-4 w-4" />
+              TrafficScope
+            </span>
+            <span className="hidden sm:block text-[11px] text-muted-foreground leading-tight">{t('nav.tagline')}</span>
+          </a>
+          <Link
+            to="/"
+            aria-label="Página inicial"
+            title="Página inicial"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          >
+            <House className="h-4 w-4" />
+          </Link>
+          <div className="flex min-w-0 justify-end">
+            <LanguageSwitcher />
           </div>
-          <LanguageSwitcher />
         </div>
       </header>
 
@@ -142,7 +156,7 @@ export default function Noticias() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {listItems.map(item => (
+              {visibleItems.map(item => (
                 <NewsCard
                   key={item.id}
                   item={item}
@@ -152,6 +166,14 @@ export default function Noticias() {
                 />
               ))}
             </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setListPage}
+              ariaLabel={t('pagination.aria')}
+              previousLabel={t('pagination.previous')}
+              nextLabel={t('pagination.next')}
+            />
           </section>
         )}
 
@@ -202,25 +224,21 @@ function FeaturedNewsCard({
           <img
             src={item.cover_image}
             alt=""
-            className="h-full w-full object-cover opacity-40 group-hover:opacity-50 group-hover:scale-105 transition-all duration-500"
+            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
           <div className="h-full w-full bg-muted" />
         )}
-        <div className={`absolute inset-0 ${
-          isLarge
-            ? 'bg-gradient-to-t from-foreground/80 via-foreground/50 to-foreground/20'
-            : 'bg-gradient-to-r from-foreground/70 via-foreground/50 to-transparent'
-        }`} />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/15 transition-colors duration-300 group-hover:from-black/95 group-hover:via-black/65" />
       </div>
 
       {/* Video Play Icon Overlay */}
       {hasVideo && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[1]">
-          <div className={`rounded-full bg-card/10 backdrop-blur-sm flex items-center justify-center transition-transform duration-300 group-hover:scale-110 ${
+          <div className={`rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center transition-transform duration-300 group-hover:scale-110 ${
             isLarge ? 'h-16 w-16' : 'h-10 w-10'
           }`}>
-            <PlayCircle className={`text-card-foreground ${isLarge ? 'h-8 w-8' : 'h-5 w-5'}`} />
+            <PlayCircle className={`text-white ${isLarge ? 'h-8 w-8' : 'h-5 w-5'}`} />
           </div>
         </div>
       )}
@@ -228,28 +246,28 @@ function FeaturedNewsCard({
       {/* Content */}
       <div className={`absolute inset-0 flex flex-col justify-end p-6 ${!isLarge && 'p-5'}`}>
         <div className="flex items-center gap-3 mb-3">
-          <span className="inline-flex items-center rounded-full bg-red-500/90 px-2.5 py-0.5 text-[11px] font-semibold text-destructive-foreground">
+          <span className="inline-flex items-center rounded-full bg-destructive px-2.5 py-0.5 text-[11px] font-semibold text-destructive-foreground">
             {getCategoryLabel(item.category, language)}
           </span>
-          <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+          <span className="flex items-center gap-1 text-[11px] text-white/85">
             <Calendar className="h-3 w-3" />
             {formatDate(item.published_at)}
           </span>
         </div>
 
-        <h3 className={`font-bold text-foreground leading-tight group-hover:text-red-100 transition-colors ${
+        <h3 className={`font-bold text-white leading-tight drop-shadow-sm ${
           isLarge ? 'text-2xl lg:text-3xl' : 'text-lg'
         }`}>
           {displayHeadline}
         </h3>
 
         {isLarge && (
-          <p className="mt-2 text-sm text-muted-foreground line-clamp-2 max-w-lg">
+          <p className="mt-2 text-sm text-white/90 line-clamp-2 max-w-lg">
             {displaySummary}
           </p>
         )}
 
-        <div className="flex items-center gap-3 mt-3 text-[11px] text-muted-foreground">
+        <div className="flex items-center gap-3 mt-3 text-[11px] text-white/80">
           <span className="flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-red-400 animate-pulse" />
             {item.source_name}
@@ -303,7 +321,7 @@ function NewsCard({
             />
           ) : (
             <div className="h-full w-full bg-muted flex flex-col items-center justify-center gap-2">
-              <ImageOff className="h-8 w-8 text-red-500/20" />
+              <ImageOff className="h-8 w-8 text-destructive/20" />
               <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{t('news.noImage')}</span>
             </div>
           )}
@@ -318,7 +336,7 @@ function NewsCard({
           )}
 
           <div className="absolute top-3 left-3">
-            <span className="inline-flex items-center rounded-full bg-red-500/90 backdrop-blur-sm px-2.5 py-0.5 text-[11px] font-semibold text-destructive-foreground">
+            <span className="inline-flex items-center rounded-full bg-destructive backdrop-blur-sm px-2.5 py-0.5 text-[11px] font-semibold text-destructive-foreground">
               {getCategoryLabel(item.category, language)}
             </span>
           </div>
@@ -343,13 +361,13 @@ function NewsCard({
               <Calendar className="h-3 w-3" />
               {formatDate(item.published_at)}
             </span>
-            <span className="flex items-center gap-1 text-red-500/80 font-medium">
-              <span className="h-1 w-1 rounded-full bg-red-500" />
+            <span className="flex items-center gap-1 text-destructive font-medium">
+              <span className="h-1 w-1 rounded-full bg-destructive" />
               {item.source_name}
             </span>
           </div>
 
-          <h3 className="text-base font-bold text-foreground leading-snug group-hover:text-red-600 transition-colors line-clamp-2">
+          <h3 className="text-base font-bold text-foreground leading-snug group-hover:text-link-hover transition-colors line-clamp-2">
             {displayHeadline}
           </h3>
 
@@ -357,7 +375,7 @@ function NewsCard({
             {displaySummary}
           </p>
 
-          <div className="mt-4 flex items-center text-xs font-semibold text-red-500 group-hover:underline">
+          <div className="mt-4 flex items-center text-xs font-semibold text-link group-hover:underline">
             {t('news.readMore')}
             <svg className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

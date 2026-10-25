@@ -95,7 +95,7 @@ export function GenerateArticleModal({ open, onOpenChange, onGenerated, anchorRe
                  overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150 p-4"
     >
       <div className="flex items-center gap-2 mb-3">
-        <Sparkles className="h-4 w-4 text-primary" />
+        <Sparkles className="h-4 w-4 text-brand" />
         <p className="text-sm font-semibold text-foreground">{t('generateArticle.title')}</p>
       </div>
 
@@ -104,7 +104,7 @@ export function GenerateArticleModal({ open, onOpenChange, onGenerated, anchorRe
           type="button"
           onClick={() => setMode('auto')}
           className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium transition-colors ${
-            mode === 'auto' ? 'bg-card text-foreground' : 'text-muted-foreground hover:text-foreground'
+            mode === 'auto' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <Wand2 className="h-3.5 w-3.5" />
@@ -114,7 +114,7 @@ export function GenerateArticleModal({ open, onOpenChange, onGenerated, anchorRe
           type="button"
           onClick={() => setMode('manual')}
           className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium transition-colors ${
-            mode === 'manual' ? 'bg-card text-foreground' : 'text-muted-foreground hover:text-foreground'
+            mode === 'manual' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <PenLine className="h-3.5 w-3.5" />

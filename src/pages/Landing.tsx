@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import { SiteFooter } from "../components/SiteFooter";
 import { useLanguage } from "../context/LanguageContext";
 import { LanguageSwitcher } from "../components/LanguageSwitcher";
 import {
@@ -82,11 +81,11 @@ function NavBar() {
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         <Logo />
           <nav className="hidden md:flex items-center gap-1 text-[14px] text-foreground">
-          <a href="#produto" className="rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200">{t('landing.nav.product')}</a>
-          <a href="#comparar" className="rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200">{t('landing.nav.compare')}</a>
-          <a href="#precos" className="rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200">{t('landing.nav.pricing')}</a>
-          <a href="/blog" className="rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200">{t('landing.nav.blog')}</a>
-          <a href="/noticias" className="rounded-full px-4 py-2 hover:!bg-primary/20 hover:!text-primary transition-all duration-200">{t('landing.nav.news')}</a>
+          <a href="#produto" className="rounded-full px-4 py-2 hover:!bg-muted hover:!text-link-hover transition-all duration-200">{t('landing.nav.product')}</a>
+          <a href="#comparar" className="rounded-full px-4 py-2 hover:!bg-muted hover:!text-link-hover transition-all duration-200">{t('landing.nav.compare')}</a>
+          <a href="#precos" className="rounded-full px-4 py-2 hover:!bg-muted hover:!text-link-hover transition-all duration-200">{t('landing.nav.pricing')}</a>
+          <a href="/blog" className="rounded-full px-4 py-2 hover:!bg-muted hover:!text-link-hover transition-all duration-200">{t('landing.nav.blog')}</a>
+          <a href="/noticias" className="rounded-full px-4 py-2 hover:!bg-muted hover:!text-link-hover transition-all duration-200">{t('landing.nav.news')}</a>
         </nav>
         <div className="flex items-center gap-3">
   <LanguageSwitcher />
@@ -142,7 +141,7 @@ function MiniCompareDemo() {
             </div>
             <div className="h-2 rounded-full bg-muted overflow-hidden">
               <div
-                className="h-full rounded-full bg-primary transition-all duration-1000 ease-out"
+                className="h-full rounded-full bg-brand transition-all duration-1000 ease-out"
                 style={{ width: `${r.w}%` }}
               />
             </div>
@@ -163,7 +162,7 @@ function Hero() {
     <section className="relative overflow-hidden bg-background">
       <div className="relative max-w-6xl mx-auto px-6 pt-20 pb-16 grid md:grid-cols-2 gap-14 items-center">
         <div>
-<div className="inline-flex items-center gap-2 text-[12px] font-medium text-primary bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-full mb-6">            <Activity className="h-3.5 w-3.5" />
+<div className="inline-flex items-center gap-2 text-[12px] font-medium text-foreground bg-brand/10 border border-brand/20 px-3 py-1.5 rounded-full mb-6">            <Activity className="h-3.5 w-3.5" />
             {t('landing.hero.badge')}
           </div>
           <h1 className="text-[40px] sm:text-[52px] leading-[1.05] font-semibold text-foreground tracking-tight mb-5">
@@ -173,9 +172,9 @@ function Hero() {
             {t('landing.hero.subtitle')}
           </p>
           <div className="flex flex-wrap items-center gap-4">
-<a href="/login" className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-3.5 rounded-xl transition-all hover:-translate-y-0.5 active:translate-y-0">              {t('landing.hero.ctaPrimary')} <ArrowRight className="h-4 w-4" />
+<a href="/login" className="inline-flex items-center gap-2 bg-primary hover:bg-[#3C4043] dark:hover:bg-[#E8EAED] text-primary-foreground font-medium px-6 py-3.5 rounded-full transition-all hover:-translate-y-0.5 active:translate-y-0">              {t('landing.hero.ctaPrimary')} <ArrowRight className="h-4 w-4" />
             </a>
-            <a href="#comparar" className="inline-flex items-center gap-2 text-foreground font-medium px-6 py-3.5 rounded-xl hover:bg-card transition-all">
+            <a href="#comparar" className="inline-flex items-center gap-2 border-2 border-foreground bg-transparent text-foreground font-medium px-6 py-3.5 rounded-full hover:bg-muted transition-all">
               {t('landing.hero.ctaSecondary')}
             </a>
           </div>
@@ -282,8 +281,8 @@ function Features() {
             }`}
             style={{ transitionDelay: `${i * 80}ms` }}
           >
-            <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center mb-5 group-hover:scale-105 transition-transform duration-300">
-              <it.icon className="h-5 w-5 text-primary" />
+            <div className="h-11 w-11 rounded-xl bg-brand/10 flex items-center justify-center mb-5 group-hover:scale-105 transition-transform duration-300">
+              <it.icon className="h-5 w-5 text-brand" />
             </div>
             <h3 className="text-[16px] font-semibold text-foreground mb-2">
               {it.title}
@@ -350,7 +349,7 @@ function CompareShowcase() {
             visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
           }`}
         >
-          <div className="text-[12px] font-medium text-primary uppercase tracking-widest mb-3">
+          <div className="text-[12px] font-medium text-foreground uppercase tracking-widest mb-3">
             {t('landing.compareShowcase.label')}
           </div>
           <h2 className="text-[30px] font-semibold text-foreground mb-3">
@@ -422,7 +421,7 @@ function CompareShowcase() {
         </div>
 
         <div className="mt-8 flex justify-center">
-          <a href="/login" className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-3 rounded-xl transition-all hover:-translate-y-0.5">
+          <a href="/login" className="inline-flex items-center gap-2 bg-primary hover:bg-[#3C4043] dark:hover:bg-[#E8EAED] text-primary-foreground font-medium px-6 py-3 rounded-full transition-all hover:-translate-y-0.5">
             <MousePointerClick className="h-4 w-4" />
             {t('landing.compareShowcase.cta')}
           </a>
@@ -488,16 +487,16 @@ function Pricing() {
         </div>
 
         <div
-          className={`relative rounded-2xl p-8 border-2 border-primary bg-primary/5 transition-all duration-500 hover:-translate-y-1 ${
+          className={`relative rounded-2xl p-8 border-2 border-brand bg-brand/5 transition-all duration-500 hover:-translate-y-1 ${
             visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
           }`}
           style={{ transitionDelay: "200ms" }}
         >
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[11px] font-bold px-3 py-1 rounded-full">
+          <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand text-[#202124] text-[11px] font-bold px-3 py-1 rounded-full">
             {t('landing.pricing.real.popular')}
           </div>
 
-          <div className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-primary bg-primary/15 px-3 py-1 rounded-full mb-5">
+          <div className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-foreground bg-brand/15 px-3 py-1 rounded-full mb-5">
             <Activity className="h-3.5 w-3.5" />
             {t('landing.pricing.real.badge')}
           </div>
@@ -518,12 +517,12 @@ function Pricing() {
               t('landing.pricing.real.feature4'),
             ].map((f) => (
               <li key={f} className="flex items-center gap-2 text-[14px] text-foreground">
-                <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
+                <ShieldCheck className="h-4 w-4 text-brand shrink-0" />
                 {f}
               </li>
             ))}
           </ul>
-          <a href="/login" className="block text-center font-medium px-4 py-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground transition-all">
+          <a href="/login" className="block text-center font-medium px-4 py-3 rounded-full bg-primary hover:bg-[#3C4043] dark:hover:bg-[#E8EAED] text-primary-foreground transition-all">
             {t('landing.pricing.real.cta')}
           </a>
         </div>
@@ -544,7 +543,7 @@ function FinalCTA() {
             visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
           }`}
         >
-          <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-primary text-primary-foreground mb-6">
+          <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-brand/10 text-brand mb-6">
             <ShieldCheck className="h-6 w-6" />
           </div>
           <h2 className="text-[32px] font-semibold text-foreground mb-4">
@@ -553,7 +552,7 @@ function FinalCTA() {
           <p className="text-muted-foreground mb-10 max-w-md mx-auto text-[17px] leading-relaxed">
             {t('landing.finalCta.subtitle')}
           </p>
-          <a href="/login" className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 py-4 rounded-xl transition-all hover:-translate-y-0.5 active:translate-y-0">
+          <a href="/login" className="inline-flex items-center gap-2 bg-primary hover:bg-[#3C4043] dark:hover:bg-[#E8EAED] text-primary-foreground font-medium px-8 py-4 rounded-full transition-all hover:-translate-y-0.5 active:translate-y-0">
             {t('landing.finalCta.cta')} <ArrowRight className="h-4 w-4" />
           </a>
         </div>
@@ -572,7 +571,6 @@ export default function Landing() {
       <CompareShowcase />
       <Pricing />
       <FinalCTA />
-      <SiteFooter />
     </div>
   );
 }

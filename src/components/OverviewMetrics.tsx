@@ -23,7 +23,7 @@ export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({ metrics }) => 
         <CardContent className="flex flex-col justify-between h-full">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">{t('overview.trafficTotal')}</span>
-            <div className="p-2 rounded-full bg-[#368948]/10 text-[#368948]">
+            <div className="p-2 rounded-full bg-[#E6F4EA] text-[#34A853]">
               <Eye className="h-4 w-4" />
             </div>
           </div>
@@ -41,13 +41,13 @@ export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({ metrics }) => 
         <CardContent className="flex flex-col justify-between h-full">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">{t('overview.growth')}</span>
-            <div className={`p-2 rounded-xl ${isPositiveGrowth ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+            <div className={`p-2 rounded-xl ${isPositiveGrowth ? 'bg-[#E6F4EA] text-[#34A853]' : 'bg-[#FCE8E6] text-[#D93025]'}`}>
               {isPositiveGrowth ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
             </div>
           </div>
           <div>
             <div className={`text-2xl font-extrabold font-mono flex items-center gap-1 ${
-              isPositiveGrowth ? 'text-emerald-600' : 'text-rose-600'
+              isPositiveGrowth ? 'text-[#137333] dark:text-[#81C995]' : 'text-[#B3261E] dark:text-[#F28B82]'
             }`}>
               <span>{isPositiveGrowth ? '▲' : '▼'}</span>
               <span>{isPositiveGrowth ? `+${metrics.growthRate}%` : `${metrics.growthRate}%`}</span>
@@ -62,7 +62,7 @@ export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({ metrics }) => 
         <CardContent className="flex flex-col justify-between h-full">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">{t('overview.avgTime')}</span>
-            <div className="p-2 rounded-xl bg-primary/10 text-primary">
+            <div className="p-2 rounded-xl bg-[#E8F0FE] text-[#4285F4]">
               <Clock className="h-4 w-4" />
             </div>
           </div>
@@ -82,7 +82,7 @@ export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({ metrics }) => 
         <CardContent className="flex flex-col justify-between h-full">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">{t('overview.bounceRate')}</span>
-            <div className="p-2 rounded-xl bg-[#EB7414]/10 text-[#EB7414]">
+            <div className="p-2 rounded-xl bg-[#FEF7E0] text-[#F9AB00]">
               <MousePointerClick className="h-4 w-4" />
             </div>
           </div>

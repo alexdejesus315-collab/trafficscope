@@ -18,9 +18,11 @@ import { AdManagerModal } from './AdManagerModal';
 import { Newspaper, Megaphone } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { Pagination } from './Pagination';
 
 const LAST_SEEN_BLOG_KEY = 'trafficscope_last_seen_blog';
 const LAST_SEEN_NEWS_KEY = 'trafficscope_last_seen_news';
+const NOTIFICATIONS_PER_PAGE = 5;
 
 interface NavbarProps {
   user?: User | null;
@@ -69,7 +71,25 @@ export const Navbar: React.FC<NavbarProps> = ({
 const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
   const [isGenerateMenuOpen, setIsGenerateMenuOpen] = useState(false);
   const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false);
+  const [notificationPage, setNotificationPage] = useState(1);
   const { notifications, unreadCount, isLoadingMore, hasMore, loadMore, markAsRead, markAllAsRead } = useNotifications(user?.id);
+  useEffect(() => {
+    setNotificationPage(1);
+  }, [user?.id]);
+
+  const loadedNotificationPages = Math.ceil(notifications.length / NOTIFICATIONS_PER_PAGE);
+  const notificationPageCount = loadedNotificationPages + (hasMore ? 1 : 0);
+  const visibleNotifications = notifications.slice(
+    (notificationPage - 1) * NOTIFICATIONS_PER_PAGE,
+    notificationPage * NOTIFICATIONS_PER_PAGE
+  );
+
+  const handleNotificationPageChange = async (page: number) => {
+    if (page > loadedNotificationPages) {
+      if (!await loadMore()) return;
+    }
+    setNotificationPage(page);
+  };
 
   const [lastSeenBlog, setLastSeenBlog] = useState<string | null>(() =>
     typeof window !== 'undefined' ? localStorage.getItem(LAST_SEEN_BLOG_KEY) : null
@@ -241,7 +261,7 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
               variant="ghost"
               size="sm"
               onClick={handleBlogClick}
-              className="relative !bg-primary/15 !text-primary text-sm font-bold rounded-full px-3 py-1.5 hover:!bg-primary/25 transition-all duration-200"
+              className="relative !bg-muted !text-foreground text-sm font-bold rounded-full px-3 py-1.5 hover:!bg-secondary transition-all duration-200"
             >
               {t('nav.blog')}
               {hasNewBlogPost && (
@@ -254,7 +274,7 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
               variant="ghost"
               size="sm"
               onClick={handleNoticiasClick}
-              className="relative !bg-primary/15 !text-primary text-sm font-bold rounded-full px-3 py-1.5 hover:!bg-primary/25 transition-all duration-200"
+              className="relative !bg-muted !text-foreground text-sm font-bold rounded-full px-3 py-1.5 hover:!bg-secondary transition-all duration-200"
             >
               Notícias
               {hasNewNews && (
@@ -268,7 +288,7 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
                 ref={companyToggleRef}
                 variant="ghost"
                 size="sm"
-                className="gap-1.5 !text-sidebar-foreground text-sm font-semibold rounded-full px-3 py-1.5 hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+                className="gap-1.5 !text-sidebar-foreground text-sm font-semibold rounded-full px-3 py-1.5 hover:!bg-muted hover:!text-link-hover transition-all duration-200"
                 onClick={() => setIsCompanyOpen((v) => !v)}
                 aria-expanded={isCompanyOpen}
               >
@@ -327,7 +347,7 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
                 size="icon-sm"
                 onClick={() => setIsNotifOpen(!isNotifOpen)}
                 title={t('nav.notifications.title')}
-                className="relative !text-sidebar-foreground rounded-full hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+                className="relative !text-sidebar-foreground rounded-full hover:!bg-muted hover:!text-link-hover transition-all duration-200"
               >
                 <Bell className="h-4 w-4" />
                 {unreadCount > 0 && (
@@ -351,7 +371,7 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
                     {unreadCount > 0 && (
                       <button
                         onClick={markAllAsRead}
-                        className="flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                        className="flex items-center gap-1 text-xs font-medium text-link hover:underline"
                       >
                         <CheckCheck className="h-3.5 w-3.5" />
                         {t('nav.notifications.markAll')}
@@ -359,22 +379,14 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
                     )}
                   </div>
 
-                  <div
-                    className="overflow-y-auto flex-1"
-                    onScroll={(e) => {
-                      const el = e.currentTarget;
-                      if (el.scrollHeight - el.scrollTop - el.clientHeight < 80) {
-                        loadMore();
-                      }
-                    }}
-                  >
+                  <div className="overflow-y-auto flex-1">
                     {notifications.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-10 text-center text-muted-foreground gap-1.5">
                         <Bell className="h-6 w-6 opacity-30" />
                         <p className="text-xs">{t('nav.notifications.empty')}</p>
                       </div>
                     ) : (
-                      notifications.map((n) => (
+                      visibleNotifications.map((n) => (
                         <button
                           key={n.id}
                           onClick={() => {
@@ -385,17 +397,17 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
                             }
                           }}
                           className={`w-full text-left px-4 py-3 border-b border-border/60 last:border-0 transition-colors hover:bg-accent/50 ${
-                            n.isRead ? '' : 'bg-primary/5'
+                            n.isRead ? '' : 'bg-muted'
                           }`}
                         >
                           <div className="flex items-start gap-2">
                             {!n.isRead && (
-                              <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                              <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-brand shrink-0" />
                             )}
                             <div className={`min-w-0 ${n.isRead ? 'pl-3.5' : ''}`}>
                               <p className="text-sm font-semibold text-foreground truncate">{n.title}</p>
                               <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
-                              <p className="text-[10px] text-muted-foreground/70 mt-1">
+                              <p className="text-[10px] text-muted-foreground mt-1">
                                 {new Date(n.created_at).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                               </p>
                             </div>
@@ -403,17 +415,25 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
                         </button>
                       ))
                     )}
-                    {isLoadingMore && (
-                      <div className="flex items-center justify-center py-3">
-                        <div className="h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-                      </div>
-                    )}
-                    {!hasMore && notifications.length > 0 && (
-                      <p className="text-center text-[11px] text-muted-foreground py-3">
-                        {t('nav.notifications.noMore')}
-                      </p>
-                    )}
                   </div>
+                  {notifications.length > 0 && (
+                    <div className="shrink-0 border-t border-border px-2 py-2">
+                      {isLoadingMore && (
+                        <div className="flex items-center justify-center pb-1">
+                          <div className="h-3.5 w-3.5 rounded-full border-2 border-brand border-t-transparent animate-spin" />
+                        </div>
+                      )}
+                      <Pagination
+                        currentPage={notificationPage}
+                        totalPages={notificationPageCount}
+                        onPageChange={handleNotificationPageChange}
+                        ariaLabel={t('pagination.aria')}
+                        previousLabel={t('pagination.previous')}
+                        nextLabel={t('pagination.next')}
+                        disabled={isLoadingMore}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -424,7 +444,7 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
               size="icon-sm"
               onClick={() => navigate('/history')}
               title={t('nav.history')}
-              className="hidden lg:inline-flex !text-sidebar-foreground rounded-full hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+              className="hidden lg:inline-flex !text-sidebar-foreground rounded-full hover:!bg-muted hover:!text-link-hover transition-all duration-200"
             >
               <History className="h-4 w-4" />
             </Button>
@@ -437,7 +457,7 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
                 size="icon-sm"
                 onClick={() => setIsMobileMoreOpen((v) => !v)}
                 title={t('nav.company')}
-                className="!text-sidebar-foreground rounded-full hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+                className="!text-sidebar-foreground rounded-full hover:!bg-muted hover:!text-link-hover transition-all duration-200"
               >
                 {isMobileMoreOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
               </Button>
@@ -487,7 +507,7 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
                   variant="ghost"
                   size="icon-sm"
                   title="Gerar conteúdo"
-                  className="!text-sidebar-foreground rounded-full hover:!bg-primary/20 hover:!text-primary transition-all duration-200"
+                  className="!text-sidebar-foreground rounded-full hover:!bg-muted hover:!text-link-hover transition-all duration-200"
                   onClick={() => setIsGenerateMenuOpen((v) => !v)}
                 >
                   <PenSquare className="h-4 w-4" />
@@ -543,7 +563,10 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
             )}
 
             {/* Perfil */}
-            <div ref={profileToggleRef} className="flex items-center shrink-0">
+            <div
+              ref={profileToggleRef}
+              className="relative flex items-center shrink-0 lg:rounded-full lg:border lg:border-sidebar-border lg:bg-sidebar-accent lg:overflow-hidden"
+            >
               {/* Mobile/tablet: apenas o avatar do utilizador, com anel de destaque */}
               <button
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
@@ -582,7 +605,7 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
               </button>
 
               {/* lg e acima: pílula completa (modo/créditos + perfil) */}
-              <div className="hidden lg:flex items-center rounded-full border border-sidebar-border overflow-hidden">
+              <div className="hidden lg:flex items-center overflow-hidden">
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all hover:brightness-95 ${
@@ -604,53 +627,59 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
                   )}
                 </button>
 
-                <div className="w-px h-5 bg-sidebar-border/60" />
-
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-sidebar-accent-foreground bg-sidebar-accent hover:bg-sidebar-accent/80 transition-colors"
+                  aria-label={t('nav.profile')}
+                  title={t('nav.profile')}
+                  className="flex items-center justify-center border-l border-sidebar-border/60 bg-sidebar-accent px-2.5 py-1.5 hover:bg-sidebar-accent/80 transition-colors"
                 >
-                  <UserCircle className="h-4 w-4" />
-                  <span className="hidden md:inline">{t('nav.profile')}</span>
+                  {user?.user_metadata?.avatar_url ? (
+                    <img
+                      src={user.user_metadata.avatar_url}
+                      alt=""
+                      className="h-6 w-6 rounded-full object-cover"
+                    />
+                  ) : user?.email ? (
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-sidebar-accent-foreground/10 text-[10px] font-semibold text-sidebar-accent-foreground">
+                      {user.email[0].toUpperCase()}
+                    </span>
+                  ) : (
+                    <UserCircle className="h-4 w-4 text-sidebar-accent-foreground" />
+                  )}
                 </button>
               </div>
-            </div>
 
-            {user && onSignOut && (
-              <div className="hidden lg:flex items-center gap-1.5 rounded-xl border border-sidebar-border bg-sidebar-accent px-2 py-1.5 shrink-0">
-                {user.user_metadata?.avatar_url ? (
-                  <img src={user.user_metadata.avatar_url} alt={user.email ?? 'Avatar'} className="h-7 w-7 rounded-full" />
-                ) : (
-                  <div className="h-7 w-7 rounded-full bg-sidebar-accent-foreground/10 flex items-center justify-center text-xs font-semibold text-sidebar-accent-foreground">
-                    {user.email?.[0]?.toUpperCase() ?? 'U'}
-                  </div>
-                )}
-                <Button
-                  onClick={() => void onSignOut()}
-                  variant="ghost"
-                  size="icon-sm"
-                  className="text-sidebar-accent-foreground/70 hover:text-destructive hover:bg-destructive/10 transition-colors h-7 w-7"
-                  aria-label={t('nav.signOut')}
-                >
-                  <LogOut className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            )}
+              {user && onSignOut && (
+                <div className="hidden lg:flex items-center border-l border-sidebar-border/60 px-1.5 py-1 shrink-0">
+                  <Button
+                    onClick={() => void onSignOut()}
+                    variant="ghost"
+                    size="icon-sm"
+                    className="text-sidebar-accent-foreground/70 hover:text-destructive hover:bg-destructive/10 transition-colors h-7 w-7"
+                    aria-label={t('nav.signOut')}
+                  >
+                    <LogOut className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              )}
+            </div>
 
             {isProfileOpen && (
               <div
                 ref={profileDropdownRef}
                 className="absolute top-[calc(100%+10px)] right-0 w-[340px] max-w-[calc(100vw-2rem)]
-                           bg-popover rounded-2xl 
-
-                           overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150"
+                           bg-popover rounded-2xl border border-border/80 shadow-2xl shadow-foreground/15
+                           overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-200"
               >
-                <div className="bg-primary p-4 flex items-center gap-2">
-                  <Search className="h-3.5 w-3.5 text-primary-foreground/70" />
-                  <p className="text-sm font-semibold text-primary-foreground">{t('nav.searchesPerformed', undefined, { count: totalSearches })}</p>
+                <div className="relative overflow-hidden bg-primary px-4 py-3 flex items-center gap-2.5">
+                  <div aria-hidden="true" className="absolute -right-5 -top-8 h-20 w-20 rounded-full border border-primary-foreground/10" />
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand/20 text-brand">
+                    <Search className="h-4 w-4" />
+                  </span>
+                  <p className="relative text-sm font-semibold text-primary-foreground">{t('nav.searchesPerformed', undefined, { count: totalSearches })}</p>
                 </div>
 
-                <div className="p-5 space-y-5">
+                <div className="p-4 space-y-4">
                   {user && onSignOut && (
                     <div className="flex lg:hidden items-center justify-between gap-3 -mt-1 -mx-1 px-1 pb-1 border-b border-border">
                       <div className="flex items-center gap-2 min-w-0">
@@ -677,26 +706,28 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
                     </div>
                   )}
 
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                       {t('nav.searchMode.title')}
                     </label>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onToggleMode?.('test');
                         }}
-                        className={`flex items-start gap-2.5 p-3 rounded-xl border-2 transition-all text-left ${
+                        className={`flex items-center gap-2 p-2.5 rounded-xl border transition-all text-left ${
                           isTest
-                            ? 'border-amber-400 bg-amber-50 dark:bg-amber-950/20'
-                            : 'border-border text-muted-foreground hover:border-muted-foreground/40'
+                            ? 'border-amber-400/70 bg-amber-50 dark:bg-amber-950/25 shadow-sm shadow-amber-500/5'
+                            : 'border-border text-muted-foreground hover:border-amber-400/50 hover:bg-muted/70'
                         }`}
                       >
-                        <TestTube2 className={`h-4 w-4 shrink-0 mt-0.5 ${isTest ? 'text-amber-500' : 'text-muted-foreground'}`} />
+                        <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${isTest ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300' : 'bg-muted text-muted-foreground'}`}>
+                          <TestTube2 className="h-3.5 w-3.5" />
+                        </span>
                         <div>
-                          <div className={`text-sm font-semibold ${isTest ? 'text-foreground' : 'text-muted-foreground'}`}>{t('nav.searchMode.test.title')}</div>
-                          <div className="text-[11px] text-muted-foreground mt-0.5">{t('nav.searchMode.test.desc')}</div>
+                          <div className={`text-xs font-semibold ${isTest ? 'text-foreground' : 'text-muted-foreground'}`}>{t('nav.searchMode.test.title')}</div>
+                          <div className="text-[10px] text-muted-foreground mt-0.5">{t('nav.searchMode.test.desc')}</div>
                         </div>
                       </button>
 
@@ -706,36 +737,38 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
                           onToggleMode?.('real');
                         }}
                         disabled={credits <= 0}
-                        className={`flex items-start gap-2.5 p-3 rounded-xl border-2 transition-all text-left ${
+                        className={`flex items-center gap-2 p-2.5 rounded-xl border transition-all text-left ${
                           !isTest
-                            ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-950/20'
+                            ? 'border-emerald-400/70 bg-emerald-50 dark:bg-emerald-950/25 shadow-sm shadow-emerald-500/5'
                             : credits <= 0
                               ? 'border-border opacity-40 cursor-not-allowed'
-                              : 'border-border text-muted-foreground hover:border-muted-foreground/40'
+                              : 'border-border text-muted-foreground hover:border-emerald-400/50 hover:bg-muted/70'
                         }`}
                       >
-                        <Zap className={`h-4 w-4 shrink-0 mt-0.5 ${!isTest ? 'text-emerald-500' : 'text-muted-foreground'}`} />
+                        <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${!isTest ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300' : 'bg-muted text-muted-foreground'}`}>
+                          <Zap className="h-3.5 w-3.5" />
+                        </span>
                         <div>
-                          <div className={`text-sm font-semibold ${!isTest ? 'text-foreground' : 'text-muted-foreground'}`}>{t('nav.searchMode.real.title')}</div>
-                          <div className="text-[11px] text-muted-foreground mt-0.5">{credits > 0 ? t('nav.searchMode.real.credits', undefined, { count: credits }) : t('nav.searchMode.real.noCredits')}</div>
+                          <div className={`text-xs font-semibold ${!isTest ? 'text-foreground' : 'text-muted-foreground'}`}>{t('nav.searchMode.real.title')}</div>
+                          <div className="text-[10px] text-muted-foreground mt-0.5">{credits > 0 ? t('nav.searchMode.real.credits', undefined, { count: credits }) : t('nav.searchMode.real.noCredits')}</div>
                         </div>
                       </button>
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <label className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                        <BatteryIcon className="h-3.5 w-3.5" />
+                      <label className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                        <BatteryIcon className="h-3 w-3 text-brand" />
                         {t('nav.creditsAvailable')}
                       </label>
-                      <span className="text-sm font-bold text-foreground">{credits} <span className="text-muted-foreground font-normal text-xs">{t('nav.perLoad')}</span></span>
+                      <span className="text-xs font-bold text-foreground">{credits} <span className="text-muted-foreground font-normal text-[10px]">{t('nav.perLoad')}</span></span>
                     </div>
 
                     <div className="relative">
-                      <div className="h-3 w-full bg-muted rounded-full overflow-hidden">
+                      <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-primary rounded-full transition-all duration-500"
+                          className="h-full bg-brand rounded-full transition-all duration-500"
                           style={{ width: `${Math.min((credits / 10) * 100, 100)}%` }}
                         />
                       </div>
@@ -749,7 +782,7 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
                     </div>
 
                     {credits === 0 && (
-                      <p className="text-xs text-amber-600 font-medium flex items-center gap-1">
+                      <p className="text-xs text-[#8D4B00] dark:text-[#FDD663] font-medium flex items-center gap-1">
                         <BatteryWarning className="h-3 w-3" />
                         {t('nav.noCreditsWarning')}
                       </p>
@@ -757,15 +790,19 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="flex flex-col items-center rounded-xl p-4 border border-border bg-card">
-                      <Search className="h-4 w-4 text-primary mb-2" />
-                      <div className="text-xl font-bold text-foreground">{totalSearches}</div>
-                      <div className="text-[11px] text-muted-foreground mt-0.5">{t('nav.stats.searches')}</div>
+                    <div className="flex flex-col items-center rounded-xl p-2.5 border border-border/80 bg-muted/80 transition-colors hover:bg-muted">
+                      <span className="mb-1 flex h-6 w-6 items-center justify-center rounded-md bg-sky-100 text-sky-600 dark:bg-sky-500/15 dark:text-sky-300">
+                        <Search className="h-3 w-3" />
+                      </span>
+                      <div className="text-base font-bold leading-tight text-foreground">{totalSearches}</div>
+                      <div className="text-[9px] text-muted-foreground mt-0.5">{t('nav.stats.searches')}</div>
                     </div>
-                    <div className="flex flex-col items-center rounded-xl p-4 border border-border bg-card">
-                      <ShoppingCart className="h-4 w-4 text-primary mb-2" />
-                      <div className="text-xl font-bold text-foreground">{totalPurchases * 10}</div>
-                      <div className="text-[11px] text-muted-foreground mt-0.5">{t('nav.stats.creditsPurchased')}</div>
+                    <div className="flex flex-col items-center rounded-xl p-2.5 border border-border/80 bg-muted/80 transition-colors hover:bg-muted">
+                      <span className="mb-1 flex h-6 w-6 items-center justify-center rounded-md bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-300">
+                        <ShoppingCart className="h-3 w-3" />
+                      </span>
+                      <div className="text-base font-bold leading-tight text-foreground">{totalPurchases * 10}</div>
+                      <div className="text-[9px] text-muted-foreground mt-0.5">{t('nav.stats.creditsPurchased')}</div>
                     </div>
                   </div>
 
@@ -774,14 +811,18 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
                       setIsProfileOpen(false);
                       onOpenBuyCredits?.();
                     }}
-                    className="group relative w-full flex items-center gap-2.5 py-0 px-2 rounded-lg 
-                               bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm 
-                               transition-all duration-300 active:scale-[0.98] overflow-hidden"
+                    className="group relative w-full flex items-center gap-2.5 py-2.5 px-3 rounded-xl
+                               bg-brand text-[#123832] font-semibold text-sm shadow-md shadow-brand/20
+                               transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#21B09F] hover:shadow-lg hover:shadow-brand/25
+                               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
+                               active:translate-y-0 active:scale-[0.98] overflow-hidden"
                   >
-                    <ShoppingCart className="h-4 w-4" />
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/35">
+                      <ShoppingCart className="h-4 w-4" />
+                    </span>
                     <span>{t('nav.buyCredits')}</span>
-                    <span className="text-xs opacity-90 font-medium">{t('nav.buyCreditsPrice')}</span>
-                    <ArrowRight className="h-4 w-4 ml-auto" />
+                    <span className="rounded-full bg-[#123832]/10 px-2 py-1 text-[11px] font-semibold">{t('nav.buyCreditsPrice')}</span>
+                    <ArrowRight className="ml-auto h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                   </button>
                 </div>
               </div>

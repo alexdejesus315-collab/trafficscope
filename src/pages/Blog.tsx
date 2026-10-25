@@ -4,10 +4,13 @@ import { supabase } from '../lib/supabaseClient';
 import { BlogPost } from '../types/blog';
 import { useAuth } from '../hooks/useAuth';
 import { isOwner } from '../lib/ownerConfig';
-import { Trash2, ArrowLeft, Clock, Calendar, TrendingUp, ImageOff } from 'lucide-react';
+import { Trash2, House, Activity, Clock, Calendar, TrendingUp, ImageOff } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { getBlogCategoryLabel } from '../lib/blogCategoryLabels';
+import { Pagination } from '../components/Pagination';
+
+const POSTS_PER_PAGE = 9;
 // Extrai a primeira imagem do conteúdo markdown (![alt](url))
 function extractFirstImage(content: string): string | null {
   const match = content.match(/!\[([^\]]*)\]\(([^)]+)\)/);
@@ -18,6 +21,7 @@ export default function Blog() {
   const { user } = useAuth();
   const { t, language } = useLanguage();
   const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [listPage, setListPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [translations, setTranslations] = useState<Record<string, { title: string; excerpt: string }>>({});
   const [isTranslating, setIsTranslating] = useState(false);
@@ -79,31 +83,38 @@ export default function Blog() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        <div className="h-8 w-8 rounded-full border-2 border-brand border-t-transparent animate-spin" />
       </div>
     );
   }
 
   const heroPosts = posts.slice(0, 3);
   const listPosts = posts.slice(3);
+  const totalPages = Math.ceil(listPosts.length / POSTS_PER_PAGE);
+  const currentPage = Math.min(listPage, Math.max(totalPages, 1));
+  const visiblePosts = listPosts.slice((currentPage - 1) * POSTS_PER_PAGE, currentPage * POSTS_PER_PAGE);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link
-              to="/"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-            <a href="/" className="text-xl font-bold tracking-tight text-foreground">
-              TrafficScope <span className="text-primary font-light">Blog</span>
-            </a>
-          </div>
-          <div className="flex items-center gap-3">
+        <div className="max-w-6xl mx-auto px-4 h-16 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center">
+          <a href="/" className="flex min-w-0 flex-col gap-0.5 text-foreground">
+            <span className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.1em] sm:tracking-[0.3em]">
+              <Activity className="h-4 w-4" />
+              TrafficScope
+            </span>
+            <span className="hidden sm:block text-[11px] text-muted-foreground leading-tight">{t('nav.tagline')}</span>
+          </a>
+          <Link
+            to="/"
+            aria-label="Página inicial"
+            title="Página inicial"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          >
+            <House className="h-4 w-4" />
+          </Link>
+          <div className="flex min-w-0 items-center justify-end gap-3">
             {isTranslating && (
               <span className="text-xs text-muted-foreground animate-pulse">{t('blog.translating', 'A traduzir...')}</span>
             )}
@@ -117,7 +128,7 @@ export default function Blog() {
         {heroPosts.length > 0 && (
           <section className="mb-16">
             <div className="flex items-center gap-2 mb-6">
-              <TrendingUp className="h-4 w-4 text-primary" />
+              <TrendingUp className="h-4 w-4 text-brand" />
               <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                 {t('blog.featured', 'Em destaque')}
               </h2>
@@ -186,7 +197,7 @@ export default function Blog() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {listPosts.map(post => (
+              {visiblePosts.map(post => (
                 <PostCard
                   key={post.id}
                   post={post}
@@ -198,6 +209,14 @@ export default function Blog() {
                 />
               ))}
             </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setListPage}
+              ariaLabel={t('pagination.aria')}
+              previousLabel={t('pagination.previous')}
+              nextLabel={t('pagination.next')}
+            />
           </section>
         )}
 
@@ -249,43 +268,39 @@ function FeaturedCard({
           <img
             src={coverUrl}
             alt=""
-            className="h-full w-full object-cover opacity-40 group-hover:opacity-50 group-hover:scale-105 transition-all duration-500"
+            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
           <div className="h-full w-full bg-muted" />
         )}
-        <div className={`absolute inset-0 ${
-          isLarge
-            ? 'bg-gradient-to-t from-foreground/80 via-foreground/50 to-foreground/20'
-            : 'bg-gradient-to-r from-foreground/70 via-foreground/50 to-transparent'
-        }`} />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/15 transition-colors duration-300 group-hover:from-black/95 group-hover:via-black/65" />
       </div>
 
       {/* Content */}
       <div className={`absolute inset-0 flex flex-col justify-end p-6 ${!isLarge && 'p-5'}`}>
         <div className="flex items-center gap-3 mb-3">
-          <span className="inline-flex items-center rounded-full bg-primary/90 px-2.5 py-0.5 text-[11px] font-semibold text-primary-foreground">
+          <span className="inline-flex items-center rounded-full bg-brand px-2.5 py-0.5 text-[11px] font-semibold text-[#202124]">
             {getBlogCategoryLabel(post.category, language)}
           </span>
-          <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+          <span className="flex items-center gap-1 text-[11px] text-white/85">
             <Calendar className="h-3 w-3" />
             {formatDate(post.created_at)}
           </span>
         </div>
 
-        <h3 className={`font-bold text-foreground leading-tight group-hover:text-primary-foreground/90 transition-colors ${
+        <h3 className={`font-bold text-white leading-tight drop-shadow-sm ${
           isLarge ? 'text-2xl lg:text-3xl' : 'text-lg'
         }`}>
           {displayTitle}
         </h3>
 
         {isLarge && (
-          <p className="mt-2 text-sm text-muted-foreground line-clamp-2 max-w-lg">
+          <p className="mt-2 text-sm text-white/90 line-clamp-2 max-w-lg">
             {tr?.excerpt || post.excerpt}
           </p>
         )}
 
-        <div className="flex items-center gap-3 mt-3 text-[11px] text-muted-foreground">
+        <div className="flex items-center gap-3 mt-3 text-[11px] text-white/80">
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
             {readingTime(post.content)}
@@ -341,7 +356,7 @@ function PostCard({
             />
           ) : (
             <div className="h-full w-full bg-muted flex flex-col items-center justify-center gap-2">
-              <ImageOff className="h-8 w-8 text-primary/20" />
+              <ImageOff className="h-8 w-8 text-brand/20" />
               <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Sem imagem</span>
             </div>
           )}
@@ -376,7 +391,7 @@ function PostCard({
             </span>
           </div>
 
-          <h3 className="text-base font-bold text-foreground leading-snug group-hover:text-primary transition-colors line-clamp-2">
+          <h3 className="text-base font-bold text-foreground leading-snug group-hover:text-link-hover transition-colors line-clamp-2">
             {displayTitle}
           </h3>
 
@@ -384,7 +399,7 @@ function PostCard({
             {displayExcerpt}
           </p>
 
-          <div className="mt-4 flex items-center text-xs font-semibold text-primary group-hover:underline">
+          <div className="mt-4 flex items-center text-xs font-semibold text-link group-hover:underline">
             Ler artigo
             <svg className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

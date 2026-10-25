@@ -33,7 +33,7 @@ export const GeoMapSection: React.FC<GeoMapSectionProps> = ({ metrics }) => {
         <div className="flex items-center justify-between pb-2 border-b border-border">
           <div>
             <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-              <Globe className="h-5 w-5 text-primary" />
+              <Globe className="h-5 w-5 text-brand" />
               <span>{t('geoMap.title')}</span>
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -58,7 +58,7 @@ export const GeoMapSection: React.FC<GeoMapSectionProps> = ({ metrics }) => {
                     : t('geoMap.globalFallback')}
                 </span>
               </div>
-              <p className="text-xs text-emerald-600 font-bold mt-1">
+              <p className="text-xs text-[#137333] dark:text-[#81C995] font-bold mt-1">
                 {t('geoMap.totalTrafficShare', undefined, { percentage: countries[0]?.percentage ?? 0 })}
               </p>
             </div>
