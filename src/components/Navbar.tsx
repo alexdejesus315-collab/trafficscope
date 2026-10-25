@@ -233,7 +233,7 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-[60] bg-sidebar/95 backdrop-blur-md text-sidebar-foreground">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity shrink-0">
           <span className="sm:hidden flex h-9 w-9 items-center justify-center rounded-full bg-sidebar-accent shrink-0">
             <Activity className="h-4 w-4 text-sidebar-foreground" />
@@ -811,18 +811,18 @@ const [isAdManagerOpen, setIsAdManagerOpen] = useState(false);
                       setIsProfileOpen(false);
                       onOpenBuyCredits?.();
                     }}
-                    className="group relative w-full flex items-center gap-2.5 py-2.5 px-3 rounded-xl
-                               bg-brand text-[#123832] font-semibold text-sm shadow-md shadow-brand/20
+                    className="group relative w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg
+                               bg-brand text-[#123832] font-semibold text-xs shadow-sm shadow-brand/20
                                transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#21B09F] hover:shadow-lg hover:shadow-brand/25
                                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
                                active:translate-y-0 active:scale-[0.98] overflow-hidden"
                   >
-                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/35">
-                      <ShoppingCart className="h-4 w-4" />
+                    <span className="flex h-6 w-6 items-center justify-center rounded-md bg-white/35">
+                      <ShoppingCart className="h-3.5 w-3.5" />
                     </span>
                     <span>{t('nav.buyCredits')}</span>
-                    <span className="rounded-full bg-[#123832]/10 px-2 py-1 text-[11px] font-semibold">{t('nav.buyCreditsPrice')}</span>
-                    <ArrowRight className="ml-auto h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+                    <span className="rounded-full bg-[#123832]/10 px-1.5 py-0.5 text-[10px] font-semibold">{t('nav.buyCreditsPrice')}</span>
+                    <ArrowRight className="ml-auto h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1" />
                   </button>
                 </div>
               </div>

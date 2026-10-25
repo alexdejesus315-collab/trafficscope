@@ -112,7 +112,7 @@ function MiniCompareDemo() {
     { d: "x.com", v: "486.500.000", w: 22, grow: "+8.4%", up: true },
   ];
   return (
-    <div className="bg-card rounded-2xl p-5 w-full max-w-md backdrop-blur-sm">
+    <div className="relative w-full max-w-md rounded-2xl border border-white/15 bg-white/[0.97] p-5 shadow-2xl shadow-black/20 backdrop-blur-sm">
       <div className="flex items-center gap-2 text-muted-foreground text-[12px] mb-5">
         <GitCompare className="h-3.5 w-3.5" />
         <span>
@@ -123,7 +123,7 @@ function MiniCompareDemo() {
         {domains.map((r) => (
           <div key={r.d}>
             <div className="flex items-center justify-between text-[13px] mb-1.5">
-              <span className="text-foreground font-medium">
+              <span className="text-foreground font-semibold">
                 {r.d}
               </span>
               <div className="flex items-center gap-2">
@@ -139,7 +139,7 @@ function MiniCompareDemo() {
                 <span className="text-muted-foreground text-[12px]">{r.v} {t('landing.hero.demo.visitsPerMonth')}</span>
               </div>
             </div>
-            <div className="h-2 rounded-full bg-muted overflow-hidden">
+            <div className="h-2 rounded-full bg-secondary overflow-hidden">
               <div
                 className="h-full rounded-full bg-brand transition-all duration-1000 ease-out"
                 style={{ width: `${r.w}%` }}
@@ -159,30 +159,36 @@ function MiniCompareDemo() {
 function Hero() {
   const { t } = useLanguage();
   return (
-    <section className="relative overflow-hidden bg-background">
+    <section className="relative isolate overflow-hidden bg-footer text-white">
+      <div aria-hidden="true" className="pointer-events-none absolute -right-28 -top-48 h-[34rem] w-[34rem] rounded-full border border-white/10" />
+      <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-32 h-[26rem] w-[26rem] rounded-full border border-white/10" />
+      <div aria-hidden="true" className="pointer-events-none absolute -bottom-40 left-[35%] h-[32rem] w-[32rem] rounded-full bg-brand/10 blur-3xl" />
       <div className="relative max-w-6xl mx-auto px-6 pt-20 pb-16 grid md:grid-cols-2 gap-14 items-center">
         <div>
-<div className="inline-flex items-center gap-2 text-[12px] font-medium text-foreground bg-brand/10 border border-brand/20 px-3 py-1.5 rounded-full mb-6">            <Activity className="h-3.5 w-3.5" />
+          <div className="inline-flex items-center gap-2 text-[12px] font-medium text-white bg-white/10 border border-white/15 px-3 py-1.5 rounded-full mb-6">
+            <Activity className="h-3.5 w-3.5 text-brand" />
             {t('landing.hero.badge')}
           </div>
-          <h1 className="text-[40px] sm:text-[52px] leading-[1.05] font-semibold text-foreground tracking-tight mb-5">
+          <h1 className="text-[40px] sm:text-[52px] leading-[1.05] font-semibold text-white tracking-tight mb-5">
             {t('landing.hero.title')}
           </h1>
-          <p className="text-[17px] text-muted-foreground leading-relaxed mb-8 max-w-md">
+          <p className="text-[17px] text-white/75 leading-relaxed mb-8 max-w-md">
             {t('landing.hero.subtitle')}
           </p>
           <div className="flex flex-wrap items-center gap-4">
-<a href="/login" className="inline-flex items-center gap-2 bg-primary hover:bg-[#3C4043] dark:hover:bg-[#E8EAED] text-primary-foreground font-medium px-6 py-3.5 rounded-full transition-all hover:-translate-y-0.5 active:translate-y-0">              {t('landing.hero.ctaPrimary')} <ArrowRight className="h-4 w-4" />
+            <a href="/login" className="inline-flex items-center gap-2 bg-brand hover:bg-[#21B09F] text-[#123832] font-semibold px-6 py-3.5 rounded-full shadow-lg shadow-black/15 transition-all hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0">
+              {t('landing.hero.ctaPrimary')} <ArrowRight className="h-4 w-4" />
             </a>
-            <a href="#comparar" className="inline-flex items-center gap-2 border-2 border-foreground bg-transparent text-foreground font-medium px-6 py-3.5 rounded-full hover:bg-muted transition-all">
+            <a href="#comparar" className="inline-flex items-center gap-2 border border-white/40 bg-white/5 text-white font-medium px-6 py-3.5 rounded-full hover:bg-white/10 hover:border-white/70 transition-all">
               {t('landing.hero.ctaSecondary')}
             </a>
           </div>
-          <p className="text-[12px] text-muted-foreground mt-4">
+          <p className="text-[12px] text-white/60 mt-4">
             {t('landing.hero.footnote')}
           </p>
         </div>
-        <div className="flex justify-center md:justify-end">
+        <div className="relative flex justify-center md:justify-end">
+          <div aria-hidden="true" className="absolute inset-8 rounded-full bg-brand/15 blur-3xl" />
           <MiniCompareDemo />
         </div>
       </div>

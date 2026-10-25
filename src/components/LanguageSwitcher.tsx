@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { Check, ChevronDown } from 'lucide-react';
 import { useLanguage, LANGUAGES, Language } from '../context/LanguageContext';
 
 export const LanguageSwitcher: React.FC = () => {
@@ -39,12 +39,12 @@ export const LanguageSwitcher: React.FC = () => {
       <button
         ref={toggleRef}
         onClick={() => setIsOpen((v) => !v)}
-        className="flex items-center gap-1.5 !text-sidebar-foreground text-base font-semibold rounded-full px-4 py-2 hover:!bg-muted hover:!text-link-hover transition-all duration-200"
+        className="flex items-center gap-2 !text-sidebar-foreground text-sm font-semibold rounded-full px-3 py-2 hover:!bg-muted hover:!text-link-hover transition-all duration-200"
         aria-expanded={isOpen}
         aria-label="Selecionar idioma"
       >
-        <span className="text-lg leading-none">{current.flag}</span>
-        <span className="hidden sm:inline uppercase text-sm">{current.code}</span>
+        <span className="text-base leading-none">{current.flag}</span>
+        <span className="hidden sm:inline">{current.label}</span>
         <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
@@ -61,9 +61,9 @@ export const LanguageSwitcher: React.FC = () => {
                 lang.code === language ? 'bg-muted font-semibold text-foreground' : 'text-foreground/80'
               }`}
             >
-              <span className="text-lg leading-none">{lang.flag}</span>
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-background text-base leading-none">{lang.flag}</span>
               <span>{lang.label}</span>
-              <span className="ml-auto text-[11px] uppercase text-muted-foreground">{lang.code}</span>
+              {lang.code === language && <Check className="ml-auto h-4 w-4 text-brand" />}
             </button>
           ))}
         </div>
